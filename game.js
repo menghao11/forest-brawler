@@ -227,7 +227,7 @@ function drawHUD(){const p=G.p;
  txt(AU.muted?'静音 [M]':'音效开 [M]',20,30,14,AU.muted?'#f88':'#9a8fc0');txt('波次 '+Math.min(G.wave+1,4)+'/4',W-20,30,16,'#ffd34a','right');
  if(G.go>0&&Math.floor(G.t*3)%2)txt('GO →',W-120,200,44,'#ffd34a','center');
  G.msgs.forEach((m,i)=>{ctx.globalAlpha=Math.min(1,m.life*2);txt(m.t,W/2,110+i*28,20,m.c,'center');ctx.globalAlpha=1});
- txt('移动:方向键/WASD  J攻击(长按蓄力)  K跳跃  L必杀  U施法  I切换魔法  E交谈  M静音',W/2,22,13,'#9a8fc0','center');}
+ if(!document.body.classList.contains('touch'))txt('移动:方向键/WASD  J攻击(长按蓄力)  K跳跃  L必杀  U施法  I切换魔法  E交谈  M静音',W/2,22,13,'#9a8fc0','center');}
 function drawWitchMenu(){const p=G.p;ctx.fillStyle='rgba(10,5,25,.75)';ctx.fillRect(0,0,W,H);
  ctx.beginPath();ctx.roundRect(230,100,500,320,16);ol('#2a1a40',5);txt('女巫的魔法课',480,145,28,'#e0b0ff','center');txt('当前经验：'+p.exp,480,175,16,'#c9a0ff','center');
  SPELLS.forEach((s,i)=>{const y=215+i*60,learned=p.spells.includes(s.id),ok=p.exp>=s.exp;ctx.globalAlpha=learned||ok?1:.4;

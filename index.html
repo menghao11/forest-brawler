@@ -1,3 +1,35 @@
-<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8"><link rel="icon" href="data:,"><title>暗夜森林·乱斗</title>
-<style>html,body{margin:0;background:#07060f;height:100%;display:flex;align-items:center;justify-content:center}canvas{max-width:100vw;max-height:100vh;image-rendering:auto}</style></head>
-<body><canvas id="c" width="960" height="540"></canvas><script src="audio.js"></script><script src="game.js"></script></body></html>
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="森林乱斗">
+<meta name="theme-color" content="#07060f">
+<link rel="icon" href="icon.png"><link rel="apple-touch-icon" href="icon.png"><title>暗夜森林·乱斗</title>
+<style>
+*{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+html,body{margin:0;padding:0;background:#07060f;width:100%;height:100%;overflow:hidden;position:fixed;touch-action:none;overscroll-behavior:none}
+canvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);touch-action:none;display:block}
+#touch{position:fixed;inset:0;display:none;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+body.touch #touch{display:block}
+#joyZone{position:absolute;left:0;top:25%;width:42%;bottom:0;pointer-events:auto;touch-action:none}
+#joy{position:absolute;width:116px;height:116px;border-radius:50%;background:rgba(160,140,220,.18);border:3px solid rgba(220,200,255,.45);left:calc(env(safe-area-inset-left) + 30px);bottom:calc(env(safe-area-inset-bottom) + 110px)}
+#knob{position:absolute;width:56px;height:56px;border-radius:50%;left:30px;top:30px;background:rgba(220,200,255,.55);border:3px solid #15101f}
+.btn{position:absolute;pointer-events:auto;touch-action:none;border-radius:50%;border:3px solid #15101f;color:#fff;font:bold 16px "PingFang SC",sans-serif;display:flex;align-items:center;justify-content:center;text-shadow:0 0 3px #000;box-shadow:inset 0 -4px 0 rgba(0,0,0,.3)}
+.btn.on{filter:brightness(1.4);transform:scale(.93)}
+#bJ{width:72px;height:72px;right:calc(env(safe-area-inset-right) + 90px);bottom:calc(env(safe-area-inset-bottom) + 70px);background:rgba(220,70,60,.5);font-size:20px}
+#bK{width:54px;height:54px;right:calc(env(safe-area-inset-right) + 18px);bottom:calc(env(safe-area-inset-bottom) + 85px);background:rgba(70,160,90,.5)}
+#bL{width:54px;height:54px;right:calc(env(safe-area-inset-right) + 175px);bottom:calc(env(safe-area-inset-bottom) + 70px);background:rgba(60,110,220,.5)}
+#bL.ready{animation:glow .5s infinite alternate;background:rgba(90,200,255,.95)}
+@keyframes glow{from{box-shadow:0 0 8px 4px #7fe0ff}to{box-shadow:0 0 24px 12px #bff0ff}}
+#bU{width:50px;height:50px;right:calc(env(safe-area-inset-right) + 100px);bottom:calc(env(safe-area-inset-bottom) + 155px);background:rgba(150,80,220,.5)}
+#bI{width:40px;height:40px;right:calc(env(safe-area-inset-right) + 25px);bottom:calc(env(safe-area-inset-bottom) + 155px);background:rgba(110,70,160,.5);font-size:12px}
+#bE{width:50px;height:50px;right:calc(env(safe-area-inset-right) + 175px);bottom:calc(env(safe-area-inset-bottom) + 145px);background:rgba(200,120,255,.5);display:none}
+#bM{width:40px;height:40px;left:calc(env(safe-area-inset-left) + 140px);top:calc(env(safe-area-inset-top) + 8px);background:rgba(60,50,90,.5);font-size:12px}
+#rot{display:none;position:fixed;inset:0;background:#07060f;color:#e0b0ff;font:bold 26px "PingFang SC",sans-serif;align-items:center;justify-content:center;flex-direction:column;z-index:9}
+@media (orientation:portrait){body.touch #rot{display:flex}}
+</style></head>
+<body><canvas id="c" width="960" height="540"></canvas>
+<div id="touch"><div id="joyZone"><div id="joy"><div id="knob"></div></div></div>
+<div class="btn" id="bJ" data-k="j">攻击</div><div class="btn" id="bK" data-k="k">跳跃</div><div class="btn" id="bL" data-k="l">必杀</div>
+<div class="btn" id="bU" data-k="u">魔法</div><div class="btn" id="bI" data-k="i">切换</div><div class="btn" id="bE" data-k="e">对话</div><div class="btn" id="bM">音</div></div>
+<div id="rot"><div style="font-size:60px">📱↻</div>请横屏游戏</div>
+<script src="audio.js"></script><script src="game.js"></script><script src="touch.js"></script></body></html>
