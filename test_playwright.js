@@ -17,7 +17,7 @@ console.log(await ev(()=>JSON.stringify(__G().enemies.map(e=>[e.type,Math.round(
 await ev(()=>{const G=__G();G.enemies=[];G.lockX=null;G.wave=3;G.p.exp=200;const w=G.B.witches[0];G.p.x=w.x-40;G.p.y=w.y+10;G.camX=w.x-400});await pg.waitForTimeout(300);
 await pg.keyboard.press('e');await pg.waitForTimeout(200);await pg.keyboard.press('j');await pg.waitForTimeout(100);await pg.keyboard.press('ArrowRight');await pg.keyboard.press('j');await pg.waitForTimeout(200);await shot('f_witch');
 console.log(await ev(()=>JSON.stringify({sp:__G().p.spells,exp:__G().p.exp,menu:!!__G().menu})));
-await pg.keyboard.press('e');await ev(()=>{__G().p.mp=5});await pg.keyboard.press('u');await pg.waitForTimeout(300);await shot('f_cast');
+await pg.keyboard.press('e');await ev(()=>{__G().p.mp=100});await pg.keyboard.press('u');await pg.waitForTimeout(300);await shot('f_cast');
 // boss & results
 await ev(()=>{const G=__G();__dbg.skip(G.B.waves.length-1)});await pg.keyboard.down('d');await pg.waitForTimeout(500);await pg.keyboard.up('d');await pg.waitForTimeout(1500);
 await ev(()=>{__dbg.god();const B=__dbg.boss();B.hp=B.maxhp*.45});await pg.waitForTimeout(3500);await shot('f_boss1');

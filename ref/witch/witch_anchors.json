@@ -1,0 +1,142 @@
+{
+ "canvas": [
+  256,
+  208
+ ],
+ "anchor_x": 128,
+ "baseline_y": 200,
+ "storage_scale_note": "draw at s=0.625 like hero_atlas (storage 1.6x)",
+ "facing": "left",
+ "frames": {
+  "witch_idle_01": {
+   "file": "witch_idle_01.png",
+   "src": "s_idle_sheet_b/idle_cell-0.png (breathing squash y=1, x=1)",
+   "scale_x": 0.1791,
+   "scale_y": 0.1791,
+   "paste_x": 70,
+   "bbox": [
+    70,
+    31,
+    184,
+    201
+   ],
+   "lowest_opaque_row": 200,
+   "clipped_px": 0
+  },
+  "witch_idle_02": {
+   "file": "witch_idle_02.png",
+   "src": "s_idle_sheet_b/idle_cell-0.png (breathing squash y=0.986, x=1.006)",
+   "scale_x": 0.1802,
+   "scale_y": 0.1766,
+   "paste_x": 70,
+   "bbox": [
+    70,
+    33,
+    184,
+    201
+   ],
+   "lowest_opaque_row": 200,
+   "clipped_px": 0
+  },
+  "witch_idle_03": {
+   "file": "witch_idle_03.png",
+   "src": "s_idle_sheet_b/idle_cell-0.png (breathing squash y=0.976, x=1.011)",
+   "scale_x": 0.1811,
+   "scale_y": 0.1748,
+   "paste_x": 70,
+   "bbox": [
+    70,
+    35,
+    185,
+    201
+   ],
+   "lowest_opaque_row": 200,
+   "clipped_px": 0
+  },
+  "witch_idle_04": {
+   "file": "witch_idle_04.png",
+   "src": "s_idle_sheet_b/idle_cell-0.png (breathing squash y=0.986, x=1.006)",
+   "scale_x": 0.1802,
+   "scale_y": 0.1766,
+   "paste_x": 70,
+   "bbox": [
+    70,
+    33,
+    184,
+    201
+   ],
+   "lowest_opaque_row": 200,
+   "clipped_px": 0
+  },
+  "witch_cast_01": {
+   "file": "witch_cast_01.png",
+   "src": "s_cast_sheet_b/cast_cell-0.png",
+   "scale_x": 0.1816,
+   "scale_y": 0.1816,
+   "paste_x": 65,
+   "bbox": [
+    65,
+    28,
+    188,
+    201
+   ],
+   "lowest_opaque_row": 200,
+   "clipped_px": 0
+  },
+  "witch_cast_02": {
+   "file": "witch_cast_02.png",
+   "src": "s_cast_sheet_b/cast_cell-1.png",
+   "scale_x": 0.1806,
+   "scale_y": 0.1806,
+   "paste_x": 59,
+   "bbox": [
+    59,
+    50,
+    188,
+    201
+   ],
+   "lowest_opaque_row": 200,
+   "clipped_px": 0
+  },
+  "witch_cast_03": {
+   "file": "witch_cast_03.png",
+   "src": "s_cast_sheet_b/cast_cell-2.png",
+   "scale_x": 0.1799,
+   "scale_y": 0.1799,
+   "paste_x": 33,
+   "bbox": [
+    33,
+    48,
+    190,
+    201
+   ],
+   "lowest_opaque_row": 200,
+   "clipped_px": 0
+  },
+  "witch_cast_04": {
+   "file": "witch_cast_04.png",
+   "src": "s_cast_sheet_b/cast_cell-3.png",
+   "scale_x": 0.197,
+   "scale_y": 0.197,
+   "paste_x": 74,
+   "bbox": [
+    74,
+    31,
+    179,
+    201
+   ],
+   "lowest_opaque_row": 200,
+   "clipped_px": 0
+  }
+ },
+ "portrait": {
+  "file": "witch_portrait.png",
+  "size": [
+   1013,
+   1387
+  ],
+  "also": "witch_portrait_640.png (467x640)",
+  "facing": "left (3/4)",
+  "src": "/workspace/witch/portrait_a.png"
+ }
+}
