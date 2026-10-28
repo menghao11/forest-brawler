@@ -7,20 +7,20 @@ const TIER_COL=['#cfcfcf','#9fe08f','#5ab8ff','#d08cff','#ffb030'];
 // 数据块由 tools/equip_csv.js 从 docs/equipment.csv 生成/回写（name 名称、desc 描述、lore 背景故事）；手改也可以，改完运行 export 同步表格
 // @EQUIP-DATA-BEGIN
 const EQUIP=[
- {"id":"w1","slot":"weapon","tier":1,"name":"青钢剑","price":500,"st":{"atk":6},"desc":"入门剑客的佩剑，轻巧趁手。","lore":"师父在你离开山门那天亲手交给你的剑。剑柄缠的青绳打了个奇怪的结，师父说：\"哪天你在别处见到同样的结，就停下来想一想。\""},
- {"id":"w2","slot":"weapon","tier":2,"name":"寒铁剑","price":1500,"st":{"atk":12,"crit":0.05},"desc":"雪山寒铁所铸，偶尔能刺中要害。","lore":"剑铺老板说，这批寒铁是十年前一位青衣客从雪山背下来的，他付钱时手套里滴出的不是汗，是冰水。那人后来再没回来取剑。"},
- {"id":"w3","slot":"weapon","tier":3,"name":"屠魔剑","price":3200,"st":{"atk":18,"boss":0.2},"desc":"专为斩杀魔物而铸，对首领伤害更高。","lore":"剑身刻着一行小字：\"斩魔者，终成魔。\"女巫卖给你时说这只是铁匠的玩笑。她说这话时，没有看你的眼睛。"},
- {"id":"w4","slot":"weapon","tier":4,"name":"龙渊剑","price":6500,"st":{"atk":28,"crit":0.1,"boss":0.25},"desc":"传说中的名剑，锋芒所至，首领亦惧。","lore":"龙渊剑曾封印过黑夜古堡的主人。封印破碎那夜，剑被人从古堡带出，剑柄上缠着一根青绳，打着你见过的那个结。"},
+ {"id":"w1","slot":"weapon","tier":1,"name":"青钢剑","price":300,"st":{"atk":6},"desc":"入门剑客的佩剑，轻巧趁手。","lore":"师父在你离开山门那天亲手交给你的剑。剑柄缠的青绳打了个奇怪的结，师父说：\"哪天你在别处见到同样的结，就停下来想一想。\""},
+ {"id":"w2","slot":"weapon","tier":2,"name":"寒铁剑","price":900,"st":{"atk":12,"crit":0.05},"desc":"雪山寒铁所铸，偶尔能刺中要害。","lore":"剑铺老板说，这批寒铁是十年前一位青衣客从雪山背下来的，他付钱时手套里滴出的不是汗，是冰水。那人后来再没回来取剑。"},
+ {"id":"w3","slot":"weapon","tier":3,"name":"屠魔剑","price":2000,"st":{"atk":18,"boss":0.2},"desc":"专为斩杀魔物而铸，对首领伤害更高。","lore":"剑身刻着一行小字：\"斩魔者，终成魔。\"女巫卖给你时说这只是铁匠的玩笑。她说这话时，没有看你的眼睛。"},
+ {"id":"w4","slot":"weapon","tier":4,"name":"龙渊剑","price":4200,"st":{"atk":28,"crit":0.1,"boss":0.25},"desc":"传说中的名剑，锋芒所至，首领亦惧。","lore":"龙渊剑曾封印过黑夜古堡的主人。封印破碎那夜，剑被人从古堡带出，剑柄上缠着一根青绳，打着你见过的那个结。"},
  {"id":"w_flame","slot":"weapon","tier":4,"name":"烈炎剑","price":0,"drop":"焰魔王掉落","st":{"atk":20,"spell":0.15,"boss":0.1},"desc":"焰魔王的心火凝成，挥剑时法术更强。","lore":"焰魔王倒下前，把剑推到你面前：\"拿去吧，反正……他也用过。\"火光里，剑身映出一个穿青衣的背影，不是你。"},
- {"id":"a1","slot":"armor","tier":1,"name":"皮甲","price":400,"st":{"hp":20,"def":1},"desc":"朴素的皮甲，聊胜于无。","lore":"森林猎户的旧甲，内衬绣着一个名字，被人用刀刮掉了。猎户说，这是从一个昏倒在林边的青衣少年身上捡来的。"},
- {"id":"a2","slot":"armor","tier":2,"name":"锁子甲","price":1200,"st":{"hp":40,"def":3},"desc":"环环相扣，挡得住哥布林的乱刀。","lore":"锁子甲的扣环有一枚是银的，与别的都不一样。女巫说那是\"补丁\"。吸血伯爵最怕的，就是银。"},
- {"id":"a3","slot":"armor","tier":3,"name":"玄铁甲","price":2800,"st":{"hp":70,"def":5},"desc":"火山玄铁所铸，沉重而坚固。","lore":"铸甲的老矿工说，火山里的熔岩本来是冷的，是\"那个人\"去了以后才烧起来的。他不肯说那个人是谁，只说那人穿青衣，带着一位女巫。"},
- {"id":"a4","slot":"armor","tier":4,"name":"龙鳞甲","price":5500,"st":{"hp":110,"def":8,"regen":0.3},"desc":"龙鳞缀成，能慢慢愈合穿戴者的伤口。","lore":"据说龙鳞甲会记住每一任主人的血。你穿上它的第一晚，梦里有人叫你\"师弟\"。"},
+ {"id":"a1","slot":"armor","tier":1,"name":"皮甲","price":250,"st":{"hp":20,"def":1},"desc":"朴素的皮甲，聊胜于无。","lore":"森林猎户的旧甲，内衬绣着一个名字，被人用刀刮掉了。猎户说，这是从一个昏倒在林边的青衣少年身上捡来的。"},
+ {"id":"a2","slot":"armor","tier":2,"name":"锁子甲","price":750,"st":{"hp":40,"def":3},"desc":"环环相扣，挡得住哥布林的乱刀。","lore":"锁子甲的扣环有一枚是银的，与别的都不一样。女巫说那是\"补丁\"。吸血伯爵最怕的，就是银。"},
+ {"id":"a3","slot":"armor","tier":3,"name":"玄铁甲","price":1800,"st":{"hp":70,"def":5},"desc":"火山玄铁所铸，沉重而坚固。","lore":"铸甲的老矿工说，火山里的熔岩本来是冷的，是\"那个人\"去了以后才烧起来的。他不肯说那个人是谁，只说那人穿青衣，带着一位女巫。"},
+ {"id":"a4","slot":"armor","tier":4,"name":"龙鳞甲","price":3600,"st":{"hp":110,"def":8,"regen":0.3},"desc":"龙鳞缀成，能慢慢愈合穿戴者的伤口。","lore":"据说龙鳞甲会记住每一任主人的血。你穿上它的第一晚，梦里有人叫你\"师弟\"。"},
  {"id":"a_king","slot":"armor","tier":4,"name":"大王战甲","price":0,"drop":"哥布林大王掉落","st":{"hp":80,"def":6,"crit":0.05},"desc":"哥布林大王的战甲，粗犷却意外合身。","lore":"大王战甲是按人类身形打的，根本不是哥布林的尺码。山谷里的哥布林说，大王的甲是\"古堡里的老爷\"赏的，作为看守山门的报酬。"},
- {"id":"r1","slot":"acc","tier":1,"name":"灵玉坠","price":450,"st":{"mp":20,"spell":0.1,"regen":0.3},"desc":"温润的灵玉，能涵养魔力。","lore":"女巫送你的第一件礼物，免费的。玉里封着一缕红雾，她说那是\"好运\"。夜深时，红雾会朝着黑夜古堡的方向轻轻飘动。"},
- {"id":"r2","slot":"acc","tier":2,"name":"鹰眼戒","price":1300,"st":{"crit":0.08,"atk":4},"desc":"鹰眼宝石镶嵌的戒指，让出手更精准。","lore":"戒指内圈刻着两个名字的首字，一个是你师父的，另一个被磨平了。猎鹰从不落在戴着它的人肩上，除非那人穿着青衣。"},
- {"id":"r3","slot":"acc","tier":3,"name":"秘法项链","price":3000,"st":{"spell":0.25,"mp":40,"regen":0.6},"desc":"流动着秘法的项链，大幅强化法术。","lore":"女巫年轻时的项链。她说自己早就不需要了，可每次你施法时，她的手都会下意识地按住空空的领口。"},
- {"id":"r4","slot":"acc","tier":4,"name":"猎魔徽记","price":6000,"st":{"boss":0.3,"crit":0.1,"spell":0.15},"desc":"猎魔人公会的最高徽记，对首领效果拔群。","lore":"徽记背面刻着历任持有者的名字，最后一行是你师父，倒数第二行被划掉了，旁边有人用血补了一句：\"他没有堕落，他是为了救她。\""},
+ {"id":"r1","slot":"acc","tier":1,"name":"灵玉坠","price":280,"st":{"mp":20,"spell":0.1,"regen":0.3},"desc":"温润的灵玉，能涵养魔力。","lore":"女巫送你的第一件礼物，免费的。玉里封着一缕红雾，她说那是\"好运\"。夜深时，红雾会朝着黑夜古堡的方向轻轻飘动。"},
+ {"id":"r2","slot":"acc","tier":2,"name":"鹰眼戒","price":800,"st":{"crit":0.08,"atk":4},"desc":"鹰眼宝石镶嵌的戒指，让出手更精准。","lore":"戒指内圈刻着两个名字的首字，一个是你师父的，另一个被磨平了。猎鹰从不落在戴着它的人肩上，除非那人穿着青衣。"},
+ {"id":"r3","slot":"acc","tier":3,"name":"秘法项链","price":1900,"st":{"spell":0.25,"mp":40,"regen":0.6},"desc":"流动着秘法的项链，大幅强化法术。","lore":"女巫年轻时的项链。她说自己早就不需要了，可每次你施法时，她的手都会下意识地按住空空的领口。"},
+ {"id":"r4","slot":"acc","tier":4,"name":"猎魔徽记","price":3900,"st":{"boss":0.3,"crit":0.1,"spell":0.15},"desc":"猎魔人公会的最高徽记，对首领效果拔群。","lore":"徽记背面刻着历任持有者的名字，最后一行是你师父，倒数第二行被划掉了，旁边有人用血补了一句：\"他没有堕落，他是为了救她。\""},
  {"id":"r_blood","slot":"acc","tier":4,"name":"血月吊坠","price":0,"drop":"吸血伯爵掉落","st":{"hp":30,"mp":30,"regen":1,"boss":0.15},"desc":"吸血伯爵心爱的吊坠，生命与魔力源源不绝。","lore":"打开吊坠，里面是一张小像：年轻的女巫依偎着一个穿青衣的剑客。伯爵临死前握着它说：\"告诉她……锅里的药，我一直没喝。\"原来女巫卖给你的每一件装备，都是在引你去古堡，替她结束那个她下不了手的人。"}];
 // @EQUIP-DATA-END
 const EQ=id=>EQUIP.find(q=>q.id===id);
@@ -30,7 +30,7 @@ const PCT={crit:1,boss:1,spell:1};
 function fmtV(k,v,sign=true){const s=sign&&v>=0?'+':'';return PCT[k]?s+Math.round(v*100)+'%':k==='regen'?s+(+v.toFixed(1))+'/秒':s+Math.round(v)}
 function fmtStat(k,v){return STAT_SHORT[k]+fmtV(k,v)}
 function gearStats(eq){const s={atk:0,hp:0,def:0,crit:0,boss:0,spell:0,mp:0,regen:0};for(const sl in eq||{}){const it=EQ(eq[sl]);if(it)for(const k in it.st)s[k]+=it.st[k]}return s}
-function sellPrice(it){return it.price?Math.round(it.price*.5):400+it.tier*200}
+function sellPrice(it){return it.price?Math.round(it.price*.5):100+it.tier*120}
 const MP_BASE=100,MP_REGEN=.5,POTION_MP=20;
 // 总属性（基础 + 淬炼 + 装备）；who = 存档(PROFILE) 或 关内玩家(G.p)
 function totalStats(who,eq){const g=gearStats(eq||who.eq);return {atk:10+(who.atkLv|0)*4+g.atk,hp:maxHpFor(PROFILE)+g.hp,def:(who.defLv|0)*2+g.def,crit:g.crit,boss:g.boss,spell:g.spell,mp:MP_BASE+g.mp,regen:MP_REGEN+g.regen}}
@@ -41,10 +41,27 @@ function applyGear(p,init){const s=gearStats(p.eq);p.st=s;const mh=maxHpFor(PROF
 // 掉落：精英小概率、首领必掉；已拥有则自动按半价出售
 const ELITE_TIER=[1,1,2,3,3],BOSS_TIER=[1,2,3,3,4];
 function rollGear(maxT,exact){const pool=EQUIP.filter(q=>q.price&&(exact?q.tier===maxT:q.tier<=maxT));let tot=0;const w=pool.map(q=>{const x=exact?1:(maxT-q.tier+1);tot+=x;return x});let r=Math.random()*tot;for(let i=0;i<pool.length;i++){r-=w[i];if(r<=0)return pool[i].id}return pool[0].id}
-function gainGear(id){const p=G.p,it=EQ(id);if(!it)return;
- if(p.owned.includes(id)){const g=sellPrice(it);p.gold+=g;msg('重复装备【'+it.name+'】自动出售 +'+g+' 金币','#ffd34a');sfx('coin');return}
- p.owned.push(id);const cur=EQ(p.eq[it.slot]);const auto=!cur||it.tier>cur.tier;if(auto){p.eq[it.slot]=id;applyGear(p)}
- msg('获得装备【'+it.name+'】'+(auto?'，已自动装备':'（可在女巫营地更换）'),TIER_COL[it.tier]);sfx('equip')}
+// 获得装备（第 7 轮）：放进背包，不再自动替换已穿戴的装备——
+// 槽位空着才直接穿上；否则弹出提示「立即装备？J 是 / K 留在背包」（期间游戏暂停）。本关所有掉落列在结算界面。
+function gainGear(id){const p=G.p,it=EQ(id);if(!it)return;const D=(G.drops||(G.drops=[]));
+ if(p.owned.includes(id)){const g=sellPrice(it);p.gold+=g;D.push({id,res:'sold',g});msg('重复装备【'+it.name+'】自动出售 +'+g+' 金币','#ffd34a');sfx('coin');return}
+ p.owned.push(id);const cur=EQ(p.eq[it.slot]);
+ if(!cur){p.eq[it.slot]=id;applyGear(p);D.push({id,res:'eq'});msg('获得装备【'+it.name+'】，已装备（空槽位）',TIER_COL[it.tier]);sfx('equip');return}
+ const d={id,res:'bag'};D.push(d);(G.gearQ||(G.gearQ=[])).push(d);G.gearPT=0;pressed.j=pressed.k=pressed.enter=false;
+ msg('获得装备【'+it.name+'】，已放入背包',TIER_COL[it.tier]);sfx('equip')}
+function gearOpen(){return !!(G&&G.gearQ&&G.gearQ.length)}
+function gearAnswer(yes){const d=G.gearQ.shift(),p=G.p,it=EQ(d.id);if(yes){p.eq[it.slot]=d.id;applyGear(p);d.res='eq';msg('已装备【'+it.name+'】',TIER_COL[it.tier]);sfx('equip')}else{msg('【'+it.name+'】留在背包（可在女巫营地/商店更换）','#ccc');sfx('coin')}G.gearPT=0}
+function gearPromptInput(dt){G.gearPT=(G.gearPT||0)+dt;if(G.gearPT<.3){pressed.j=pressed.k=false;return}
+ if(hit('j')||hit('enter'))gearAnswer(true);else if(hit('k')||hit('escape'))gearAnswer(false)}
+function drawGearPrompt(){const d=G.gearQ[0],it=EQ(d.id),p=G.p,cur=EQ(p.eq[it.slot]);ctx.fillStyle='rgba(5,3,15,.6)';ctx.fillRect(0,0,W,H);
+ const x=W/2-250,y=150,w=500,h=230;rr(x,y,w,h,14);ctx.fillStyle='rgba(24,16,44,.96)';ctx.fill();ctx.strokeStyle=TIER_COL[it.tier];ctx.lineWidth=3;ctx.stroke();
+ txt('获得新装备',W/2,y+24,15,'#c9a0ff','center');gearIcon(it.slot,x+40,y+60,1.3,TIER_COL[it.tier]);txt(it.name,x+64,y+56,22,TIER_COL[it.tier]);
+ txt(Object.entries(it.st).map(([k,v])=>fmtStat(k,v)).join('  '),x+64,y+82,13,'#9fe08f','left','#000',false);
+ txt('当前：'+(cur?cur.name:'—')+'（'+Object.entries(cur?cur.st:{}).map(([k,v])=>fmtStat(k,v)).join(' ')+'）',x+24,y+110,12,'#aaa','left','#000',false);
+ const a=totalStats(p),b=totalStats(p,Object.assign({},p.eq,{[it.slot]:it.id}));const ch=[];for(const k of ['atk','hp','def','crit','boss','spell','mp','regen']){const dv=b[k]-a[k];if(Math.abs(dv)>1e-6)ch.push({k,dv})}
+ ch.forEach((c,i)=>{const cx=x+24+(i%4)*118,cy=y+136+Math.floor(i/4)*20;txt(STAT_LONG[c.k]+' '+(c.dv>0?'▲':'▼')+fmtV(c.k,Math.abs(c.dv),false),cx,cy,12,c.dv>0?'#7f7':'#f77','left','#000',false)});
+ btn(x+40,y+h-52,190,40,'立即装备 (J)',()=>{if(G.gearPT>=.3)gearAnswer(true)},'#3a7a2a');btn(x+w-230,y+h-52,190,40,'留在背包 (K)',()=>{if(G.gearPT>=.3)gearAnswer(false)});
+ if(G.gearQ.length>1)txt('还有 '+(G.gearQ.length-1)+' 件',x+w-14,y+20,11,'#aaa','right','#000',false)}
 // ---------- 商店界面（关卡选择界面 / 女巫营地共用）----------
 const SHOP={col:0,row:0,note:'',noteC:'#fff',noteUntil:0};
 function shopNote(t,c='#fff'){SHOP.note=t;SHOP.noteC=c;SHOP.noteUntil=performance.now()+2600}

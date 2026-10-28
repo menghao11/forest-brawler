@@ -9,7 +9,7 @@ addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 const hit=k=>{if(pressed[k]){pressed[k]=false;return true}return false};
 const rnd=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),pick=a=>a[Math.floor(Math.random()*a.length)];
 // ---------- 资源 ----------
-const ASSET_V='20261028e';const IMG={};function loadImg(k,src){const i=new Image();i.src=src+(/^assets\/[a-z_]+_atlas\.png$/.test(src)?'?v='+ASSET_V:'');IMG[k]=i;return i}
+const ASSET_V='20261028f';const IMG={};function loadImg(k,src){const i=new Image();i.src=src+(/^assets\/[a-z_]+_atlas\.png$/.test(src)?'?v='+ASSET_V:'');IMG[k]=i;return i}
 loadImg('hero',HERO_ATLAS.image);loadImg('gob',GOBLIN_ATLAS.image);loadImg('big',BIGGOBLIN_ATLAS.image);loadImg('bat',BAT_ATLAS.image);loadImg('vamp',VAMPIRE_ATLAS.image);loadImg('fx',FX_ATLAS.image);loadImg('snow',SNOWMAN_ATLAS.image);loadImg('snowboss',SNOWBOSS_ATLAS.image);if(window.PROPS_ATLAS)loadImg('props',PROPS_ATLAS.image);if(window.WITCH_ATLAS)loadImg('witch',WITCH_ATLAS.image);
 STAGES.forEach(s=>{if(s.far)loadImg('far'+s.id,s.far)});
 const ready=k=>IMG[k]&&IMG[k].complete&&IMG[k].naturalWidth>0;
@@ -65,24 +65,28 @@ const BOSSES={
 // ---------- 魔法树 ----------
 // 三系定位：火 = 灼烧持续伤害/范围；冰 = 减速/冰冻（冻结的敌人受非冰伤害 +30% 碎冰）；雷 = 连锁/爆发（雷系暴击率 +15%）
 const SCHOOLS=[{id:'fire',name:'火系',col:'#ff7a1a',icon:'fire_orb',role:'灼烧 · 范围'},{id:'ice',name:'冰系',col:'#7fe3ff',icon:'ice_orb',role:'减速 · 冰冻'},{id:'thunder',name:'雷系',col:'#b08cff',icon:'thunder_orb',role:'连锁 · 爆发'}];
-// exp 学习所需经验；mp 魔力消耗；cd 冷却（秒）。升级 Lv2/Lv3：伤害 ×1.3/×1.6、冷却 -12%/-24%，火系灼烧 +1 秒/级、冰系控制 +25%/级、雷系连锁 +1/级
+// exp 学习所需经验；mp 魔力消耗；cd 冷却（秒）；k 档位：b 基础 / m 中阶 / u 终极。升级 Lv2/Lv3：伤害 ×1.3/×1.6、冷却 -12%/-24%，火系灼烧 +1 秒/级、冰系控制 +25%/级、雷系连锁 +1/级
+// 第 7 轮平衡：法术伤害按「攻击力」计算（描述里的 ×N 是单体总伤害约为攻击力的倍数；普攻一击约 ×1–1.5）。
+//   基础法术 ≈ 普攻一击的 2–4 倍；中阶 ≈ 3–5 倍；终极 ≈ 8–12 倍，但冷却 25–32 秒、魔力 70–80。
+//   任意施法后有公共冷却 GCD（基础 0.8 秒 / 中阶 1.2 秒 / 终极 2 秒）；100 魔力只够 2–3 个中阶法术。首领只受 60% 法术伤害，追赶系数不作用于法术。
 const SPELLS=[
- {id:'f1',s:'fire',name:'火球术',exp:30,mp:12,cd:1,desc:'火球30，命中灼烧'},
- {id:'f2',s:'fire',name:'连续火球',exp:60,mp:20,cd:2.5,desc:'3枚火球，小范围爆炸'},
- {id:'f3',s:'fire',name:'火墙',exp:100,mp:22,cd:6,desc:'火墙持续灼烧3秒'},
- {id:'f4',s:'fire',name:'爆裂火球',exp:150,mp:30,cd:5,desc:'命中爆炸，范围70+灼烧'},
- {id:'f5',s:'fire',name:'火焰旋涡',exp:220,mp:35,cd:9,desc:'身周旋涡吸附并灼烧'},
- {id:'f6',s:'fire',name:'烈焰冲击',exp:300,mp:45,cd:8,desc:'贯穿全屏火焰120+灼烧'},
- {id:'i1',s:'ice',name:'冰锥连射',exp:30,mp:12,cd:1.2,desc:'扇形冰锥，减速'},
- {id:'i2',s:'ice',name:'冰霜领域',exp:70,mp:22,cd:8,desc:'冻结周围敌人3秒'},
- {id:'i3',s:'ice',name:'冰爆',exp:130,mp:28,cd:6,desc:'最近敌人处冰爆，冻结'},
- {id:'i4',s:'ice',name:'寒冰冲击',exp:200,mp:32,cd:7,desc:'贯穿冰枪80并冻结'},
- {id:'i5',s:'ice',name:'冰龙术',exp:320,mp:55,cd:14,desc:'冰龙横扫全屏150'},
- {id:'t1',s:'thunder',name:'连锁闪电',exp:30,mp:12,cd:1.2,desc:'闪电弹跳4个敌人'},
- {id:'t2',s:'thunder',name:'雷电冲刺',exp:80,mp:18,cd:4,desc:'化雷突进，无敌穿刺'},
- {id:'t3',s:'thunder',name:'电刃斩',exp:140,mp:22,cd:4,desc:'雷刃贯穿，命中连锁'},
- {id:'t4',s:'thunder',name:'雷暴领域',exp:210,mp:35,cd:12,desc:'4秒内持续落雷'},
- {id:'t5',s:'thunder',name:'天雷降临',exp:320,mp:55,cd:15,desc:'全屏天雷160，眩晕'}];
+ {id:'f1',s:'fire',k:'b',name:'火球术',exp:30,mp:15,cd:1.2,desc:'火球 ×2 攻击，命中灼烧'},
+ {id:'f2',s:'fire',k:'m',name:'连续火球',exp:60,mp:35,cd:5,desc:'3 枚火球各 ×1，小范围爆炸'},
+ {id:'f3',s:'fire',k:'m',name:'火墙',exp:100,mp:35,cd:8,desc:'火墙持续灼烧 3 秒，约 ×4.5'},
+ {id:'f4',s:'fire',k:'m',name:'爆裂火球',exp:150,mp:40,cd:7,desc:'命中爆炸，范围 ×3 + 灼烧'},
+ {id:'f5',s:'fire',k:'m',name:'火焰旋涡',exp:220,mp:40,cd:10,desc:'身周旋涡吸附并灼烧，约 ×4.8'},
+ {id:'f6',s:'fire',k:'u',name:'烈焰冲击',exp:300,mp:75,cd:28,desc:'终极：贯穿全屏火焰 ×10 + 灼烧'},
+ {id:'i1',s:'ice',k:'b',name:'冰锥连射',exp:30,mp:15,cd:1.4,desc:'扇形 3 支冰锥各 ×1，减速'},
+ {id:'i2',s:'ice',k:'m',name:'冰霜领域',exp:70,mp:35,cd:10,desc:'冻结周围敌人 3 秒，×1.5'},
+ {id:'i3',s:'ice',k:'m',name:'冰爆',exp:130,mp:38,cd:7,desc:'最近敌人处冰爆 ×4.5，冻结'},
+ {id:'i4',s:'ice',k:'m',name:'寒冰冲击',exp:200,mp:40,cd:8,desc:'贯穿冰枪 ×5 并冻结'},
+ {id:'i5',s:'ice',k:'u',name:'冰龙术',exp:320,mp:80,cd:30,desc:'终极：冰龙横扫全屏 ×12，冻结'},
+ {id:'t1',s:'thunder',k:'b',name:'连锁闪电',exp:30,mp:15,cd:1.4,desc:'闪电 ×2.6，弹跳 4 个敌人'},
+ {id:'t2',s:'thunder',k:'m',name:'雷电冲刺',exp:80,mp:30,cd:5,desc:'化雷突进，无敌穿刺 ×4'},
+ {id:'t3',s:'thunder',k:'m',name:'电刃斩',exp:140,mp:35,cd:6,desc:'雷刃贯穿 ×3.5，命中连锁'},
+ {id:'t4',s:'thunder',k:'u',name:'雷暴领域',exp:210,mp:70,cd:26,desc:'终极：5 秒持续落雷，约 ×12'},
+ {id:'t5',s:'thunder',k:'u',name:'天雷降临',exp:320,mp:80,cd:32,desc:'终极：全屏天雷 ×11，眩晕'}];
+const GCD={b:.8,m:1.2,u:2},SPELL_BOSS=.6,BURN_K=.15;
 const SPELL_ICON={f1:'fireball',f2:'fireball_s',f3:'firewall',f4:'explosion',f5:'vortex',f6:'flame_lance',i1:'ice_lance',i2:'frost_field',i3:'ice_burst',i4:'ice_spikes',i5:'ice_dragon',t1:'chain',t2:'thunder_orb',t3:'thunder_blade',t4:'storm_field',t5:'heaven'};
 const SPELL_MAXLV=3;
 const SP=id=>SPELLS.find(s=>s.id===id);
@@ -108,7 +112,7 @@ let trees=[],props=[];
 function maxHpFor(prof){return 97+12*(prof.cleared||[]).length}
 function startStage(idx){
  const S=STAGES[idx],B=buildStage(S);const P=PROFILE;const ng=P.ngplus?1.5:1;
- G={S,idx,B,t:0,time:0,camX:0,lockX:null,shake:0,hitstop:0,flash:0,msgs:[],parts:[],pickups:[],pp:[],ep:[],hz:[],zones:[],swords:[],bolts:[],enemies:[],
+ G={S,idx,B,t:0,time:0,camX:0,lockX:null,shake:0,hitstop:0,flash:0,lanes:[[],[],[]],parts:[],pickups:[],pp:[],ep:[],hz:[],zones:[],swords:[],bolts:[],enemies:[],
   wave:0,go:0,menu:null,popup:null,shrink:0,shrinkT:0,bloodmoon:0,boss:null,kills:0,goldStart:P.gold,expStart:P.exp,diff:S.diff*ng,rockT:3,ashT:20,ash:0,lightT:8,amb:[],cleared:0,clearT:0,
   p:{x:150,y:390,z:0,vz:0,face:1,hp:maxHpFor(P),maxhp:maxHpFor(P),energy:0,gold:P.gold,exp:P.exp,mp:P.mp,mpShow:P.mp,mpGhost:P.mp,mpWarn:0,mpFlash:0,atkLv:P.atkLv,defLv:P.defLv,flameSword:0,owned:[...(P.owned||[])],eq:Object.assign({},P.eq),slv:Object.assign({},P.slv),cds:{},cdMax:{},
    prof:P.prof,plv:P.plv,spells:[...P.spells],sel:Math.min(P.sel||0,Math.max(0,P.spells.length-1)),combo:0,atkT:0,atkDur:.3,comboWin:0,hurtT:0,inv:0,specialT:0,castT:0,castAnim:'charge',walk:0,
@@ -138,8 +142,23 @@ function laneAt(x){let top=LANE_TOP,bot=LANE_BOT;for(const s of G.B.segs)if(x>s.
  if(G.shrink>0){top+=G.shrink;bot-=G.shrink}return [top,bot]}
 function segAt(x,type){return G.B.segs.find(s=>x>s.x0&&x<s.x1&&s.type===type)}
 function baseAtk(){return 10+G.p.atkLv*4}function atk(){const p=G.p;return baseAtk()+(p.st?p.st.atk:0)}function def(){return G.p.defLv*2+(G.p.st?G.p.st.def:0)}
-// 消息队列：同屏最多 3 条，重复文字只刷新，不重叠；其余排队
-function msg(t,c='#fff'){if(!G)return;const a=G.msgs.find(m=>m.t===t);if(a){a.life=Math.max(a.life,2.2);return}if((G.msgQ||(G.msgQ=[])).some(m=>m.t===t))return;if(G.msgs.length<3)G.msgs.push({t,c,life:2.2,a:0});else G.msgQ.push({t,c,life:2.2,a:0})}
+// 消息队列（第 7 轮）：一个队列、三条固定车道，每条车道同一时间只显示一条，绝不重叠：
+//   车道 0（y=122）警报：关卡名、波次、增援、首领出现/换阶段、首领招式提示
+//   车道 1（y=150）收获：经验（连续击杀合并成一条累加）、拾取、装备、施法名
+//   车道 2（y=178）提示：冷却中、魔力不足、女巫营地、营火回复等
+// 同一车道排队（最多 3 条，重复文字只刷新），排队时当前消息至少显示 0.7 秒后加速淡出。技能/熟练度弹窗固定在车道下方（y≥206）。
+const MSG_Y=[122,150,178];
+const MSG_HINT=/冷却中|魔力不足|尚未学习|魔力已满|女巫营地|营火|施法间隔/,MSG_INFO=/经验|魔力 \+|淬炼|获得装备|自动出售|背包|已装备/;
+function msgLane(t){return MSG_HINT.test(t)?2:MSG_INFO.test(t)?1:0}
+function msg(t,c='#fff',lane){if(!G)return;if(lane==null)lane=msgLane(t);const L=(G.lanes||(G.lanes=[[],[],[]]))[lane];
+ const a=L.find(m=>m.t===t);if(a){if(a===L[0])a.life=Math.max(a.life,2.2);return}
+ L.push({t,c,life:2.2,a:0,shown:0});while(L.length>4)L.splice(1,1)}
+function msgExp(n){if(!G)return;const L=(G.lanes||(G.lanes=[[],[],[]]))[1];const a=L.find(m=>m.exp!=null);
+ if(a){a.exp+=n;a.t='+'+a.exp+' 经验';if(a===L[0])a.life=Math.max(a.life,1.6);return}L.push({t:'+'+n+' 经验',c:'#c9a0ff',life:1.8,a:0,shown:0,exp:n});while(L.length>4)L.splice(1,1)}
+function updateMsgs(dt){for(const L of (G.lanes||[])){const m=L[0];if(!m)continue;m.shown+=dt;m.a=Math.min(1,m.a+dt*6);m.life-=dt*(L.length>1&&m.shown>.7?2.5:1);if(m.life<=0)L.shift()}}
+function msgShowing(t){return (G.lanes||[]).some(L=>L[0]&&L[0].t===t)}
+function drawMsgs(){(G.lanes||[]).forEach((L,i)=>{const m=L[0];if(!m)return;const al=Math.min(1,m.life*2,m.a);ctx.globalAlpha=al*.55;ctx.font='bold 18px sans-serif';const w=Math.min(W-80,ctx.measureText(m.t).width+36);
+  rr(W/2-w/2,MSG_Y[i]-13,w,26,13);ctx.fillStyle='rgba(8,6,20,.8)';ctx.fill();ctx.globalAlpha=al;txt(m.t,W/2,MSG_Y[i],i===2?16:18,m.c,'center');ctx.globalAlpha=1})}
 function particles(x,y,z,col,n,sp=200){for(let i=0;i<n;i++)G.parts.push({x,y,z,vx:rnd(-sp,sp),vz:rnd(50,sp*1.5),vy:rnd(-30,30),life:rnd(.3,.7),col,s:rnd(2,5)})}
 function stackZ(x,y,z){let k=0;for(const q of G.parts)if((q.num!=null||q.txt)&&q.life>.35&&Math.abs(q.x-x)<44&&Math.abs(q.y-y)<40)k++;return {x:x+(k%2?14:-6)*Math.min(k,1),z:z+Math.min(k,4)*20,k}}
 function numPop(x,y,z,v,col,sz=18){const s=stackZ(x,y,z);if(s.k>=5)return;G.parts.push({num:Math.round(v),x:s.x,y,z:s.z,vz:60,life:.8,vx:0,vy:0,col,sz})}
@@ -160,10 +179,12 @@ function attackers(){let n=0;for(const o of G.enemies)if(o.tok&&!o.dead)n++;retu
 function tryTok(e){if(e.tok)return true;if(e.tokCd>0)return false;if(attackers()<maxAttackers()){e.tok=1;e.tokT=0;return true}return false}
 function dropTok(e,cd){if(e.tok){e.tok=0;e.tokCd=cd==null?rnd(.5,1.1):cd}}
 function resistOf(e,elem){const r=(e.def.resist)||(G.S.resist)||{};return elem&&r[elem]!=null?r[elem]:1}
-// 首领追赶系数：基础攻击（不含装备）低于该关预期时（如跳关/新存档），对首领伤害按差距放大（最多 ×5）；
-// 装备攻击不参与放大、全额叠加在上面，Boss伤害%/暴击另算，所以装备对首领始终有明显收益
+// 首领追赶系数（第 7 轮）：只看「关卡进度」，与当前攻击力无关——
+// 跳关（本关之前有未通关的关卡）时，按「本关预期基础攻击 / 最后通关处的预期基础攻击」放大近战对首领的伤害（最多 ×5）；
+// 正常顺序通关或重玩已通关卡 = ×1。系数乘在总攻击上，所以装备攻击、Boss伤害% 都按比例清楚地叠加；法术不吃这个系数。
 const BOSS_EXP_ATK=[10,26,42,62,80];
-function bossCatchUp(){const b=baseAtk(),g=G.p.st?G.p.st.atk:0,ea=BOSS_EXP_ATK[G.idx]||10;const c=b>=ea?1:Math.min(5,Math.pow(ea/b,.85));return (b*c+g)/(b+g)}
+function bossCatchUp(){const i=G.idx|0;let k=0;for(let j=0;j<i;j++)if(PROFILE.cleared.includes(STAGES[j].id))k=j+1;
+ if(k>=i)return 1;return Math.min(5,Math.pow(BOSS_EXP_ATK[i]/BOSS_EXP_ATK[k],.85))}
 const NOST={atk:0,hp:0,def:0,crit:0,boss:0,spell:0,mp:0,regen:0};
 function damage(e,d,kb,fromX,elem,opts={}){if(e.dead||e.inv>0||e.hidden)return 0;
  const st=G.p.st||NOST;let m=resistOf(e,elem);
@@ -173,7 +194,7 @@ function damage(e,d,kb,fromX,elem,opts={}){if(e.dead||e.inv>0||e.hidden)return 0
   else if(e.def.block&&Math.random()<e.def.block){m*=.2;numText(e,'格挡','#ccc');sfx('block')}}
  if(e.def.ai==='golem')m*=e.cool>0?1.6:.4;
  if(opts.ult&&(e.def.shape==='bat'||e.def.shape==='vamp'))m*=1.5;
- if(e.boss)m*=bossCatchUp()*(1+st.boss);m*=DBG_ATK;
+ if(e.boss)m*=(elem?SPELL_BOSS:bossCatchUp())*(1+st.boss);m*=DBG_ATK;// 追赶系数只作用于近战/剑气/终结技；法术对首领 ×0.6
  if(elem)m*=1+st.spell;
  let crit=0;if(!opts.dot){if(e.frozen>0&&elem!=='ice')m*=1.3;const cc=st.crit+(elem==='thunder'?.15:0);if(cc>0&&Math.random()<cc){m*=1.6;crit=1}}
  const dd=d*m;e.hp-=dd;
@@ -181,15 +202,15 @@ function damage(e,d,kb,fromX,elem,opts={}){if(e.dead||e.inv>0||e.hidden)return 0
  else{e.hurtT=e.boss?.08:.25;e.kx=(e.x<fromX?-1:1)*kb*(e.boss?.15:1);
   particles(e.x,e.y,40*e.r+e.z,elem==='fire'?'#ff8a30':elem==='ice'?'#bff0ff':elem==='thunder'?'#d0b0ff':'#ffe080',crit?14:8);numPop(e.x,e.y,70*e.r+e.z,dd,crit?'#ffe14a':m>1.2?'#ffd34a':m<.5?'#999':'#fff',crit?24:18);
   G.p.energy=Math.min(100,G.p.energy+3);sfx('hit');
-  if(elem==='fire'&&opts.burn){const was=e.burnT>0;e.burnT=Math.max(e.burnT||0,opts.burn);e.burnDps=Math.max(was?e.burnDps:0,d*.3)}
+  if(elem==='fire'&&opts.burn){const was=e.burnT>0;e.burnT=Math.max(e.burnT||0,opts.burn);e.burnDps=Math.max(was?e.burnDps:0,d*BURN_K)}
   if(elem==='ice')e.slow=Math.max(e.slow,opts.slow||2)}
  if(e.hp<=0)kill(e);return dd}
 function numText(e,t,c){if(G.parts.some(q=>q.txt===t&&q.life>.3&&Math.abs(q.x-e.x)<60&&Math.abs(q.y-e.y)<40))return;const s=stackZ(e.x,e.y,80*e.r);G.parts.push({txt:t,x:s.x,y:e.y,z:s.z,vz:40,life:.6,vx:0,vy:0,col:c})}
-function kill(e){e.dead=1;e.deadT=0;sfx('death');const p=G.p;p.exp+=e.exp;G.expGain=(G.expGain||0)+e.exp;G.kills++;particles(e.x,e.y,30+e.z,e.def.col||'#7bd34a',20,260);msg('+'+e.exp+' 经验','#c9a0ff');
+function kill(e){e.dead=1;e.deadT=0;sfx('death');const p=G.p;p.exp+=e.exp;G.expGain=(G.expGain||0)+e.exp;G.kills++;particles(e.x,e.y,30+e.z,e.def.col||'#7bd34a',20,260);msgExp(e.exp);
  if(e.def.explode){G.hz.push({k:'puddle',x:e.x,y:e.y,rx:44,ry:14,t:0,warn:0,act:3,dmg:6*G.diff});particles(e.x,e.y,10,'#ff7a1a',25,240);sfx('explode')}
- const n=e.boss?24:e.def.elite?8:Math.floor(rnd(2,5));
- for(let i=0;i<n;i++)G.pickups.push({kind:'coin',x:e.x,y:clamp(e.y+rnd(-20,20),LANE_TOP,LANE_BOT),z:20+e.z,vz:rnd(150,300),vx:rnd(-120,120),t:0});
- if(e.boss||e.def.elite||Math.random()<.3)G.pickups.push({kind:'potion',x:e.x,y:e.y,z:20,vz:250,vx:rnd(-60,60),t:0});
+ const n=e.boss?24:e.def.elite?6:Math.floor(rnd(1,3)),cv=COIN_V[G.idx]||5;
+ for(let i=0;i<n;i++)G.pickups.push({kind:'coin',v:cv,x:e.x,y:clamp(e.y+rnd(-20,20),LANE_TOP,LANE_BOT),z:20+e.z,vz:rnd(150,300),vx:rnd(-120,120),t:0});
+ if(e.boss||e.def.elite||Math.random()<.15)G.pickups.push({kind:'potion',x:e.x,y:e.y,z:20,vz:250,vx:rnd(-60,60),t:0});
  if(e.def.elite||Math.random()<.08)G.pickups.push({kind:Math.random()<.5?'sword':'armor',x:e.x,y:e.y,z:20,vz:280,vx:rnd(-80,80),t:0});// 淬炼石
  // 装备掉落：精英 20%（品质 ≤ 本关上限），首领必掉（专属装备或本关品质）
  if(e.def.elite&&!e.boss&&Math.random()<.2)G.pickups.push({kind:'gear',id:rollGear(ELITE_TIER[G.idx]||1),x:e.x,y:e.y,z:20,vz:300,vx:rnd(-60,60),t:0});
@@ -197,6 +218,9 @@ function kill(e){e.dead=1;e.deadT=0;sfx('death');const p=G.p;p.exp+=e.exp;G.expG
   if(d.exp){p.exp+=d.exp;G.expGain=(G.expGain||0)+d.exp}if(d.msg)msg(d.msg,'#ffb040')}
  if(e.boss&&!e.mini){G.clearT=2.5;G.ep=[];G.hz=G.hz.filter(h=>h.stage);G.enemies.forEach(o=>{if(!o.dead&&o!==e){o.hp=0;kill(o)}})}
  if(e.boss&&e.mini)G.mini=null}
+// 金币（第 7 轮）：每枚金币面值随关卡提高；普通敌人 1–2 枚、精英 6 枚、首领 24 枚；清波后金币自动吸附；
+// 通关奖励：首通 CLEAR_GOLD[关]，重玩一半。目标：第 1 关后买得起 1 阶，2–3 关买 2 阶，第 4 关左右 3 阶，4 阶需要重玩。
+const COIN_V=[1,2,4,6,7],CLEAR_GOLD=[200,300,400,500,600];
 let DBG_GOD=false,DBG_ATK=1;// 调试：无敌 / 伤害倍率（整页有效，跨关卡保留）
 function hurtPlayer(d,src){const p=G.p;if(DBG_GOD||p.inv>0||p.dead||G.clearT>0)return 0;if(!(d>0))return 0;d=Math.max(1,Math.round(d-def()));p.hp-=d;p.hurtT=.3;p.inv=.7;{const k=clamp(.3+d/p.maxhp*3,.3,1),rapid=G.t-(G.hurtAt||-9)<.4;G.hurtAt=G.t;G.hurtFlash=Math.max(G.hurtFlash,k*(rapid?.7:1));G.hurtTint=.15;G.hurtTintK=k*(rapid?.45:1)}p.energy=Math.min(100,p.energy+8);G.shake=6;
  numPop(p.x,p.y,80,d,'#ff5555');sfx('hurt');if(src&&src.x!=null)p.x+=Math.sign(p.x-src.x||1)*20;
@@ -211,14 +235,14 @@ function gainProf(n){const p=G.p;p.prof+=n;if(p.plv<5&&p.prof>=PROF[p.plv]){p.pl
 function startDash(dur=.36){const p=G.p;p.dashT=p.dashDur=dur;p.dashCd=.8;p.dashHits=[];p.inv=Math.max(p.inv,.3);sfx('dash')}
 function swordWave(){const p=G.p;G.pp.push({k:'sword_wave',x:p.x+p.face*40,y:p.y,z:40,vx:p.face*560,dmg:atk()*2.2,life:.9,pierce:1,hits:[],w:34});sfx('wave')}
 function special(){const p=G.p;p.energy=0;p.specialT=1.6;p.inv=1.8;G.flash=.4;G.shake=12;sfx('special');
- const lv5=p.plv>=5;msg('终结技 · 万剑归宗！','#ffd34a');
+ const lv5=p.plv>=5;msg('终结技 · 万剑归宗！','#ffd34a',1);
  const tg=G.enemies.filter(e=>!e.dead&&e.x>G.camX-20&&e.x<G.camX+W+20);let i=0;
  for(const e of tg)for(let k=0;k<(lv5?3:2);k++)G.swords.push({x:e.x+rnd(-20,20),y:e.y+1,t:-.25-(i++)*.06,e,dmg:(34+atk()*1.6)*(lv5?1.5:1),gold:lv5});
  for(let k=0;k<14;k++)G.swords.push({x:G.camX+rnd(30,W-30),y:rnd(LANE_TOP,LANE_BOT),t:-.2-k*.07,deco:1,gold:lv5})}
 function updatePlayer(dt){const p=G.p;
  if(p.dead&&(p.hp>0||DBG_GOD)){p.dead=0;p.deadT=0;if(p.hp<=0)p.hp=p.maxhp}
  if(p.dead){p.deadT+=dt;if(p.deadT>1.6&&MODE==='play'&&p.hp<=0){MODE='over';OVER_T=0;sfx('fail')}return}
- for(const k of['inv','hurtT','comboWin','dashCd','bufJ','hzT','mpWarn','mpFlash','selFlash','cdWarn'])p[k]=Math.max(0,p[k]-dt);
+ for(const k of['inv','hurtT','comboWin','dashCd','bufJ','hzT','mpWarn','mpFlash','selFlash','cdWarn','gcd'])p[k]=Math.max(0,p[k]-dt);
  for(const id in p.cds)p.cds[id]=Math.max(0,p.cds[id]-dt);
  p.mp=Math.min(p.mpMax,p.mp+(MP_REGEN+(p.st?p.st.regen:0))*dt);p.mpShow+=(p.mp-p.mpShow)*Math.min(1,dt*8);p.mpGhost=Math.max(p.mp,p.mpGhost-45*dt);
  if(G.menu)return;
@@ -258,7 +282,7 @@ function updatePlayer(dt){const p=G.p;
  // 拾取
  for(const k of G.pickups)if(k.z<=4&&Math.abs(k.x-p.x)<30&&Math.abs(k.y-p.y)<24&&!k.got){k.got=1;
   if(k.kind==='potion'&&p.mp>=p.mpMax-.5){k.got=0;if(!k.fullMsg){k.fullMsg=1;msg('魔力已满','#7fe3ff')}continue}
-  if(k.kind==='coin'){p.gold+=5;sfx('coin')}else if(k.kind==='potion'){p.mp=Math.min(p.mpMax,p.mp+POTION_MP);p.mpFlash=.6;msg('魔力 +'+POTION_MP,'#7fe3ff');sfx('potion')}
+  if(k.kind==='coin'){p.gold+=k.v||5;sfx('coin')}else if(k.kind==='potion'){p.mp=Math.min(p.mpMax,p.mp+POTION_MP);p.mpFlash=.6;msg('魔力 +'+POTION_MP,'#7fe3ff');sfx('potion')}
   else if(k.kind==='sword'){p.atkLv++;msg('武器淬炼 +1：攻击 +4','#ffd34a');sfx('equip')}else if(k.kind==='armor'){p.defLv++;msg('护甲淬炼 +1：防御 +2','#9fd0ff');sfx('equip')}
   else if(k.kind==='gear')gainGear(k.id);
   else if(k.kind==='flame_sword')gainGear('w_flame')}
@@ -275,32 +299,34 @@ function spellCd(s){return +(s.cd*(1-.12*(spellLv(s.id)-1))).toFixed(2)}
 function upCost(s,lv){return lv>=SPELL_MAXLV?0:Math.round(s.exp*(lv===1?.8:1.6)+20*lv)}
 function castSel(){const p=G.p;if(!p.spells.length){msg('尚未学习魔法（找女巫学习）','#aaa');sfx('fail');return}
  const s=SP(p.spells[p.sel]),cd=p.cds[s.id]||0;
- if(cd>0){msg(s.name+' 冷却中 '+cd.toFixed(1)+' 秒','#aaa');sfx('fail');p.cdWarn=.4;return}
+ if(cd>0){msg(s.name+' 冷却中 '+cd.toFixed(1)+' 秒','#aaa',2);sfx('fail');p.cdWarn=.4;return}
+ if(p.gcd>0){p.cdWarn=.3;sfx('fail');return}// 公共冷却：静默拒绝，图标上有转圈
  if(p.mp<s.mp){msg('魔力不足（需要 '+s.mp+'）','#f88');sfx('fail');p.mpWarn=.6;return}
- p.mp-=s.mp;p.cds[s.id]=p.cdMax[s.id]=spellCd(s);p.castT=.35;p.castAnim='charge';msg(s.name+(spellLv(s.id)>1?' Lv'+spellLv(s.id):'')+'！',SCHOOLS.find(c=>c.id===s.s).col);sfx(s.s==='fire'?'fire':s.s==='ice'?'frost':'bolt');CAST[s.id](spellL(s.id))}
+ p.mp-=s.mp;p.cds[s.id]=p.cdMax[s.id]=spellCd(s);p.gcd=p.gcdMax=GCD[s.k]||1;p.castT=s.k==='u'?.6:.35;p.castAnim='charge';msg(s.name+(spellLv(s.id)>1?' Lv'+spellLv(s.id):'')+'！',SCHOOLS.find(c=>c.id===s.s).col,1);sfx(s.s==='fire'?'fire':s.s==='ice'?'frost':'bolt');CAST[s.id](spellL(s.id))}
 function proj(k,o){const p=G.p;G.pp.push(Object.assign({k,x:p.x+p.face*40,y:p.y,z:40,vx:p.face*480,vy:0,life:1.4,hits:[],w:28,pierce:0},o))}
 function aoe(x,y,r,dmg,elem,eff={}){for(const e of G.enemies){if(e.dead)continue;if(Math.hypot(e.x-x,(e.y-y)*1.8)<r+14*e.r){damage(e,dmg,eff.kb||80,x,elem,{burn:eff.burn});if(eff.freeze)e.frozen=Math.max(e.frozen,eff.freeze);if(eff.stun)e.stun=Math.max(e.stun,eff.stun);if(eff.slow)e.slow=Math.max(e.slow,eff.slow)}}}
 function bolt(x1,y1,x2,y2){G.bolts.push({x1,y1,x2,y2,life:.25})}
 // 雷系连锁：从 (x,y) 起弹跳 n 个敌人，每跳伤害 -10%
 function chainBolt(x,y,n,dmg,stun,used=[]){let from={x,y};for(let i=0;i<n;i++){let b=null,bd=380;for(const e of G.enemies){if(e.dead||e.hidden||used.includes(e))continue;const d=Math.hypot(e.x-from.x,e.y-from.y);if(d<bd){bd=d;b=e}}
   if(!b)break;used.push(b);bolt(from.x,from.y,b.x,b.y-40*b.r-b.z);damage(b,dmg*(1-.1*i),40,G.p.x,'thunder');b.stun=Math.max(b.stun,stun);from={x:b.x,y:b.y-40*b.r-b.z}}}
+const SPW=()=>atk();// 法术强度 = 当前攻击力（含淬炼与装备）
 const CAST={
- f1:L=>proj('fireball',{dmg:30*L.m,elem:'fire',burn:L.burn}),
- f2:L=>{for(let i=0;i<3;i++)setTimeout(()=>G&&proj('fireball',{dmg:22*L.m,elem:'fire',burn:L.burn,y:G.p.y+(i-1)*14,explode:{r:55,dmg:12*L.m,small:1}}),i*130)},
- f3:L=>{const p=G.p;G.zones.push({k:'firewall',x:p.x+p.face*120,y:p.y,r:70,t:0,dur:3+.5*L.k,tick:.3,acc:0,dmg:14*L.m,elem:'fire',burn:L.burn})},
- f4:L=>proj('fireball',{dmg:40*L.m,elem:'fire',big:1,burn:L.burn,explode:{r:110+15*L.k,dmg:70*L.m}}),
- f5:L=>{G.zones.push({k:'vortex',x:G.p.x,y:G.p.y,r:150,t:0,dur:3+.5*L.k,tick:.25,acc:0,dmg:12*L.m,elem:'fire',pull:1,follow:1,burn:L.burn})},
- f6:L=>proj('flame_lance',{dmg:120*L.m,elem:'fire',burn:L.burn,pierce:1,vx:G.p.face*900,life:1.2,w:40}),
- i1:L=>{for(let i=-1;i<=1;i++)proj('ice_lance',{dmg:20*L.m,elem:'ice',vy:i*90,slow:2.5*L.f,sc:.5})},
- i2:L=>{const p=G.p;G.zones.push({k:'frost',x:p.x,y:p.y,r:170,t:0,dur:1,tick:9,acc:9,dmg:20*L.m,elem:'ice',freeze:3*L.f})},
- i3:L=>{const e=nearest();const x=e?e.x:G.p.x+G.p.face*200,y=e?e.y:G.p.y;G.zones.push({k:'iceburst',x,y,r:110,t:0,dur:.7,tick:9,acc:9,dmg:55*L.m,elem:'ice',freeze:2.5*L.f})},
- i4:L=>proj('ice_lance',{dmg:80*L.m,elem:'ice',pierce:1,vx:G.p.face*780,freeze:2.5*L.f,sc:1,w:36}),
- i5:L=>{G.zones.push({k:'dragon',x:G.camX+(G.p.face>0?-200:W+200),y:(LANE_TOP+LANE_BOT)/2,vx:G.p.face*900,r:200,t:0,dur:1.5,tick:9,acc:0,dmg:150*L.m,elem:'ice',freeze:2*L.f,hits:[]});G.shake=10},
- t1:L=>{const p=G.p;chainBolt(p.x,p.y-50,4+L.k,28*L.m,.6*L.f)},
- t2:L=>{const p=G.p;startDash(.45);p.inv=.6;G.zones.push({k:'thunderdash',x:p.x,y:p.y,r:60,t:0,dur:.45,tick:.08,acc:0,dmg:16*L.m,elem:'thunder',follow:1,stun:.8*L.f})},
- t3:L=>proj('thunder_blade',{dmg:55*L.m,elem:'thunder',pierce:1,vx:G.p.face*640,stun:1.2,w:40,chain:{n:2+L.k,dmg:25*L.m,left:2}}),
- t4:L=>{G.zones.push({k:'storm',x:G.p.x,y:G.p.y,r:260,t:0,dur:4+L.k,tick:.35,acc:0,dmg:26*L.m,elem:'thunder',follow:1,stun:.5,strike:1})},
- t5:L=>{G.flash=.5;G.shake=14;for(const e of G.enemies)if(!e.dead&&e.x>G.camX-20&&e.x<G.camX+W+20){bolt(e.x,e.y-500,e.x,e.y-e.z);damage(e,160*L.m,60,G.p.x,'thunder');e.stun=Math.max(e.stun,1*L.f)}}};
+ f1:L=>proj('fireball',{dmg:2*SPW()*L.m,elem:'fire',burn:L.burn}),
+ f2:L=>{const P=SPW();for(let i=0;i<3;i++)setTimeout(()=>G&&proj('fireball',{dmg:1*P*L.m,elem:'fire',burn:L.burn,y:G.p.y+(i-1)*14,explode:{r:55,dmg:.5*P*L.m,small:1}}),i*130)},
+ f3:L=>{const p=G.p;G.zones.push({k:'firewall',x:p.x+p.face*120,y:p.y,r:70,t:0,dur:3+.5*L.k,tick:.3,acc:0,dmg:.45*SPW()*L.m,elem:'fire',burn:L.burn})},
+ f4:L=>{const P=SPW();proj('fireball',{dmg:1.5*P*L.m,elem:'fire',big:1,burn:L.burn,explode:{r:110+15*L.k,dmg:3*P*L.m}})},
+ f5:L=>{G.zones.push({k:'vortex',x:G.p.x,y:G.p.y,r:150,t:0,dur:3+.5*L.k,tick:.25,acc:0,dmg:.4*SPW()*L.m,elem:'fire',pull:1,follow:1,burn:L.burn})},
+ f6:L=>proj('flame_lance',{dmg:10*SPW()*L.m,elem:'fire',burn:L.burn,pierce:1,vx:G.p.face*900,life:1.2,w:40}),
+ i1:L=>{const P=SPW();for(let i=-1;i<=1;i++)proj('ice_lance',{dmg:1*P*L.m,elem:'ice',vy:i*90,slow:2.5*L.f,sc:.5})},
+ i2:L=>{const p=G.p;G.zones.push({k:'frost',x:p.x,y:p.y,r:170,t:0,dur:1,tick:9,acc:9,dmg:1.5*SPW()*L.m,elem:'ice',freeze:3*L.f})},
+ i3:L=>{const e=nearest();const x=e?e.x:G.p.x+G.p.face*200,y=e?e.y:G.p.y;G.zones.push({k:'iceburst',x,y,r:110,t:0,dur:.7,tick:9,acc:9,dmg:4.5*SPW()*L.m,elem:'ice',freeze:2.5*L.f})},
+ i4:L=>proj('ice_lance',{dmg:5*SPW()*L.m,elem:'ice',pierce:1,vx:G.p.face*780,freeze:2.5*L.f,sc:1,w:36}),
+ i5:L=>{G.zones.push({k:'dragon',x:G.camX+(G.p.face>0?-200:W+200),y:(LANE_TOP+LANE_BOT)/2,vx:G.p.face*900,r:200,t:0,dur:1.5,tick:9,acc:0,dmg:12*SPW()*L.m,elem:'ice',freeze:2*L.f,hits:[]});G.shake=10},
+ t1:L=>{const p=G.p;chainBolt(p.x,p.y-50,4+L.k,2.6*SPW()*L.m,.6*L.f)},
+ t2:L=>{const p=G.p;startDash(.45);p.inv=.6;G.zones.push({k:'thunderdash',x:p.x,y:p.y,r:60,t:0,dur:.45,tick:.09,acc:0,dmg:.8*SPW()*L.m,elem:'thunder',follow:1,stun:.8*L.f})},
+ t3:L=>{const P=SPW();proj('thunder_blade',{dmg:3.5*P*L.m,elem:'thunder',pierce:1,vx:G.p.face*640,stun:1.2,w:40,chain:{n:2+L.k,dmg:1.5*P*L.m,left:2}})},
+ t4:L=>{G.zones.push({k:'storm',x:G.p.x,y:G.p.y,r:260,t:0,dur:5+L.k,tick:.35,acc:0,dmg:.85*SPW()*L.m,elem:'thunder',follow:1,stun:.5,strike:1})},
+ t5:L=>{G.flash=.5;G.shake=14;const P=SPW();for(const e of G.enemies)if(!e.dead&&e.x>G.camX-20&&e.x<G.camX+W+20){bolt(e.x,e.y-500,e.x,e.y-e.z);damage(e,11*P*L.m,60,G.p.x,'thunder');e.stun=Math.max(e.stun,1*L.f)}}};
 function learn(id){const p=G.p,s=SP(id);const i=SPELLS.indexOf(s);const prev=SPELLS[i-1];
  if(p.spells.includes(id))return upgradeSpell(id);if(prev&&prev.s===s.s&&!p.spells.includes(prev.id)){note('需先学会【'+prev.name+'】','#f88');sfx('fail');return}
  if(p.exp<s.exp){note('经验不足（需要 '+s.exp+'，现有 '+p.exp+'）','#f88');sfx('fail');return}
@@ -439,7 +465,8 @@ function updateWorld(dt){const p=G.p,B=G.B;
    msg('第 '+(G.wave+1)+' 波'+(w.elite?' · 精英来袭！':''),w.elite?'#ff9a40':'#fff')}}
  if(G.lockX!=null){const camT=G.lockX;G.camX+=(camT-G.camX)*Math.min(1,dt*5);
   if(G.reinf&&G.reinf.length&&!G.B.waves[G.wave].boss&&G.enemies.filter(e=>!e.dead).length<=1){spawnBatch(G.B.waves[G.wave],G.reinf.shift());msg('增援来袭！','#ffb080')}
-  if(G.enemies.every(e=>e.dead)&&!(G.reinf&&G.reinf.length)&&!G.B.waves[G.wave].boss){G.lockX=null;G.wave++;G.go=2.5;sfx('go');
+  if(G.enemies.every(e=>e.dead)&&!(G.reinf&&G.reinf.length)&&!G.B.waves[G.wave].boss){G.lockX=null;G.wave++;for(const k of G.pickups)if(k.kind==='coin')k.mag=1;// 清波后剩余金币自动飞向玩家
+   G.go=2.5;sfx('go');
    if(B.witches.some(w=>Math.abs(w.x-(B.waves[G.wave-1].x+W+60))<5))msg('前方有女巫营地（按 E 学习魔法/恢复）','#c9a0ff')}}
  else G.camX+=(clamp(p.x-W*.4,0,B.end-W)-G.camX)*Math.min(1,dt*6);
  G.go=Math.max(0,G.go-dt);G.shotT=Math.max(0,(G.shotT||0)-dt);// 远程敌人全局射击间隔：同屏多名弓手不再齐射
@@ -488,23 +515,25 @@ function updateWorld(dt){const p=G.p,B=G.B;
  for(const b of G.bolts)b.life-=dt;G.bolts=G.bolts.filter(b=>b.life>0);
  // 金币物理
  for(const k of G.pickups){k.t+=dt;if(k.z>0||k.vz>0){k.vz-=900*dt;k.z+=k.vz*dt;k.x+=k.vx*dt;if(k.z<=0){k.z=0;k.vz=k.vz<-80?-k.vz*.35:0;k.vx*=.5}}
-  if(k.kind==='coin'&&k.t>1&&Math.hypot(k.x-p.x,k.y-p.y)<140){k.x+=(p.x-k.x)*dt*6;k.y+=(p.y-k.y)*dt*6}}
+  if(k.kind==='coin'&&k.t>1&&(k.mag||Math.hypot(k.x-p.x,k.y-p.y)<140)){const f=Math.min(1,dt*(k.mag?8:6));k.x+=(p.x-k.x)*f;k.y+=(p.y-k.y)*f;if(k.mag)k.z=Math.min(k.z,4)}}
  for(const q of G.parts){q.x+=q.vx*dt;q.y+=q.vy*dt;q.z+=q.vz*dt;if(!q.num&&!q.txt)q.vz-=600*dt;if(q.z<0){q.z=0;q.vx*=.5}q.life-=dt}
  G.parts=G.parts.filter(q=>q.life>0);if(G.parts.length>500)G.parts.splice(0,G.parts.length-500);
- const qn=(G.msgQ||[]).length;for(const m of G.msgs){m.life-=dt*(qn?1.6:1);m.a=Math.min(1,(m.a||0)+dt*6)}G.msgs=G.msgs.filter(m=>m.life>0);while(G.msgs.length<3&&G.msgQ&&G.msgQ.length)G.msgs.push(G.msgQ.shift());
+ updateMsgs(dt);
  if(G.popup){G.popup.t-=dt;if(G.popup.t<=0)G.popup=null}
  // 通关（看门狗：首领以任何方式死亡都必须进入结算）
  if(G.wave>=B.waves.length){G.wave=B.waves.length-1}
- if(G.clearT<=0&&!G.clearedDone&&G.boss&&G.boss.dead&&!G.boss.mini){G.clearT=2.5;G.enemies.forEach(o=>{if(!o.dead){o.hp=0;kill(o)}})}
- if(G.clearT>0){G.clearT-=dt;if(G.clearT<=0){G.clearedDone=1;stageClear()}}
+ if(G.clearT<=0&&!G.clearedDone&&!G.clearPend&&G.boss&&G.boss.dead&&!G.boss.mini){G.clearT=2.5;G.enemies.forEach(o=>{if(!o.dead){o.hp=0;kill(o)}})}
+ if(G.clearT>0){G.clearT-=dt;if(G.clearT<=0){for(const k of G.pickups)if(k.kind==='gear'&&!k.got){k.got=1;gainGear(k.id)}G.clearPend=1}}// 没捡的装备收进背包（需要替换时先弹提示）
+ if(G.clearPend&&!gearOpen()){G.clearPend=0;G.clearedDone=1;stageClear()}
 }
 function stageClear(){const p=G.p,S=G.S,P=PROFILE;sfx('win');
- for(const k of G.pickups)if(k.kind==='gear'&&!k.got){k.got=1;gainGear(k.id)}// 没捡的首领装备自动收进背包
- const first=!P.cleared.includes(S.id);if(first)P.cleared.push(S.id);
+ for(const k of G.pickups)if(k.kind==='gear'&&!k.got){k.got=1;gainGear(k.id)}// 兜底
+ for(const k of G.pickups)if(k.kind==='coin'&&!k.got){k.got=1;p.gold+=k.v||5}
+ const first=!P.cleared.includes(S.id);const bonus=Math.round((CLEAR_GOLD[G.idx]||300)*(first?1:.5));p.gold+=bonus;if(first)P.cleared.push(S.id);
  Object.assign(P,{gold:p.gold,exp:p.exp,mp:Math.round(p.mp),atkLv:p.atkLv,defLv:p.defLv,prof:p.prof,plv:p.plv,spells:p.spells,sel:p.sel,owned:p.owned.slice(),eq:Object.assign({},p.eq),slv:Object.assign({},p.slv)});
  P.unlocked=Math.max(P.unlocked,Math.min(STAGES.length,S.id+1));const tm=Math.round(G.time);const best=P.best[S.id];if(!best||tm<best)P.best[S.id]=tm;
  if(S.final){P.ngplusUnlocked=1}
- RES_T=0;writeSave();RES={S,time:tm,gold:p.gold-G.goldStart,exp:G.expGain||0,kills:G.kills,first,best:P.best[S.id],final:!!S.final};MODE='results'}
+ RES_T=0;writeSave();RES={S,time:tm,gold:p.gold-G.goldStart,bonus,drops:(G.drops||[]).slice(),exp:G.expGain||0,kills:G.kills,first,best:P.best[S.id],final:!!S.final};MODE='results'}
 // ---------- 绘制辅助 ----------
 function txt(t,x,y,size=16,col='#fff',align='left',stroke='#000',bold=true){ctx.font=(bold?'bold ':'')+size+'px "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif';ctx.textAlign=align;ctx.textBaseline='middle';
  if(stroke){ctx.lineWidth=Math.max(3,size/5);ctx.strokeStyle=stroke;ctx.lineJoin='round';ctx.strokeText(t,x,y)}ctx.fillStyle=col;ctx.fillText(t,x,y)}
@@ -871,7 +900,7 @@ function spellIconTo(c,id,x,y,r,o={}){const s=id&&SP(id),sc=s&&SCHOOLS.find(q=>q
  if(o.cd>0&&o.cdT!=null)T(o.cdT<1?o.cdT.toFixed(1):String(Math.ceil(o.cdT)),x,y,Math.round(r*.62),'#fff');
  if(o.cost!=null){const bx=x+r*.72,by=y+r*.72,br=Math.max(7,r*.36);c.beginPath();c.arc(bx,by,br,0,7);c.fillStyle=o.ok===false?'#a02030':'#1f4fd0';c.fill();c.lineWidth=1.5;c.strokeStyle='#000';c.stroke();T(String(o.cost),bx,by+.5,Math.round(br*1.05),'#fff')}
  if(o.lv>1){for(let i=0;i<o.lv;i++){c.beginPath();c.arc(x-r*.75+i*r*.32,y-r*.82,Math.max(2,r*.11),0,7);c.fillStyle='#ffd34a';c.fill();c.lineWidth=1;c.strokeStyle='#000';c.stroke()}}}
-function spellOpts(id){const p=G.p,s=SP(id),cd=p.cds[id]||0,mx=p.cdMax[id]||spellCd(s);return {cd:cd>0?cd/mx:0,cdT:cd,cost:s.mp,lv:spellLv(id),ok:p.mp>=s.mp}}
+function spellOpts(id){const p=G.p,s=SP(id);let cd=p.cds[id]||0,mx=p.cdMax[id]||spellCd(s);if((p.gcd||0)>cd){cd=p.gcd;mx=p.gcdMax||1}return {cd:cd>0?cd/mx:0,cdT:cd,cost:s.mp,lv:spellLv(id),ok:p.mp>=s.mp}}
 function drawSpellHUD(cx,cy){const p=G.p,n=p.spells.length;
  if(!n){spellIconTo(ctx,null,cx,cy,26,{empty:'未学'});txt('找女巫学魔法',cx,cy+44,11,'#888','center');return}
  p.sel=Math.min(p.sel,n-1);const id=p.spells[p.sel],s=SP(id),sc=SCHOOLS.find(q=>q.id===s.s),o=spellOpts(id);
@@ -892,7 +921,8 @@ function drawHUD(){const p=G.p;
  bar(108,478,180,11,p.energy/100,p.energy>=100?(G.t*6%2<1?'#7fe0ff':'#3a8aff'):'#3a6ad8');txt('怒气 '+Math.floor(p.energy),198,484,10,'#fff','center');
  drawMpBar(108,494,180,11);
  if(p.energy>=100)txt('[L] 怒气必杀·万剑归宗',108,442,13,'#7fe0ff');
- const st=p.st||NOST;txt('攻 '+atk()+'  防 '+def()+(st.crit?'  暴击 '+Math.round(st.crit*100)+'%':'')+(st.boss?'  Boss+'+Math.round(st.boss*100)+'%':''),108,522,12,'#ffd34a');
+ const st=p.st||NOST;if(DBG_ATK!==1||DBG_GOD){ctx.font='bold 12px sans-serif';txt((DBG_GOD?'调试：无敌 ':'')+(DBG_ATK!==1?'调试：伤害 ×'+DBG_ATK:''),W-20,66,12,'#ff6060','right')}
+ txt('攻 '+(DBG_ATK!==1?Math.round(atk()*DBG_ATK)+'(×'+DBG_ATK+')':atk())+'  防 '+def()+(st.crit?'  暴击 '+Math.round(st.crit*100)+'%':'')+(st.boss?'  Boss+'+Math.round(st.boss*100)+'%':''),108,522,12,'#ffd34a');
  drawSpellHUD(362,474);
  const pl=p.plv,pf=pl>=5?1:(p.prof-PROF[pl-1])/(PROF[pl]-PROF[pl-1]);txt('砍杀熟练度 Lv'+pl,446,474,12,'#ffd34a');bar(446,484,110,11,pf,'#e8a020');txt(pl>=5?'MAX':p.prof+'/'+PROF[pl],501,490,10,'#fff','center');
  const items=[['#ffd030','金币',p.gold],['#3a7aff','魔力',Math.floor(p.mp)],['#c070ff','经验',p.exp]];
@@ -906,11 +936,11 @@ function drawHUD(){const p=G.p;
   txt(bs.def.name,W/2,62,16,'#ff8080','center');bar(x,72,w,14,bs.hp/bs.maxhp,'#d02030');
   bs.def.phases.forEach((ph,i)=>{if(i){const px=x+w*ph.at;ctx.fillStyle='#fff';ctx.fillRect(px-1,70,2,18)}})}
  if(G.go>0&&Math.floor(G.t*3)%2)txt('GO →',W-120,200,44,'#ffd34a','center');
- G.msgs.forEach((m,i)=>{ctx.globalAlpha=Math.min(1,m.life*2,m.a==null?1:m.a);txt(m.t,W/2,122+i*26,18,m.c,'center');ctx.globalAlpha=1});
+ drawMsgs();
  if(G.popup){const q=G.popup,py=206;ctx.globalAlpha=Math.min(1,q.t*2);rr(W/2-200,py,400,90,12);ctx.fillStyle='rgba(30,20,10,.85)';ctx.fill();ctx.strokeStyle='#ffd34a';ctx.lineWidth=3;ctx.stroke();
   txt(q.title,W/2,py+22,18,'#ffd34a','center');txt('习得：'+q.name,W/2,py+48,22,'#fff','center');txt(q.desc,W/2,py+73,13,'#ddd','center');ctx.globalAlpha=1}
  // 操作提示：等关卡名/波次提示消失后再出现，显示 10 秒，放在画面下方（HUD 上方），不与顶部标题挤在一起
- if(!document.body.classList.contains('touch')&&!bs){if(G.hintT==null&&G.time>2.5&&!G.msgs.some(m=>m.t===G.S.name))G.hintT=G.time;if(G.hintT!=null&&G.time-G.hintT<10){const k=G.time-G.hintT,a=Math.min(1,k*3,(10-k)*1.5);ctx.globalAlpha=a;rr(W/2-330,416,660,24,12);ctx.fillStyle='rgba(10,6,24,.6)';ctx.fill();txt('方向键/WASD移动  J攻击(长按蓄力)  K跳跃  L终结技  U施法  I切换  E女巫  P帮助  M静音',W/2,428,13,'#e0d6ff','center');ctx.globalAlpha=1}}}
+ if(!document.body.classList.contains('touch')&&!bs){if(G.hintT==null&&G.time>2.5&&!msgShowing(G.S.name))G.hintT=G.time;if(G.hintT!=null&&G.time-G.hintT<10){const k=G.time-G.hintT,a=Math.min(1,k*3,(10-k)*1.5);ctx.globalAlpha=a;rr(W/2-330,416,660,24,12);ctx.fillStyle='rgba(10,6,24,.6)';ctx.fill();txt('方向键/WASD移动  J攻击(长按蓄力)  K跳跃  L终结技  U施法  I切换  E女巫  P帮助  M静音',W/2,428,13,'#e0d6ff','center');ctx.globalAlpha=1}}}
 function fmtT(t){t=Math.floor(t);return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')}
 // ---------- 女巫菜单 ----------
 function witchMenuInput(){const m=G.menu;if(hit('q')||hit('tab')){m.tab=m.tab?0:1;sfx('coin')}
@@ -961,7 +991,7 @@ function drawPlay(){ctx.save();if(G.shake>0)ctx.translate(rnd(-G.shake,G.shake),
  const hs=G.B.segs.filter(s=>s.type==='hall');let cov=0;for(const s of hs)cov+=Math.max(0,Math.min(s.x1,cx+W)-Math.max(s.x0,cx));if(cov>0&&G.S.hall){ctx.globalAlpha=cov/W;ctx.fillStyle=G.S.hall.tint;ctx.fillRect(0,0,W,H);ctx.globalAlpha=1}
  if(G.bloodmoon){ctx.fillStyle='rgba(120,0,10,.18)';ctx.fillRect(0,0,W,H)}
  if(G.flash>0){ctx.fillStyle=`rgba(255,255,255,${G.flash})`;ctx.fillRect(0,0,W,H)}
- ctx.restore();drawDanger();drawHUD();if(G.menu)drawWitchMenu();
+ ctx.restore();drawDanger();drawHUD();if(G.menu)drawWitchMenu();else if(gearOpen())drawGearPrompt();
  if(G.clearT>0)txt(G.S.final?'吸血伯爵已被击败！':'关卡完成！',W/2,200,40,'#ffd34a','center')}
 // 受击红闪 + 低血量（<25%）脉动红色暗角
 function drawDanger(){const p=G.p;
@@ -1030,9 +1060,11 @@ function drawSelect(dt){selT+=dt;SYNC_T-=dt;if(SYNC_T<=0){SYNC_T=.5;syncSave()}p
  if(hit('arrowleft')||hit('a'))SEL=(SEL+4)%5;if(hit('arrowright')||hit('d'))SEL=(SEL+1)%5;if(hit('enter')||hit('j')||hit(' '))startSel(SEL)}
 function drawResults(){panelBG();const R=RES;rr(200,70,560,400,16);ctx.fillStyle='rgba(20,14,36,.92)';ctx.fill();ctx.strokeStyle='#ffd34a';ctx.lineWidth=3;ctx.stroke();
  txt('关卡完成！',W/2,110,34,'#ffd34a','center');txt('第'+R.S.id+'关 · '+R.S.name,W/2,148,18,'#fff','center');
- const rows=[['用时',fmtT(R.time)+(R.best===R.time?'  (新纪录)':'  最佳 '+fmtT(R.best))],['获得金币',R.gold],['获得经验',R.exp],['击败敌人',R.kills]];
- rows.forEach((r,i)=>{txt(r[0],300,200+i*40,18,'#c9a0ff');txt(String(r[1]),660,200+i*40,18,'#fff','right')});
- if(R.first&&!R.final)txt('解锁：第'+(R.S.id+1)+'关 · '+STAGES[R.S.id].name+'   最大生命 +12',W/2,365,15,'#8f8','center');
+ const rows=[['用时',fmtT(R.time)+(R.best===R.time?'  (新纪录)':'  最佳 '+fmtT(R.best))],['获得金币',R.gold+(R.bonus?'（含通关奖励 '+R.bonus+'）':'')],['获得经验',R.exp],['击败敌人',R.kills]];
+ rows.forEach((r,i)=>{txt(r[0],300,190+i*34,18,'#c9a0ff');txt(String(r[1]),660,190+i*34,18,'#fff','right')});
+ {const D=R.drops||[];const t=D.length?D.map(d=>{const it=EQ(d.id);return it.name+(d.res==='eq'?'（已装备）':d.res==='sold'?'（重复，卖出 +'+d.g+'）':'（在背包）')}).join('、'):'无';
+  txt('掉落装备',300,326,16,'#c9a0ff');const ls=wrapText(t,280,13).slice(0,3);ls.forEach((l,i)=>txt(l,660,326+i*16-(ls.length-1)*8,13,D.length?'#ffd34a':'#888','right','#000',false))}
+ if(R.first&&!R.final)txt('解锁：第'+(R.S.id+1)+'关 · '+STAGES[R.S.id].name+'   最大生命 +12',W/2,372,15,'#8f8','center');
  const ok=RES_T>=.8;if(!ok)ctx.globalAlpha=.45;// 0.8 s 防误触：连按 J 不会直接跳过结算
  if(R.final){btn(W/2-110,400,220,46,'观看结局',()=>{if(RES_T>=.8){MODE='ending';CREDY=H}},'#7a1a2a')}
  else{btn(W/2-230,400,200,46,'下一关 (J)',()=>{if(RES_T>=.8){SEL=R.S.id;startSel(R.S.id)}},'#7a3a1a');btn(W/2+30,400,200,46,'返回关卡选择 (K)',()=>{if(RES_T>=.8){MODE='select';SEL=R.S.id}})}
@@ -1060,8 +1092,8 @@ function frame(now){let dt=Math.min(.05,(now-last)/1000);last=now;RECTS.length=0
  else if(MODE==='select')drawSelect(dt);else if(MODE==='shop'){selT+=dt;drawShopScreen()}else if(MODE==='results'){RES_T+=dt;drawResults()}else if(MODE==='ending')drawEnding(dt);
  else if(MODE==='over'){OVER_T+=dt;drawOver()}
  else if(MODE==='play'){
-  if(G.menu){witchMenuInput()}
-  for(let si=0;si<SPEED&&MODE==='play';si++){if(G.hitstop>0){G.hitstop-=dt}else if(!G.menu){G.t+=dt;G.time+=dt;updatePlayer(dt);updateWorld(dt);ambient(dt)}}
+  if(G.menu){witchMenuInput()}else if(gearOpen())gearPromptInput(dt);
+  for(let si=0;si<SPEED&&MODE==='play';si++){if(G.hitstop>0){G.hitstop-=dt}else if(!G.menu&&!gearOpen()){G.t+=dt;G.time+=dt;updatePlayer(dt);updateWorld(dt);ambient(dt)}}
   G.shake=Math.max(0,G.shake-dt*30);G.flash=Math.max(0,G.flash-dt*1.5);G.hurtFlash=Math.max(0,G.hurtFlash-dt*2.2);G.hurtTint=Math.max(0,(G.hurtTint||0)-dt);drawPlay();drawTouchSpells()}
  }catch(err){FRAME_ERR++;if(FRAME_ERR<5)console.error(err);window.__lastErr=String(err&&err.stack||err)}
  if(HELP||!(MODE==='play'&&G&&G.hitstop>0))for(const k in pressed)pressed[k]=false;requestAnimationFrame(frame)}
@@ -1071,6 +1103,15 @@ cv.addEventListener('click',e=>{const b=cv.getBoundingClientRect();tapAt((e.clie
 window.__tap=tapAt;window.__G=()=>G;window.__help=()=>{if(canHelp('p'))toggleHelp()};window.__helpOpen=()=>!!HELP;
 window.__dbg={mode:()=>MODE,start:i=>startSel(i),profile:()=>PROFILE,
  skip:n=>{if(!G||!G.B||!G.B.waves.length)return false;const L=G.B.waves.length;n=Math.max(0,Math.min(L-1,Math.floor(+n)||0));const w=G.B.waves[n];if(!w)return false;G.enemies=[];G.reinf=[];G.lockX=null;G.boss=null;G.mini=null;G.wave=n;G.p.x=w.x+W*.4-30;G.camX=Math.max(0,w.x-60);return n},
- god:(on=true)=>{DBG_GOD=!!on;if(G&&G.p){const p=G.p;if(on){p.dead=0;p.deadT=0;p.hp=p.maxhp}}return DBG_GOD},atk:(m=1)=>{DBG_ATK=Math.max(0,+m||1);return DBG_ATK},give:(e,m)=>{G.p.exp+=e;G.p.mp=Math.min(G.p.mpMax,G.p.mp+m)},gold:g=>{if(G&&G.p)G.p.gold+=g;PROFILE.gold+=g;writeSave()},resetCd:()=>{G.p.cds={}},gear:id=>{G.p.owned.includes(id)||G.p.owned.push(id);G.p.eq[EQ(id).slot]=id;applyGear(G.p)},learnAll:()=>{G.p.spells=SPELLS.map(s=>s.id)},
+ god:(on=true)=>{DBG_GOD=!!on;if(G&&G.p){const p=G.p;if(on){p.dead=0;p.deadT=0;p.hp=p.maxhp}}return DBG_GOD},atk:(m=1)=>{DBG_ATK=Math.max(0,+m||1);return DBG_ATK},give:(e=0,m=0)=>{e=+e||0;m=+m||0;const inStage=MODE==='play'&&G&&G.p;// 关卡外：直接写进存档
+  if(inStage){G.p.exp+=e;G.p.mp=Math.min(G.p.mpMax,G.p.mp+m)}else{PROFILE.exp=(PROFILE.exp|0)+e;PROFILE.mp=Math.min(MP_BASE+totalStats(PROFILE).mp,(PROFILE.mp|0)+m);writeSave()}
+  return inStage?{exp:G.p.exp,mp:G.p.mp}:{exp:PROFILE.exp,mp:PROFILE.mp}},gold:g=>{if(G&&G.p)G.p.gold+=g;PROFILE.gold+=g;writeSave()},resetCd:()=>{G.p.cds={}},gear:id=>{G.p.owned.includes(id)||G.p.owned.push(id);G.p.eq[EQ(id).slot]=id;applyGear(G.p)},learnAll:()=>{G.p.spells=SPELLS.map(s=>s.id)},
  props:()=>props,killAll:()=>{const L=G.enemies.slice();const bs=L.filter(e=>e.boss&&!e.mini);L.filter(e=>!bs.includes(e)).concat(bs).forEach(e=>{if(!e.dead){e.hp=0;kill(e)}})},unlockAll:()=>{PROFILE.unlocked=5;writeSave()},setPlv:l=>{G.p.plv=l;G.p.prof=PROF[l-1]},energy:()=>{G.p.energy=100},
+ // 女巫营地：witch() 传送到前方下一个营地（清掉当前波次的敌人）；witch(i) 去第 i 个营地；witch('here') 在身边召唤一个女巫
+ witch:(i)=>{if(MODE!=='play'||!G)return false;const p=G.p,B=G.B;
+  if(i==='here'){const w={x:p.x+70,y:p.y,rested:0};B.witches.push(w);G.lockX=null;return {x:w.x,i:B.witches.length-1}}
+  let k=i==null?B.witches.findIndex(w=>w.x>p.x-40):+i;if(k<0)k=B.witches.length-1;const w=B.witches[k];if(!w)return false;
+  G.enemies=[];G.reinf=[];G.lockX=null;G.ep=[];G.hz=G.hz.filter(h=>h.stage);let n=B.waves.findIndex(v=>v.x>w.x);if(n<0)n=B.waves.length-1;G.wave=n;
+  p.x=w.x-60;p.y=w.y+10;G.camX=clamp(p.x-W*.4,0,B.end-W);return {i:k,x:w.x,nextWave:n+1}},
+ witches:()=>STAGES.map(S=>{const out=[];S.waves.forEach((w,i)=>{if(w.split('|').includes('rest'))out.push(i+1)});return {stage:S.id,name:S.name,waves:S.waves.length,afterWaves:out}}),
  boss:()=>G.boss,speed:n=>{SPEED=n},help:()=>HELP,overT:()=>OVER_T,resT:()=>RES_T,resetSave:()=>{PROFILE=defProfile();writeSave()}};

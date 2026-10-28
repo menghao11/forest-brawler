@@ -15,9 +15,9 @@ const ok=(c,m)=>{if(!c){console.log('FAIL',m);fails.push(m)}else console.log('ok
  await ev(()=>{__dbg.resetSave();__dbg.gold(5000)});await pg.keyboard.press('b');await W(300);ok(await ev(()=>__dbg.mode())==='shop','B 打开装备商店');
  const cell=(c,r)=>({x:36+c*200+90,y:112+r*58+26});
  for(const [c,r] of [[0,1],[1,0],[2,2]]){const q=cell(c,r);await ev(([x,y])=>__tap(x,y),[q.x,q.y]);await W(80);await ev(([x,y])=>__tap(x,y),[q.x,q.y]);await W(120)}
- P=await ev(()=>__dbg.profile());ok(P.eq.weapon==='w2'&&P.eq.armor==='a1'&&P.eq.acc==='r3'&&P.gold===5000-1500-400-3000,'购买并装备 '+JSON.stringify({eq:P.eq,gold:P.gold}));
+ P=await ev(()=>__dbg.profile());ok(P.eq.weapon==='w2'&&P.eq.armor==='a1'&&P.eq.acc==='r3'&&P.gold===5000-900-250-1900,'购买并装备 '+JSON.stringify({eq:P.eq,gold:P.gold}));
  const q=cell(0,3);await ev(([x,y])=>__tap(x,y),[q.x,q.y]);await W(80);await ev(([x,y])=>__tap(x,y),[q.x,q.y]);await W(100);
- ok((await ev(()=>__dbg.profile().gold))===100,'金币不足无法购买');
+ ok((await ev(()=>__dbg.profile().gold))===5000-900-250-1900,'金币不足无法购买');
  await ev(([x,y])=>__tap(x,y),[cell(0,2).x,cell(0,2).y]);await W(300);await shot('screenshot_shop.png');
  await pg.reload();await W(800);P=await ev(()=>__dbg.profile());ok(P.eq.weapon==='w2'&&P.owned.length===3,'刷新后装备仍在（localStorage）');
  // 3. 关内属性 + 首领追赶
@@ -25,7 +25,7 @@ const ok=(c,m)=>{if(!c){console.log('FAIL',m);fails.push(m)}else console.log('ok
  let r=await ev(()=>{const p=__G().p;return {atk:atk(),def:def(),maxhp:p.maxhp,mpMax:p.mpMax,crit:p.st.crit,spell:p.st.spell}});
  ok(r.atk===22&&r.def===1&&r.maxhp===117&&r.mpMax===140,'关内装备属性 '+JSON.stringify(r));
  r=await ev(()=>{const G=__G();G.idx=2;const a=bossCatchUp();G.p.eq={};applyGear(G.p);const b=bossCatchUp();G.idx=0;return {withGear:+(a*(10+12)).toFixed(1),noGear:+(b*10).toFixed(1)}});
- ok(r.withGear>r.noGear&&r.noGear>=30,'首领追赶：有装备对首领有效攻击更高 '+JSON.stringify(r));
+ ok(r.withGear>r.noGear&&r.noGear>=30,'首领追赶（按关卡进度）：有装备对首领有效攻击更高 '+JSON.stringify(r));
  await ev(()=>{const p=__G().p;p.eq={weapon:'w2',armor:'a1',acc:'r3'};applyGear(p)});
  // 4. 女巫：学习、升级、商店页、施法帧
  await ev(()=>{const G=__G();G.enemies=[];G.lockX=null;G.wave=3;G.p.exp=1000;const w=G.B.witches[0];G.p.x=w.x-40;G.p.y=w.y+10;G.camX=w.x-400});await W(300);
@@ -40,7 +40,7 @@ const ok=(c,m)=>{if(!c){console.log('FAIL',m);fails.push(m)}else console.log('ok
  // 5. 施法：冷却 / 魔力 / 灼烧
  await ev(()=>{const G=__G();G.p.mp=100;G.p.sel=0;});
  await pg.keyboard.press('u');await W(100);
- r=await ev(()=>{const p=__G().p;return {mp:Math.round(p.mp),cd:+(p.cds.f1||0).toFixed(2)}});ok(r.mp>=87&&r.mp<=89&&r.cd>0.5,'施法扣魔力 12 并进入冷却 '+JSON.stringify(r));
+ r=await ev(()=>{const p=__G().p;return {mp:Math.round(p.mp),cd:+(p.cds.f1||0).toFixed(2)}});ok(r.mp>=84&&r.mp<=86&&r.cd>0.5,'施法扣魔力 15 并进入冷却 '+JSON.stringify(r));
  await pg.keyboard.press('u');await W(80);ok(Math.round(await ev(()=>__G().p.mp))>=r.mp,'冷却中不能再施放');
  r=await ev(()=>{const G=__G(),p=G.p;spawn('goblin',p.x+200,p.y,{});const e=G.enemies[G.enemies.length-1];e.hp=e.maxhp=500;damage(e,30,0,p.x,'fire',{burn:3});return {id:G.enemies.length-1,hp:e.hp,burn:e.burnT}}).catch(e=>({err:String(e)}));
  if(r.err){console.log('spawn api?',r.err)}else{await W(1600);const hp2=await ev(i=>__G().enemies[i].hp,r.id);ok(r.burn>0&&hp2<r.hp,'火系灼烧持续掉血 '+r.hp.toFixed(0)+'→'+hp2.toFixed(0));}
