@@ -13,7 +13,7 @@ loadImg('hero',HERO_ATLAS.image);loadImg('gob',GOBLIN_ATLAS.image);loadImg('big'
 STAGES.forEach(s=>{if(s.far)loadImg('far'+s.id,s.far)});
 const ready=k=>IMG[k]&&IMG[k].complete&&IMG[k].naturalWidth>0;
 function drawHeroFrame(name,x,y,face,scale=HS,alpha=1,qx=1,qy=1,rot=0){const f=HERO_ATLAS.frames[name];if(!f||!ready('hero'))return;
- ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.globalAlpha*=alpha;ctx.translate(x,y);if(rot)ctx.rotate(rot*face);ctx.scale(face*scale*qx,scale*qy);ctx.drawImage(IMG.hero,f.x,f.y,f.w,f.h,-f.ax,-f.ay,f.w,f.h);ctx.restore()}
+ ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.globalAlpha*=alpha;ctx.translate(x,y);if(rot)ctx.rotate(rot*face);const fs=f.s||1;ctx.scale(face*scale*qx*fs,scale*qy*fs);ctx.drawImage(IMG.hero,f.x,f.y,f.w,f.h,-f.ax,-f.ay,f.w,f.h);ctx.restore()}
 function fx(name,x,y,sc=1,alpha=1,flip=1,rot=0,anchor='c'){const f=FX_ATLAS.frames[name];if(!f||!ready('fx'))return;
  ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=clamp(alpha,0,1);ctx.translate(x,y);if(rot)ctx.rotate(rot);ctx.scale(flip*sc,sc);
  const oy=anchor==='b'?-f.h:-f.h/2;ctx.drawImage(IMG.fx,f.x,f.y,f.w,f.h,-f.w/2,oy,f.w,f.h);ctx.restore()}
@@ -189,14 +189,15 @@ function updatePlayer(dt){const p=G.p;
  // 突刺
  if(p.dashT>0){p.dashT-=dt;p.x+=p.face*720*dt;for(const e of G.enemies)if(!p.dashHits.includes(e)&&inReach(e,p.x-40,p.x+40,36)){p.dashHits.push(e);damage(e,atk()*2,180,p.x-p.face*50,null);G.hitstop=.05;gainProf(1)}
  }else if(p.spinT>0){p.spinT-=dt;p.x+=mx*80*dt}
- else if(p.atkT>0){p.atkT-=dt;p.x+=p.face*30*dt;if(p.bufJ>0&&p.combo!==9&&p.atkT<p.atkDur*.4)p.atkT=0}
+ else if(p.atkT>0){p.atkT-=dt;p.x+=p.face*30*dt;if(p.bufJ>0&&p.combo!==9&&p.atkT<p.atkDur*.34)p.atkT=0}
  else if(p.specialT<=0&&p.castT<=0&&p.hurtT<=0){
   if(mx)p.face=mx;p.x+=mx*sp*dt;p.y+=my*sp*.6*dt;p.walk+=(mx||my)?dt:0;p.moving=!!(mx||my);
   if(p.bufJ>0&&p.z<=0){
    if(p.plv>=3&&mx&&p.dashCd<=0&&(keys.d||keys.arrowright||keys.a||keys.arrowleft)&&p.tdash>.18){p.bufJ=0;startDash()}
-   else{p.bufJ=0;p.combo=p.comboWin>0?p.combo%4+1:1;if(p.combo===4&&p.plv<2)p.combo=1;
-    if(p.combo===4){p.spinT=.42;sfx('spin');setTimeout(()=>G&&meleeHit(110,1.6,160,{all:1,ytol:50}),120)}
-    else{p.atkT=p.combo===3?.28:.21;p.atkDur=p.atkT;sfx('swing');const c=p.combo;setTimeout(()=>G&&meleeHit(c===3?95:82,c===3?1.4:1,c===3?140:60,{up:c===3}),50)}
+   else{p.bufJ=0;p.combo=p.comboWin>0?p.combo%(p.plv>=2?5:4)+1:1;
+    // 四段普攻（新动画 6 帧，约 18–20fps），第 4 帧（剑伸出）判定；熟练度 2 级起第 5 段为旋风斩
+    if(p.combo===5){p.spinT=.42;sfx('spin');setTimeout(()=>G&&meleeHit(110,1.6,160,{all:1,ytol:50}),120)}
+    else{const c=p.combo,H=HIT[c];p.atkT=p.atkDur=H[0];sfx('swing');setTimeout(()=>G&&meleeHit(H[1],H[2],H[3],{up:c===3}),H[0]*500)}
     p.comboWin=.55}}
   else if(p.bufJ>0&&p.z>0&&p.atkT<=0){p.bufJ=0;p.atkT=.3;p.atkDur=.3;p.combo=9;sfx('swing');setTimeout(()=>G&&meleeHit(80,1.3,90,{up:1}),60)}
   if(hit('k')&&p.z<=0){p.vz=520;sfx('jump')}
@@ -528,22 +529,22 @@ function drawProp(o,x){if(o.type==='spr'){drawPropSpr(o,x);return}const y=o.y,s=
 // ---------- 实体绘制 ----------
 const GOB_FACE=1;
 function shadow(x,y,r,a=.35){ell(x,y,r,r*.32,`rgba(0,0,0,${a})`)}
+const HIT={1:[.30,82,1,60],2:[.30,85,1.1,70],3:[.33,95,1.4,140],4:[.33,100,1.5,170]};// [时长, 距离, 伤害倍率, 击退]
 function heroAnim(p){
  if(p.dead)return ['down',Math.min(1,p.deadT/.6)];if(p.hurtT>0)return ['hurt',1-p.hurtT/.3];if(p.specialT>0)return ['ult',0];
  if(p.castT>0)return [p.castAnim,1-p.castT/.35];if(p.dashT>0)return ['thrust',.5];if(p.spinT>0)return ['spin',1-p.spinT/.42];
- if(p.atkT>0){const k={1:'atk1',2:'atk2',3:'upslash',9:'downslash'}[p.combo]||'atk1';return [k,1-p.atkT/p.atkDur]}
+ if(p.atkT>0){const k={1:'atk1',2:'atk2',3:'atk3',4:'atk4',9:'downslash'}[p.combo]||'atk1';return [k,1-p.atkT/p.atkDur]}
  if(p.jHold>.3)return ['charge',0];if(p.z>0)return ['jump',p.vz>200?0:p.vz>0?.3:p.vz>-300?.6:.9];
- if(p.moving)return ['walk',(p.walk*3.4)%1];return ['idle',(G.t*1.5)%1]}
+ if(p.moving)return ['walk',(p.walk*1.5)%1];return ['idle',(G.t*8/6)%1]}// 走 12fps（8 帧/0.67s，配合 200px/s），待机 8fps
 // 补间：给帧数少的动作加挤压/位移，避免单帧停顿
 function heroTween(p,a,pr){const e=Math.sin(Math.min(1,pr)*Math.PI);let ox=0,oy=0,qx=1,qy=1,rot=0;
- if(a==='idle'){qy=1+.012*Math.sin(G.t*3.2);qx=1-.006*Math.sin(G.t*3.2)}
- else if(a==='walk'){oy=-Math.abs(Math.sin(p.walk*3.4*Math.PI*2))*2.2}
+ if(a==='idle'||a==='walk'||/^atk[1-4]$/.test(a)){}// 新逐帧动画自带动作，不再补间
  else if(/^atk|upslash|downslash/.test(a)){const k=pr<.18?pr/.18:1;ox=(k*10-(pr>.6?(pr-.6)*14:0));qx=1+.05*e;qy=1-.04*e;if(a==='downslash'){rot=.12*e;oy=6*e}if(a==='upslash')oy=-6*e}
  else if(a==='thrust'){ox=8;qx=1.08;qy=.94}
  else if(a==='spin'){qx=1+.06*Math.sin(pr*Math.PI*4)}
  else if(a==='charge'||a==='wavecast'){qy=1+.03*Math.sin(G.t*18);qx=1-.02*Math.sin(G.t*18);if(a==='wavecast')ox=10*e}
  else if(a==='ult'){qy=1+.05*e;qx=1-.03*e;oy=-6*e}
- else if(a==='hurt'){ox=-8*e;rot=-.08*e}
+ else if(a==='hurt'){ox=-5*e}
  return {ox,oy,qx,qy,rot}}
 function drawHero(p,sx){const [a,pr]=heroAnim(p);const fr=HERO_ATLAS.anims[a];const name=fr[Math.min(fr.length-1,Math.floor(pr*fr.length))];const tw=heroTween(p,a,pr);
  shadow(sx,p.y,26-Math.min(12,p.z/10));const y=p.y-p.z;
@@ -554,7 +555,7 @@ function drawHero(p,sx){const [a,pr]=heroAnim(p);const fr=HERO_ATLAS.anims[a];co
  // 剑光（装备升级=更亮更大，烈炎剑=火焰）
  if(p.atkT>0||p.spinT>0){const pr2=p.spinT>0?1-p.spinT/.42:1-p.atkT/p.atkDur;const sc=.7+.07*Math.min(5,p.atkLv);const al=Math.sin(pr2*Math.PI)*(.55+.08*Math.min(5,p.atkLv));
   if(p.spinT>0){fx('sword_slash',sx+40,y-45,sc*1.2,al,1,pr2*6);fx('sword_slash',sx-40,y-45,sc*1.2,al,-1,-pr2*6)}
-  else fx('sword_slash',sx+p.face*48,y-(p.combo===3?75:p.combo===9?25:48),sc,al,p.face,p.combo===3?-.6*p.face:p.combo===9?.6*p.face:0);
+  else fx('sword_slash',sx+p.face*52,y-({2:56,3:36,4:52,9:25}[p.combo]||48),sc*(p.combo===4?1.15:1),al,p.face,({2:-.35,3:.25,4:-.15,9:.6}[p.combo]||0)*p.face);
   if(p.flameSword)fx('fireball_s',sx+p.face*52,y-50,1.1,al*.8,p.face)}
  if(p.flameSword&&!p.dead)fx('fireball_s',sx+p.face*30,y-60+Math.sin(G.t*8)*3,.35,.35+.15*Math.sin(G.t*11))}
 function enemyAnim(e){const d=e.def;if(e.dead)return ['death',e.deadT,false,6];if(e.hurtT>0)return ['hurt',.12,false,8];
