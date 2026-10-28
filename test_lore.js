@@ -21,7 +21,7 @@ const selItem=id=>{const cs=shopCols();for(let c=0;c<cs.length;c++){const r=cs[c
  if(r.max>0){await pg.mouse.move(780,300);await pg.mouse.wheel(0,400);await W(150);ok(await ev(()=>SHOP.loreY)>0,'滚轮可滚动');await ev(()=>{SHOP.loreY=0})}
  await pg.keyboard.press('v');await W(100);ok(await ev(()=>SHOP.view)===0,'V 切回属性页');
  // 女巫菜单（较窄面板）
- await pg.keyboard.press('k');await W(200);await ev(()=>__dbg.start(0));await W(300);
+ await pg.keyboard.press('k');await W(200);await ev(()=>__dbg.start(1));await W(300);
  await ev(()=>{const G=__G();G.enemies=[];G.lockX=null;G.wave=3;const w=G.B.witches[0];G.p.x=w.x-40;G.p.y=w.y+10;G.camX=w.x-400});await W(300);
  await pg.keyboard.press('e');await W(150);await pg.keyboard.press('q');await W(150);
  await ev(new Function('return ('+selItem+')("r_blood")'));await pg.keyboard.press('v');await W(200);

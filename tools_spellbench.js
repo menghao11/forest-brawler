@@ -4,7 +4,7 @@ const {chromium}=require('playwright-core');
 const errs=[];pg.on('pageerror',e=>errs.push(e.message));
 await pg.goto(process.env.URL||'http://localhost:8931/index.html');await pg.waitForTimeout(800);
 const STAGE=+(process.env.STAGE||1),ATKLV=+(process.env.ATKLV||0);
-await pg.evaluate(([s,a])=>{__dbg.resetSave();__dbg.unlockAll();__dbg.start(s);__dbg.god(true);const G=__G();G.p.atkLv=a;G.p.eq={};applyGear(G.p);__dbg.learnAll()},[STAGE,ATKLV]);
+await pg.evaluate(([s,a])=>{__dbg.resetSave();__dbg.unlockAll();__dbg.start(s+1);__dbg.god(true);const G=__G();G.p.atkLv=a;G.p.eq={};applyGear(G.p);__dbg.learnAll()},[STAGE,ATKLV]);
 await pg.evaluate(()=>__dbg.skip(__G().B.waves.length-1));await pg.waitForTimeout(1500);
 const ids=await pg.evaluate(()=>SPELLS.map(s=>s.id));const rows=[];
 async function measure(kind,fn){return pg.evaluate(async([kind,fn])=>{const G=__G(),p=G.p;

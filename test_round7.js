@@ -11,7 +11,7 @@ const fails=[];const ok=(c,m)=>{if(!c){console.log('FAIL',m);fails.push(m)}else 
  let r=await ev(()=>{__dbg.resetSave();try{const a=__dbg.give(100,20);return {a,exp:__dbg.profile().exp}}catch(e){return {err:String(e)}}});
  ok(!r.err&&r.exp===100,'关卡外 give() 不报错，写入存档 '+JSON.stringify(r));
  // 首领追赶按关卡进度；固定攻击下首领伤害% 生效
- await ev(()=>{__dbg.resetSave();__dbg.unlockAll();__dbg.start(1)});await W(300);
+ await ev(()=>{__dbg.resetSave();__dbg.unlockAll();__dbg.start(2)});await W(300);
  r=await ev(()=>{const G=__G();const out={};
   out.cu=[0,1,2,3,4].map(i=>{G.idx=i;return +bossCatchUp().toFixed(2)});G.idx=1;
   const p=G.p;const id=STAGES[1].boss;spawnBoss(id,p.x+300,p.y);const e=G.enemies[G.enemies.length-1];
@@ -22,7 +22,7 @@ const fails=[];const ok=(c,m)=>{if(!c){console.log('FAIL',m);fails.push(m)}else 
  ok(Math.abs(r.ice-10*r.iceRes*.6)<.05,'法术打首领 ×0.6，不吃追赶系数 '+r.ice);
  ok(r.cu[0]===1&&r.cu[1]>1&&Math.abs(r.afterClear-10)<.05,'追赶系数只看关卡进度（通关上一关后 =1）'+JSON.stringify(r.cu));
  // 无敌
- await ev(()=>__dbg.start(0));await W(300);r=await ev(()=>{__dbg.god();const G=__G(),p=G.p;const d=hurtPlayer(9999);for(let i=0;i<6;i++)spawn('goblin',p.x+30+i*8,p.y,{});return {d,max:p.maxhp}});await W(3500);
+ await ev(()=>__dbg.start(1));await W(300);r=await ev(()=>{__dbg.god();const G=__G(),p=G.p;const d=hurtPlayer(9999);for(let i=0;i<6;i++)spawn('goblin',p.x+30+i*8,p.y,{});return {d,max:p.maxhp}});await W(3500);
  const g2=await ev(()=>({mode:__dbg.mode(),dead:__G().p.dead,hp:__G().p.hp,foes:__G().enemies.filter(e=>!e.dead).length}));
  ok(r.d===0&&g2.mode==='play'&&!g2.dead&&g2.hp===r.max,'god() 无敌：6 只哥布林围殴 3.5 秒血量不变 '+JSON.stringify(g2));
  await ev(()=>{__dbg.killAll()});
@@ -40,7 +40,7 @@ const fails=[];const ok=(c,m)=>{if(!c){console.log('FAIL',m);fails.push(m)}else 
  ok(Math.abs(r.m1-(999-15))<1&&r.g>0&&r2.mp<=r.m1+1&&r2.mp>=r.m1-.5&&!r2.t1,'公共冷却：火球后立刻换闪电不能施放 '+JSON.stringify({r,r2}));
  await W(900);await pg.keyboard.press('u');await W(60);r2=await ev(()=>__G().p.mp);ok(r2<r.m1,'公共冷却结束后可施放 mp='+r2);
  // 装备掉落提示：暂停、K 留在背包、J 装备，结算列出掉落
- await ev(()=>{__dbg.resetSave();__dbg.start(0)});await W(300);await ev(()=>{__dbg.gear('w1');__dbg.gear('a1');__G().drops=[]});await W(200);
+ await ev(()=>{__dbg.resetSave();__dbg.start(1)});await W(300);await ev(()=>{__dbg.gear('w1');__dbg.gear('a1');__G().drops=[]});await W(200);
  await ev(()=>{gainGear('w3');gainGear('a2');gainGear('r2');gainGear('w1')});
  r=await ev(()=>({open:gearOpen(),q:__G().gearQ.length,t:__G().t,eq:Object.assign({},__G().p.eq)}));await W(500);await shot('screenshot_gear_prompt.png');
  r2=await ev(()=>__G().t);
@@ -52,7 +52,7 @@ const fails=[];const ok=(c,m)=>{if(!c){console.log('FAIL',m);fails.push(m)}else 
  r=await ev(()=>({mode:__dbg.mode(),drops:RES.drops.map(d=>d.id+':'+d.res),bonus:RES.bonus,prof:__dbg.profile().eq}));
  ok(r.mode==='results'&&r.drops.length===4&&r.bonus===200&&r.prof.weapon==='w1','结算页列出掉落 + 通关奖励 '+JSON.stringify(r));
  // 消息分道：同时刷一堆提示，各占一条道
- await ev(()=>{__dbg.unlockAll();__dbg.start(2)});await W(300);await ev(()=>{msg('精英来袭！','#f66');msgExp(30);msgExp(25);msg('援军到达','#fa0');msg('法术冷却中 1.2 秒','#aaf',2);msg('按 → 前进');msg('首领已离开标记','#fcc');msg('+24 金币','#ffd34a')});await W(250);
+ await ev(()=>{__dbg.unlockAll();__dbg.start(3)});await W(300);await ev(()=>{msg('精英来袭！','#f66');msgExp(30);msgExp(25);msg('援军到达','#fa0');msg('法术冷却中 1.2 秒','#aaf',2);msg('按 → 前进');msg('首领已离开标记','#fcc');msg('+24 金币','#ffd34a')});await W(250);
  r=await ev(()=>__G().lanes.map(L=>L.map(m=>m.t)));await shot('screenshot_msg_lanes.png');
  ok(r.length===3&&r.every(L=>L.length>=1),'消息分 3 条固定道（每道同时只显示 1 条） '+JSON.stringify(r));
  // 女巫营地
@@ -66,7 +66,7 @@ const fails=[];const ok=(c,m)=>{if(!c){console.log('FAIL',m);fails.push(m)}else 
  const d=devices['iPhone 14 landscape'];const mc=await b.newContext({...d,hasTouch:true,isMobile:true});const mp=await mc.newPage();const merr=[];mp.on('pageerror',e=>merr.push(String(e)));mp.on('console',m=>{if(m.type()==='error')merr.push(m.text())});
  await mp.goto(MURL);await mp.waitForTimeout(800);const cdp=await mc.newCDPSession(mp);
  const touch=async(x,y)=>{await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y,id:1}]});await mp.waitForTimeout(80);await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await mp.waitForTimeout(200)};
- await mp.evaluate(()=>{__dbg.resetSave();__dbg.start(0)});await mp.waitForTimeout(300);await mp.evaluate(()=>{__dbg.gear('w1');__dbg.gear('a1');gainGear('w2');gainGear('a3')});await mp.waitForTimeout(500);
+ await mp.evaluate(()=>{__dbg.resetSave();__dbg.start(1)});await mp.waitForTimeout(300);await mp.evaluate(()=>{__dbg.gear('w1');__dbg.gear('a1');gainGear('w2');gainGear('a3')});await mp.waitForTimeout(500);
  await mp.screenshot({path:OUT+'/screenshot_gear_prompt_mobile.png'});
  const bj=await mp.locator('#bJ').boundingBox();await touch(bj.x+bj.width/2,bj.y+bj.height/2);
  const R=await mp.evaluate(()=>document.getElementById('c').getBoundingClientRect());

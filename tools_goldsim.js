@@ -4,7 +4,7 @@ const {chromium}=require('playwright-core');
 const errs=[];pg.on('pageerror',e=>errs.push(e.message));
 await pg.goto(process.env.URL||'http://localhost:8931/index.html');await pg.waitForTimeout(800);
 const out=[];
-for(let s=0;s<5;s++){await pg.evaluate(()=>{__dbg.resetSave();__dbg.unlockAll()});await pg.evaluate(i=>{__dbg.start(i);__dbg.god(true);__dbg.speed&&__dbg.speed(4)},s);
+for(let s=0;s<5;s++){await pg.evaluate(()=>{__dbg.resetSave();__dbg.unlockAll()});await pg.evaluate(i=>{__dbg.start(i+1);__dbg.god(true);__dbg.speed&&__dbg.speed(4)},s);
  for(let k=0;k<600;k++){const m=await pg.evaluate(()=>{const G=__G();if(__dbg.mode()!=='play')return __dbg.mode();if(G.menu){G.menu=null}while(gearOpen())gearAnswer(false);
    for(const e of G.enemies)if(!e.dead&&!e.hidden){e.hp=0;kill(e)}
    for(const q of G.pickups){q.x=G.p.x;q.y=G.p.y;q.z=0;q.vz=0}

@@ -94,7 +94,7 @@ iOS Safari 可「添加到主屏幕」全屏游玩；首次触摸后启用音频
 - `anim_preview.gif` — 主角待机 / 行走 / 四段连斩 / 受击预览动图
 - `screenshot_shop.png` / `screenshot_witch_shop.png` / `screenshot_shop_mobile.png` — 装备商店（关卡选择界面 / 女巫营地 / iPhone）
 - `screenshot_magic_hud.png` / `screenshot_magic_hud_mobile.png` — 新魔法 HUD（桌面 / iPhone 触屏按钮图标）
-- `test_playwright.js` / `test_mobile.js` / `test_round5.js` — 无头浏览器测试（开发用，需 `npm i playwright-core` 与本机 Chrome；`test_round5.js` 覆盖装备商店、存档迁移、法术冷却 / 升级 / 灼烧、iPhone 法术按钮；`test_round7.js` 覆盖公共冷却、首领法术 ×0.6、固定攻击下 Boss 伤害%、装备提示 J/K/点按、结算掉落、消息分道、调试命令、女巫传送）
+- `test_playwright.js` / `test_mobile.js` / `test_round5.js` — 无头浏览器测试（开发用，需 `npm i playwright-core` 与本机 Chrome；`test_round5.js` 覆盖装备商店、存档迁移、法术冷却 / 升级 / 灼烧、iPhone 法术按钮；`test_round8.js` 覆盖伤害日志 / 统计 / 金币日志、start(n) 1 起、atk() 作用于法术；`test_round7.js` 覆盖公共冷却、首领法术 ×0.6、固定攻击下 Boss 伤害%、装备提示 J/K/点按、结算掉落、消息分道、调试命令、女巫传送）
 - `tools_goldsim.js` / `tools_spellbench.js` — 平衡测量脚本（自动打完各关统计金币；对首领 / 木桩测每个法术伤害，`STAGE=0 node tools_spellbench.js`）
 
 ## 调试命令（浏览器控制台）
@@ -102,8 +102,8 @@ iOS Safari 可「添加到主屏幕」全屏游玩；首次触摸后启用音频
 | 命令 | 作用 |
 |---|---|
 | `__dbg.god()` / `__dbg.god(false)` | 开/关真无敌：任何来源（敌人、投射物、地形陷阱、落雷）都不扣血、不会死亡；整页有效，切换关卡后仍保留 |
-| `__dbg.atk(10)` / `__dbg.atk(1)` | 玩家所有伤害 ×10 / 恢复正常；整页有效。HUD 攻击显示「攻 220(×10)」，右上角红字「调试：伤害 ×10」（无敌时显示「调试：无敌」） |
-| `__dbg.start(i)` | 直接开始第 i+1 关（0–4） |
+| `__dbg.atk(10)` / `__dbg.atk(1)` | 纯调试倍率：玩家**全部**伤害 ×10（普攻、技能、剑气、终结技、法术、灼烧、连锁）/ 恢复正常，各种比例不变；整页有效。HUD 攻击显示「攻 220(×10)」，右上角红字「调试：全部伤害 ×10（含法术）」（无敌时显示「调试：无敌」） |
+| `__dbg.start(n)` | 直接开始第 n 关，**按关卡编号从 1 起**：`start(1)` = 第 1 关 … `start(5)` = 第 5 关（未解锁会自动解锁；`start(0)` 无效并提示） |
 | `__dbg.skip(n)` | 跳到第 n 波（自动夹在有效范围内，`skip(99)` = 首领波） |
 | `__dbg.killAll()` | 杀死场上全部敌人（首领最后结算） |
 | `__dbg.unlockAll()` / `__dbg.resetSave()` | 解锁全部关卡 / 重置存档 |
@@ -112,6 +112,19 @@ iOS Safari 可「添加到主屏幕」全屏游玩；首次触摸后启用音频
 | `__dbg.give(exp, mp)` / `__dbg.resetCd()` | 加经验和魔力（关卡外直接写进存档）/ 清空法术冷却 |
 | `__dbg.witch()` / `__dbg.witch(i)` / `__dbg.witch('here')` | 传送到前方下一个女巫营地 / 第 i 个营地 / 在身边召唤女巫（按 E 交互） |
 | `__dbg.witches()` | 列出每关女巫营地位置 |
+| `__dbg.dmgLog(30)` | 用 `console.table` 打印最近 30 条伤害记录（环形缓冲保留 200 条），并返回数组。列：`t` 关内时间、`stage`、`src` 来源（「普攻 第3段」「旋风斩 (第5段) 1」「跳劈」「突刺冲锋」「剑气波」「终结技 万剑归宗」「火球术 Lv2」「火球术 Lv2 · 灼烧」「爆裂火球 Lv1 · 爆炸」「连锁闪电 Lv1 · 连锁弹跳 2」；玩家受击时为敌人名「哥布林刀盾兵」或「地形 · 地裂」）、`target`、`isBoss`、`raw` 原始值、乘数 `atkDbg` / `catchUp` / `bossPct` / `spellBoss` / `spellPct` / `resist` / `crit` / `other`（格挡、石像、碎冰等），`final` 最终值（= raw × 全部乘数；玩家受击记录 `def` 减伤） |
+| `__dbg.dmgLog('clear')` | 清空伤害日志 |
+| `__dbg.dmgStats()` | 按「来源 → 敌人 / 首领 / 玩家」汇总：次数、原始合计、最终合计、平均、最大（`console.table` + 返回数组） |
+| `__dbg.goldLog()` | 本次打开页面后每关结算的金币：总计、拾取金币、通关奖励、重复装备卖出、结算后余额 |
+
+示例：
+```js
+__dbg.start(2); __dbg.god(); __dbg.atk(1)   // 第 2 关，无敌
+__dbg.dmgLog('clear')                       // 打一会儿首领……
+__dbg.dmgLog(20)                            // 看最近 20 下：catchUp / bossPct / spellBoss 各是多少
+__dbg.dmgStats()                            // 哪个技能 / 法术总伤最高
+__dbg.goldLog()                             // 打完几关后看每关金币
+```
 
 **女巫营地位置**（在这些波次打完后出现）：第 1 关 3、7、11、15 波后（共 18 波）；第 2 关 3、7、11、15（18）；第 3 关 3、7、12、16（18）；第 4 关 3、7、11、15、17（18）；第 5 关 3、6、10、13（16）。
 

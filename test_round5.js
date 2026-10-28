@@ -21,7 +21,7 @@ const ok=(c,m)=>{if(!c){console.log('FAIL',m);fails.push(m)}else console.log('ok
  await ev(([x,y])=>__tap(x,y),[cell(0,2).x,cell(0,2).y]);await W(300);await shot('screenshot_shop.png');
  await pg.reload();await W(800);P=await ev(()=>__dbg.profile());ok(P.eq.weapon==='w2'&&P.owned.length===3,'刷新后装备仍在（localStorage）');
  // 3. 关内属性 + 首领追赶
- await ev(()=>__dbg.start(0));await W(300);
+ await ev(()=>__dbg.start(1));await W(300);
  let r=await ev(()=>{const p=__G().p;return {atk:atk(),def:def(),maxhp:p.maxhp,mpMax:p.mpMax,crit:p.st.crit,spell:p.st.spell}});
  ok(r.atk===22&&r.def===1&&r.maxhp===117&&r.mpMax===140,'关内装备属性 '+JSON.stringify(r));
  r=await ev(()=>{const G=__G();G.idx=2;const a=bossCatchUp();G.p.eq={};applyGear(G.p);const b=bossCatchUp();G.idx=0;return {withGear:+(a*(10+12)).toFixed(1),noGear:+(b*10).toFixed(1)}});
@@ -52,7 +52,7 @@ const ok=(c,m)=>{if(!c){console.log('FAIL',m);fails.push(m)}else console.log('ok
  // 6. iPhone：触屏法术图标
  const d=devices['iPhone 14 landscape'];const mc=await b.newContext({...d,hasTouch:true,isMobile:true});const mp=await mc.newPage();const merr=[];mp.on('pageerror',e=>merr.push(String(e)));mp.on('console',m=>{if(m.type()==='error')merr.push(m.text())});
  await mp.goto(MURL);await mp.waitForTimeout(800);
- await mp.evaluate(()=>{__dbg.resetSave();__dbg.start(0);const p=__G().p;p.spells=['f1','i2','t1'];p.sel=0;p.mp=100;p.cds={i2:3};p.cdMax={i2:8}});await mp.waitForTimeout(500);
+ await mp.evaluate(()=>{__dbg.resetSave();__dbg.start(1);const p=__G().p;p.spells=['f1','i2','t1'];p.sel=0;p.mp=100;p.cds={i2:3};p.cdMax={i2:8}});await mp.waitForTimeout(500);
  const cdp=await mc.newCDPSession(mp);const box=await mp.locator('#bU').boundingBox();
  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:box.x+box.width/2,y:box.y+box.height/2,id:1}]});await mp.waitForTimeout(80);await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await mp.waitForTimeout(250);
  r=await mp.evaluate(()=>({cd:__G().p.cds.f1>0,mp:Math.round(__G().p.mp),px:(()=>{const c=document.getElementById('icU').getContext('2d').getImageData(58,58,1,1).data;return c[3]})()}));

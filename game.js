@@ -9,7 +9,7 @@ addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 const hit=k=>{if(pressed[k]){pressed[k]=false;return true}return false};
 const rnd=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),pick=a=>a[Math.floor(Math.random()*a.length)];
 // ---------- 资源 ----------
-const ASSET_V='20261028f';const IMG={};function loadImg(k,src){const i=new Image();i.src=src+(/^assets\/[a-z_]+_atlas\.png$/.test(src)?'?v='+ASSET_V:'');IMG[k]=i;return i}
+const ASSET_V='20261028g';const IMG={};function loadImg(k,src){const i=new Image();i.src=src+(/^assets\/[a-z_]+_atlas\.png$/.test(src)?'?v='+ASSET_V:'');IMG[k]=i;return i}
 loadImg('hero',HERO_ATLAS.image);loadImg('gob',GOBLIN_ATLAS.image);loadImg('big',BIGGOBLIN_ATLAS.image);loadImg('bat',BAT_ATLAS.image);loadImg('vamp',VAMPIRE_ATLAS.image);loadImg('fx',FX_ATLAS.image);loadImg('snow',SNOWMAN_ATLAS.image);loadImg('snowboss',SNOWBOSS_ATLAS.image);if(window.PROPS_ATLAS)loadImg('props',PROPS_ATLAS.image);if(window.WITCH_ATLAS)loadImg('witch',WITCH_ATLAS.image);
 STAGES.forEach(s=>{if(s.far)loadImg('far'+s.id,s.far)});
 const ready=k=>IMG[k]&&IMG[k].complete&&IMG[k].naturalWidth>0;
@@ -187,22 +187,24 @@ function bossCatchUp(){const i=G.idx|0;let k=0;for(let j=0;j<i;j++)if(PROFILE.cl
  if(k>=i)return 1;return Math.min(5,Math.pow(BOSS_EXP_ATK[i]/BOSS_EXP_ATK[k],.85))}
 const NOST={atk:0,hp:0,def:0,crit:0,boss:0,spell:0,mp:0,regen:0};
 function damage(e,d,kb,fromX,elem,opts={}){if(e.dead||e.inv>0||e.hidden)return 0;
- const st=G.p.st||NOST;let m=resistOf(e,elem);
+ const st=G.p.st||NOST;let m=resistOf(e,elem);const LM={res:m,other:1};
  const front=Math.sign(fromX-e.x)===Math.sign(e.face)&&!elem;
  if(opts.melee&&front&&!e.stun&&!e.frozen&&!opts.dot){
-  if(e.def.ai==='shield'){m*=.15;if(Math.random()<.5)numText(e,'格挡','#ccc');sfx('block')}
-  else if(e.def.block&&Math.random()<e.def.block){m*=.2;numText(e,'格挡','#ccc');sfx('block')}}
- if(e.def.ai==='golem')m*=e.cool>0?1.6:.4;
- if(opts.ult&&(e.def.shape==='bat'||e.def.shape==='vamp'))m*=1.5;
- if(e.boss)m*=(elem?SPELL_BOSS:bossCatchUp())*(1+st.boss);m*=DBG_ATK;// 追赶系数只作用于近战/剑气/终结技；法术对首领 ×0.6
- if(elem)m*=1+st.spell;
- let crit=0;if(!opts.dot){if(e.frozen>0&&elem!=='ice')m*=1.3;const cc=st.crit+(elem==='thunder'?.15:0);if(cc>0&&Math.random()<cc){m*=1.6;crit=1}}
+  if(e.def.ai==='shield'){m*=.15;LM.other*=.15;if(Math.random()<.5)numText(e,'格挡','#ccc');sfx('block')}
+  else if(e.def.block&&Math.random()<e.def.block){m*=.2;LM.other*=.2;numText(e,'格挡','#ccc');sfx('block')}}
+ if(e.def.ai==='golem'){const g=e.cool>0?1.6:.4;m*=g;LM.other*=g}
+ if(opts.ult&&(e.def.shape==='bat'||e.def.shape==='vamp')){m*=1.5;LM.other*=1.5}
+ if(e.boss){LM.catchUp=elem?1:bossCatchUp();LM.spellBoss=elem?SPELL_BOSS:1;LM.bossPct=1+st.boss;m*=LM.catchUp*LM.spellBoss*LM.bossPct}
+ m*=DBG_ATK;// 调试倍率：作用于玩家全部伤害（近战、技能、法术、灼烧、连锁），各种比例不变；追赶系数只作用于近战/剑气/终结技；法术对首领 ×0.6
+ if(elem){m*=1+st.spell;LM.spellPct=1+st.spell}
+ let crit=0;if(!opts.dot){if(e.frozen>0&&elem!=='ice'){m*=1.3;LM.other*=1.3}const cc=st.crit+(elem==='thunder'?.15:0);if(cc>0&&Math.random()<cc){m*=1.6;crit=1}}
  const dd=d*m;e.hp-=dd;
+ {let src=opts.src||DSRC||'?';if(opts.tag)src+=' · '+opts.tag;dlogPush({t:+(G.time||0).toFixed(2),stage:G.S?G.S.id:0,src,target:e.boss?(e.def.name||e.type)+(e.mini?'(小首领)':''):(e.def.name||e.type),isBoss:!!(e.boss&&!e.mini),raw:+d.toFixed(2),atkDbg:DBG_ATK,catchUp:+(LM.catchUp||1).toFixed(3),bossPct:+(LM.bossPct||1).toFixed(2),spellBoss:LM.spellBoss||1,spellPct:+(LM.spellPct||1).toFixed(2),resist:LM.res,crit:crit?1.6:1,other:+LM.other.toFixed(3),final:+dd.toFixed(2)})}
  if(opts.dot){numPop(e.x,e.y,60*e.r+e.z,dd,'#ff9a40',13);if(Math.random()<.5)particles(e.x,e.y,30*e.r+e.z,'#ff7a1a',3,80)}
  else{e.hurtT=e.boss?.08:.25;e.kx=(e.x<fromX?-1:1)*kb*(e.boss?.15:1);
   particles(e.x,e.y,40*e.r+e.z,elem==='fire'?'#ff8a30':elem==='ice'?'#bff0ff':elem==='thunder'?'#d0b0ff':'#ffe080',crit?14:8);numPop(e.x,e.y,70*e.r+e.z,dd,crit?'#ffe14a':m>1.2?'#ffd34a':m<.5?'#999':'#fff',crit?24:18);
   G.p.energy=Math.min(100,G.p.energy+3);sfx('hit');
-  if(elem==='fire'&&opts.burn){const was=e.burnT>0;e.burnT=Math.max(e.burnT||0,opts.burn);e.burnDps=Math.max(was?e.burnDps:0,d*BURN_K)}
+  if(elem==='fire'&&opts.burn){const was=e.burnT>0;e.burnSrc=(opts.src||DSRC||'火系');e.burnT=Math.max(e.burnT||0,opts.burn);e.burnDps=Math.max(was?e.burnDps:0,d*BURN_K)}
   if(elem==='ice')e.slow=Math.max(e.slow,opts.slow||2)}
  if(e.hp<=0)kill(e);return dd}
 function numText(e,t,c){if(G.parts.some(q=>q.txt===t&&q.life>.3&&Math.abs(q.x-e.x)<60&&Math.abs(q.y-e.y)<40))return;const s=stackZ(e.x,e.y,80*e.r);G.parts.push({txt:t,x:s.x,y:e.y,z:s.z,vz:40,life:.6,vx:0,vy:0,col:c})}
@@ -221,18 +223,24 @@ function kill(e){e.dead=1;e.deadT=0;sfx('death');const p=G.p;p.exp+=e.exp;G.expG
 // 金币（第 7 轮）：每枚金币面值随关卡提高；普通敌人 1–2 枚、精英 6 枚、首领 24 枚；清波后金币自动吸附；
 // 通关奖励：首通 CLEAR_GOLD[关]，重玩一半。目标：第 1 关后买得起 1 阶，2–3 关买 2 阶，第 4 关左右 3 阶，4 阶需要重玩。
 const COIN_V=[1,2,4,6,7],CLEAR_GOLD=[200,300,400,500,600];
-let DBG_GOD=false,DBG_ATK=1;// 调试：无敌 / 伤害倍率（整页有效，跨关卡保留）
-function hurtPlayer(d,src){const p=G.p;if(DBG_GOD||p.inv>0||p.dead||G.clearT>0)return 0;if(!(d>0))return 0;d=Math.max(1,Math.round(d-def()));p.hp-=d;p.hurtT=.3;p.inv=.7;{const k=clamp(.3+d/p.maxhp*3,.3,1),rapid=G.t-(G.hurtAt||-9)<.4;G.hurtAt=G.t;G.hurtFlash=Math.max(G.hurtFlash,k*(rapid?.7:1));G.hurtTint=.15;G.hurtTintK=k*(rapid?.45:1)}p.energy=Math.min(100,p.energy+8);G.shake=6;
+let DBG_GOD=false,DBG_ATK=1,DSRC='';const DLOG=[],DLOG_MAX=200,GOLDLOG=[];// 伤害日志（环形缓冲，最近 200 条）/ 每关金币
+function dlogPush(r){DLOG.push(r);if(DLOG.length>DLOG_MAX)DLOG.splice(0,DLOG.length-DLOG_MAX)}
+const HZ_NAME={puddle:'爆炸残火',spike:'冰刺',shock:'冲击波',burst:'爆炸',crack:'地裂',bolt:'落雷',icicle:'落冰锥',meteor:'陨石',mark:'标记',snowball:'雪球'};
+function hitSrcName(s){if(!s)return '未知';if(s.def)return (s.def.name||s.type||'敌人')+(s.boss?'（首领）':'');if(s.own&&s.own.def)return (s.own.def.name||'敌人')+' · '+(s.k||'投射物');if(s.k&&(s.warn!=null||s.act!=null||s.rx!=null||s.cyc))return (s.cyc||s.stage?'地形 · ':'危害 · ')+(HZ_NAME[s.k]||s.k);if(s.k)return '投射物 · '+s.k;return String(s.name||'未知')}
+// 调试：无敌 / 伤害倍率（整页有效，跨关卡保留）
+function hurtPlayer(d,src){const p=G.p;if(!(d>0))return 0;const raw=d,blk=DBG_GOD?'无敌':p.inv>0?'无敌帧':p.dead?'已倒地':G.clearT>0?'过关':'';
+ if(blk){dlogPush({t:+(G.time||0).toFixed(2),stage:G.S?G.S.id:0,src:hitSrcName(src),target:'玩家（'+blk+'）',isBoss:false,raw:+raw.toFixed(2),def:def(),final:0});return 0}
+ d=Math.max(1,Math.round(d-def()));dlogPush({t:+(G.time||0).toFixed(2),stage:G.S?G.S.id:0,src:hitSrcName(src),target:'玩家',isBoss:false,raw:+raw.toFixed(2),def:def(),final:d});p.hp-=d;p.hurtT=.3;p.inv=.7;{const k=clamp(.3+d/p.maxhp*3,.3,1),rapid=G.t-(G.hurtAt||-9)<.4;G.hurtAt=G.t;G.hurtFlash=Math.max(G.hurtFlash,k*(rapid?.7:1));G.hurtTint=.15;G.hurtTintK=k*(rapid?.45:1)}p.energy=Math.min(100,p.energy+8);G.shake=6;
  numPop(p.x,p.y,80,d,'#ff5555');sfx('hurt');if(src&&src.x!=null)p.x+=Math.sign(p.x-src.x||1)*20;
  if(p.hp<=0){p.hp=0;p.dead=1;p.deadT=0;sfx('over')}return d}
 // ---------- 玩家 ----------
 function inReach(e,x0,x1,ytol,zreach=45){const p=G.p;return !e.dead&&!e.hidden&&e.x>x0-18*e.r&&e.x<x1+18*e.r&&Math.abs(e.y-p.y)<ytol+8*e.r&&(e.z-p.z)<zreach}
 function meleeHit(range,dmgMul,kb,opts={}){const p=G.p;let n=0;const x0=p.face>0?p.x-10:p.x-range,x1=p.face>0?p.x+range:p.x+10;
  for(const e of G.enemies)if(inReach(e,opts.all?p.x-range:x0,opts.all?p.x+range:x1,opts.ytol||32,opts.up?110:45)){
-  damage(e,atk()*dmgMul*rnd(.9,1.1),kb,p.x,null,{melee:!opts.all});n++;if(opts.stun)e.stun=Math.max(e.stun,opts.stun)}
+  damage(e,atk()*dmgMul*rnd(.9,1.1),kb,p.x,null,{melee:!opts.all,src:opts.src||'普攻'});n++;if(opts.stun)e.stun=Math.max(e.stun,opts.stun)}
  if(n){G.hitstop=.06;G.shake=Math.max(G.shake,3+n);gainProf(n)}return n}
 function gainProf(n){const p=G.p;p.prof+=n;if(p.plv<5&&p.prof>=PROF[p.plv]){p.plv++;const m=MOVES[p.plv];G.popup={t:3,title:'砍杀熟练度 Lv'+p.plv,name:m[0],desc:m[1]};sfx('levelup')}}
-function startDash(dur=.36){const p=G.p;p.dashT=p.dashDur=dur;p.dashCd=.8;p.dashHits=[];p.inv=Math.max(p.inv,.3);sfx('dash')}
+function startDash(dur=.36){const p=G.p;p.dashT=p.dashDur=dur;p.dashSrc=DSRC||'突刺冲锋';p.dashCd=.8;p.dashHits=[];p.inv=Math.max(p.inv,.3);sfx('dash')}
 function swordWave(){const p=G.p;G.pp.push({k:'sword_wave',x:p.x+p.face*40,y:p.y,z:40,vx:p.face*560,dmg:atk()*2.2,life:.9,pierce:1,hits:[],w:34});sfx('wave')}
 function special(){const p=G.p;p.energy=0;p.specialT=1.6;p.inv=1.8;G.flash=.4;G.shake=12;sfx('special');
  const lv5=p.plv>=5;msg('终结技 · 万剑归宗！','#ffd34a',1);
@@ -252,7 +260,7 @@ function updatePlayer(dt){const p=G.p;
  if(p.castT>0){p.castT-=dt;mx=my=0}
  if(hit('j'))p.bufJ=.3;
  // 突刺
- if(p.dashT>0){const dpr=1-p.dashT/p.dashDur;p.dashT-=dt;if(dpr>.16&&dpr<.74)p.x+=p.face*1000*dt;for(const e of G.enemies)if(!p.dashHits.includes(e)&&inReach(e,p.x-40,p.x+40,36)){p.dashHits.push(e);damage(e,atk()*2,180,p.x-p.face*50,null);G.hitstop=.05;gainProf(1)}
+ if(p.dashT>0){const dpr=1-p.dashT/p.dashDur;p.dashT-=dt;if(dpr>.16&&dpr<.74)p.x+=p.face*1000*dt;for(const e of G.enemies)if(!p.dashHits.includes(e)&&inReach(e,p.x-40,p.x+40,36)){p.dashHits.push(e);damage(e,atk()*2,180,p.x-p.face*50,null,{src:p.dashSrc||'突刺冲锋'});G.hitstop=.05;gainProf(1)}
  }else if(p.spinT>0){p.spinT-=dt;p.x+=mx*80*dt}
  else if(p.landT>0&&p.atkT<=0){p.landT-=dt;p.x+=mx*sp*.4*dt}
  else if(p.atkT>0){p.atkT-=dt;p.x+=p.face*30*dt;if(p.bufJ>0&&p.combo!==9&&p.atkT<p.atkDur*.34)p.atkT=0}
@@ -262,10 +270,10 @@ function updatePlayer(dt){const p=G.p;
    if(p.plv>=3&&mx&&p.dashCd<=0&&(keys.d||keys.arrowright||keys.a||keys.arrowleft)&&p.tdash>.18){p.bufJ=0;startDash()}
    else{p.bufJ=0;p.combo=p.comboWin>0?p.combo%(p.plv>=2?5:4)+1:1;
     // 四段普攻（新动画 6 帧，约 18–20fps），第 4 帧（剑伸出）判定；熟练度 2 级起第 5 段为旋风斩
-    if(p.combo===5){p.spinT=p.spinDur=.46;sfx('spin');setTimeout(()=>G&&meleeHit(110,.85,60,{all:1,ytol:50}),110);setTimeout(()=>G&&meleeHit(115,.85,170,{all:1,ytol:50}),330)}
-    else{const c=p.combo,H=HIT[c];p.atkT=p.atkDur=H[0];sfx('swing');setTimeout(()=>G&&meleeHit(H[1],H[2],H[3],{up:c===3}),H[0]*500)}
+    if(p.combo===5){p.spinT=p.spinDur=.46;sfx('spin');setTimeout(()=>G&&meleeHit(110,.85,60,{all:1,ytol:50,src:'旋风斩 (第5段) 1'}),110);setTimeout(()=>G&&meleeHit(115,.85,170,{all:1,ytol:50,src:'旋风斩 (第5段) 2'}),330)}
+    else{const c=p.combo,H=HIT[c];p.atkT=p.atkDur=H[0];sfx('swing');setTimeout(()=>G&&meleeHit(H[1],H[2],H[3],{up:c===3,src:'普攻 第'+c+'段'}),H[0]*500)}
     p.comboWin=.55}}
-  else if(p.bufJ>0&&p.z>0&&p.atkT<=0){p.bufJ=0;p.atkT=.3;p.atkDur=.3;p.combo=9;sfx('swing');setTimeout(()=>G&&meleeHit(80,1.3,90,{up:1}),60)}
+  else if(p.bufJ>0&&p.z>0&&p.atkT<=0){p.bufJ=0;p.atkT=.3;p.atkDur=.3;p.combo=9;sfx('swing');setTimeout(()=>G&&meleeHit(80,1.3,90,{up:1,src:'跳劈'}),60)}
   if(hit('k')&&p.z<=0){p.vz=520;p.jt=0;p.landT=0;sfx('jump')}
 }
  if(p.specialT<=0&&p.castT<=0&&p.dashT<=0){
@@ -302,17 +310,17 @@ function castSel(){const p=G.p;if(!p.spells.length){msg('尚未学习魔法（�
  if(cd>0){msg(s.name+' 冷却中 '+cd.toFixed(1)+' 秒','#aaa',2);sfx('fail');p.cdWarn=.4;return}
  if(p.gcd>0){p.cdWarn=.3;sfx('fail');return}// 公共冷却：静默拒绝，图标上有转圈
  if(p.mp<s.mp){msg('魔力不足（需要 '+s.mp+'）','#f88');sfx('fail');p.mpWarn=.6;return}
- p.mp-=s.mp;p.cds[s.id]=p.cdMax[s.id]=spellCd(s);p.gcd=p.gcdMax=GCD[s.k]||1;p.castT=s.k==='u'?.6:.35;p.castAnim='charge';msg(s.name+(spellLv(s.id)>1?' Lv'+spellLv(s.id):'')+'！',SCHOOLS.find(c=>c.id===s.s).col,1);sfx(s.s==='fire'?'fire':s.s==='ice'?'frost':'bolt');CAST[s.id](spellL(s.id))}
+ p.mp-=s.mp;p.cds[s.id]=p.cdMax[s.id]=spellCd(s);p.gcd=p.gcdMax=GCD[s.k]||1;p.castT=s.k==='u'?.6:.35;p.castAnim='charge';msg(s.name+(spellLv(s.id)>1?' Lv'+spellLv(s.id):'')+'！',SCHOOLS.find(c=>c.id===s.s).col,1);sfx(s.s==='fire'?'fire':s.s==='ice'?'frost':'bolt');{const nm=s.name+' Lv'+spellLv(s.id),a=G.pp.length,b=G.zones.length;DSRC=nm;try{CAST[s.id](spellL(s.id))}finally{DSRC=''}for(const q of G.pp.slice(a))q.src=q.src||nm;for(const z of G.zones.slice(b))z.src=z.src||nm}}
 function proj(k,o){const p=G.p;G.pp.push(Object.assign({k,x:p.x+p.face*40,y:p.y,z:40,vx:p.face*480,vy:0,life:1.4,hits:[],w:28,pierce:0},o))}
-function aoe(x,y,r,dmg,elem,eff={}){for(const e of G.enemies){if(e.dead)continue;if(Math.hypot(e.x-x,(e.y-y)*1.8)<r+14*e.r){damage(e,dmg,eff.kb||80,x,elem,{burn:eff.burn});if(eff.freeze)e.frozen=Math.max(e.frozen,eff.freeze);if(eff.stun)e.stun=Math.max(e.stun,eff.stun);if(eff.slow)e.slow=Math.max(e.slow,eff.slow)}}}
+function aoe(x,y,r,dmg,elem,eff={}){for(const e of G.enemies){if(e.dead)continue;if(Math.hypot(e.x-x,(e.y-y)*1.8)<r+14*e.r){damage(e,dmg,eff.kb||80,x,elem,{burn:eff.burn,tag:eff.tag});if(eff.freeze)e.frozen=Math.max(e.frozen,eff.freeze);if(eff.stun)e.stun=Math.max(e.stun,eff.stun);if(eff.slow)e.slow=Math.max(e.slow,eff.slow)}}}
 function bolt(x1,y1,x2,y2){G.bolts.push({x1,y1,x2,y2,life:.25})}
 // 雷系连锁：从 (x,y) 起弹跳 n 个敌人，每跳伤害 -10%
 function chainBolt(x,y,n,dmg,stun,used=[]){let from={x,y};for(let i=0;i<n;i++){let b=null,bd=380;for(const e of G.enemies){if(e.dead||e.hidden||used.includes(e))continue;const d=Math.hypot(e.x-from.x,e.y-from.y);if(d<bd){bd=d;b=e}}
-  if(!b)break;used.push(b);bolt(from.x,from.y,b.x,b.y-40*b.r-b.z);damage(b,dmg*(1-.1*i),40,G.p.x,'thunder');b.stun=Math.max(b.stun,stun);from={x:b.x,y:b.y-40*b.r-b.z}}}
+  if(!b)break;used.push(b);bolt(from.x,from.y,b.x,b.y-40*b.r-b.z);damage(b,dmg*(1-.1*i),40,G.p.x,'thunder',{src:DSRC||'连锁闪电',tag:'连锁弹跳 '+(i+1)});b.stun=Math.max(b.stun,stun);from={x:b.x,y:b.y-40*b.r-b.z}}}
 const SPW=()=>atk();// 法术强度 = 当前攻击力（含淬炼与装备）
 const CAST={
  f1:L=>proj('fireball',{dmg:2*SPW()*L.m,elem:'fire',burn:L.burn}),
- f2:L=>{const P=SPW();for(let i=0;i<3;i++)setTimeout(()=>G&&proj('fireball',{dmg:1*P*L.m,elem:'fire',burn:L.burn,y:G.p.y+(i-1)*14,explode:{r:55,dmg:.5*P*L.m,small:1}}),i*130)},
+ f2:L=>{const P=SPW(),src=DSRC;for(let i=0;i<3;i++)setTimeout(()=>G&&proj('fireball',{src,dmg:1*P*L.m,elem:'fire',burn:L.burn,y:G.p.y+(i-1)*14,explode:{r:55,dmg:.5*P*L.m,small:1}}),i*130)},
  f3:L=>{const p=G.p;G.zones.push({k:'firewall',x:p.x+p.face*120,y:p.y,r:70,t:0,dur:3+.5*L.k,tick:.3,acc:0,dmg:.45*SPW()*L.m,elem:'fire',burn:L.burn})},
  f4:L=>{const P=SPW();proj('fireball',{dmg:1.5*P*L.m,elem:'fire',big:1,burn:L.burn,explode:{r:110+15*L.k,dmg:3*P*L.m}})},
  f5:L=>{G.zones.push({k:'vortex',x:G.p.x,y:G.p.y,r:150,t:0,dur:3+.5*L.k,tick:.25,acc:0,dmg:.4*SPW()*L.m,elem:'fire',pull:1,follow:1,burn:L.burn})},
@@ -345,12 +353,12 @@ function strike(e,range,dmgMul=1,ytol=34){const p=G.p;const dx=(p.x-e.x)*e.face;
  if(dx>-20&&dx<range&&Math.abs(p.y-e.y)<ytol&&p.z<60){const d=hurtPlayer(e.dmg*dmgMul*(bannerBuff()&&e.def.shape!=='vamp'?1.3:1),e);
   if(d&&(e.def.drain||(e.boss&&curPhase(e).lifesteal))){const h=e.boss?d*2:d;e.hp=Math.min(e.maxhp,e.hp+h);numText(e,'+'+Math.round(h),'#ff4060');particles(p.x,p.y,50,'#c00020',8)}return 1}return 0}
 function eShot(e,k){const p=G.p;if(k==='snowball'){lobSnow(e,p.x+rnd(-30,30),p.y+rnd(-12,12),e.dmg,40,1);sfx('swing');return}const a=Math.atan2((p.y-e.y),(p.x-e.x));const sp=k==='arrow'?380:260;
- G.ep.push({k,x:e.x+e.face*20,y:e.y,z:40*e.r+e.z,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp*.5,dmg:e.dmg*(k==='arrow'?.8:1),life:3,own:e});sfx(k==='arrow'?'swing':k==='ice'?'frost':'fire')}
+ G.ep.push({k,own:e,x:e.x+e.face*20,y:e.y,z:40*e.r+e.z,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp*.5,dmg:e.dmg*(k==='arrow'?.8:1),life:3,own:e});sfx(k==='arrow'?'swing':k==='ice'?'frost':'fire')}
 function updateEnemy(e,dt){const p=G.p,d=e.def;
  if(e.dead){e.deadT+=dt;e.z=Math.max(0,e.z-200*dt);return}
  e.at+=dt;e.hurtT=Math.max(0,e.hurtT-dt);e.cool=Math.max(0,e.cool-dt);e.slow=Math.max(0,e.slow-dt);e.inv=Math.max(0,(e.inv||0)-dt);
  if(e.kx){e.x+=e.kx*dt*4;e.kx*=.8;if(Math.abs(e.kx)<5)e.kx=0}
- if(e.burnT>0){e.burnT-=dt;e.burnAcc=(e.burnAcc||0)+dt;if(e.burnAcc>=.5){e.burnAcc=0;damage(e,e.burnDps*.5,0,e.x,'fire',{dot:1});if(e.dead)return}}
+ if(e.burnT>0){e.burnT-=dt;e.burnAcc=(e.burnAcc||0)+dt;if(e.burnAcc>=.5){e.burnAcc=0;damage(e,e.burnDps*.5,0,e.x,'fire',{dot:1,src:(e.burnSrc||'火系')+' · 灼烧'});if(e.dead)return}}
  if(e.boss){e.frozen=Math.min(e.frozen,.8);e.stun=Math.min(e.stun,.4)}
  if(e.frozen>0){e.frozen-=dt;return}if(e.stun>0){e.stun-=dt;return}
  if(e.hurtT>0&&!e.boss&&!d.elite)return;
@@ -412,7 +420,7 @@ function updateBoss(e,dt,sl){const p=G.p,d=e.def;const ph=curPhase(e);
    if(T>1.5)done();break;
   case 'charge':case 'lunge':if(T<.5){e.face=dx>0?1:-1}else if(T<1.15){e.x+=e.face*(e.pat==='lunge'?720:600)*dt;if(!e.step&&strike(e,70,1.2,36))e.step=1;particles(e.x,e.y,10,'#888',1)}else done();
    if(e.x<G.camX+30||e.x>G.camX+W-30){e.x=clamp(e.x,G.camX+30,G.camX+W-30)}break;
-  case 'fireWave':if(T>.6&&!e.step){e.step=1;G.ep.push({k:'firewave',x:e.x+e.face*60,y:e.y,z:10,vx:e.face*330,vy:0,dmg:e.dmg,life:3,ground:1});sfx('fire')}if(T>1.2)done();break;
+  case 'fireWave':if(T>.6&&!e.step){e.step=1;G.ep.push({k:'firewave',own:e,x:e.x+e.face*60,y:e.y,z:10,vx:e.face*330,vy:0,dmg:e.dmg,life:3,ground:1});sfx('fire')}if(T>1.2)done();break;
   case 'geysers':case 'bloodPillars':if(!e.step){e.step=1;const b=laneAt(e.x);const rows=[b[0]+20,(b[0]+b[1])/2,b[1]-20];const safe=Math.floor(rnd(0,3));
     rows.forEach((y,ri)=>{if(ri===safe)return;for(let x=G.camX+70;x<G.camX+W;x+=130)G.hz.push({k:e.pat==='geysers'?'geyser':'bloodpillar',x:x+rnd(-15,15),y,rx:50,ry:20,t:0,warn:1+ri*.15,act:.7,dmg:e.dmg*1.1,once:1})});sfx('erupt')}
    if(T>1.6)done();break;
@@ -487,30 +495,30 @@ function updateWorld(dt){const p=G.p,B=G.B;
    if(h.k==='burst'&&!h.fx){h.fx=1;G.shake=18;G.flash=.3;sfx('special')}}}
  G.hz=G.hz.filter(h=>h.cyc||(h.k==='shock'?h.t<h.act:h.t<(h.warn||0)+h.act+.3));
  // 玩家投射物
- for(const q of G.pp){q.x+=q.vx*dt;q.y+=(q.vy||0)*dt;q.life-=dt;
+ for(const q of G.pp){DSRC=q.src||(q.k==='sword_wave'?'剑气波':q.k);q.x+=q.vx*dt;q.y+=(q.vy||0)*dt;q.life-=dt;
   for(const e of G.enemies){if(e.dead||e.hidden||q.hits.includes(e))continue;if(Math.abs(e.x-q.x)<q.w+10*e.r&&Math.abs(e.y-q.y)<26+6*e.r&&e.z<q.z+70){q.hits.push(e);
    damage(e,q.dmg,100,q.x-q.vx*.1,q.elem,{burn:q.burn,slow:q.slow});if(q.chain&&q.chain.left>0){q.chain.left--;chainBolt(e.x,e.y-40*e.r-e.z,q.chain.n,q.chain.dmg,.4,[e])}if(q.freeze)e.frozen=Math.max(e.frozen,q.freeze);if(q.slow)e.slow=Math.max(e.slow,q.slow);if(q.stun)e.stun=Math.max(e.stun,q.stun);
    if(q.k==='sword_wave')gainProf(1);
-   if(q.explode){aoe(q.x,q.y,q.explode.r,q.explode.dmg,'fire',{burn:q.burn});G.zones.push({k:'boom',x:q.x,y:q.y,r:q.explode.r,t:0,dur:.5,tick:9,acc:0,dmg:0,sc:q.explode.small?.55:1});G.shake=Math.max(G.shake,q.explode.small?3:8);sfx('explode')}
+   if(q.explode){aoe(q.x,q.y,q.explode.r,q.explode.dmg,'fire',{burn:q.burn,tag:'爆炸'});G.zones.push({k:'boom',x:q.x,y:q.y,r:q.explode.r,t:0,dur:.5,tick:9,acc:0,dmg:0,sc:q.explode.small?.55:1});G.shake=Math.max(G.shake,q.explode.small?3:8);sfx('explode')}
    if(!q.pierce){q.life=0;break}}}
   if(q.x<G.camX-100||q.x>G.camX+W+100)q.life=0}
- G.pp=G.pp.filter(q=>q.life>0);
+ DSRC='';G.pp=G.pp.filter(q=>q.life>0);
  // 敌方投射物
  for(const q of G.ep){q.x+=q.vx*dt;q.y+=q.vy*dt;q.life-=dt;
   if(Math.abs(p.x-q.x)<(q.hw||(q.k==='firewave'?40:22))&&Math.abs(p.y-q.y)<(q.hh||(q.k==='firewave'?22:20))&&(q.ground?p.z<25:Math.abs(p.z+40-q.z)<60)){
    const d=hurtPlayer(q.dmg,q);if(d&&q.k==='bloodorb'&&q.own&&!q.own.dead&&curPhase(q.own)&&curPhase(q.own).lifesteal){q.own.hp=Math.min(q.own.maxhp,q.own.hp+d*1.5)}if(q.k==='rollball'){if(d){p.vz=Math.max(p.vz||0,0);G.shake=10;particles(p.x,p.y,30,'#ffffff',20,200)}}else if(q.k!=='firewave')q.life=0}}
  G.ep=G.ep.filter(q=>q.life>0&&q.x>G.camX-100&&q.x<G.camX+W+100);
  // 法术区域
- for(const z of G.zones){z.t+=dt;if(z.follow){z.x=p.x;z.y=p.y}if(z.vx)z.x+=z.vx*dt;z.acc+=dt;
+ for(const z of G.zones){DSRC=z.src||z.k;z.t+=dt;if(z.follow){z.x=p.x;z.y=p.y}if(z.vx)z.x+=z.vx*dt;z.acc+=dt;
   if(z.k==='dragon'){for(const e of G.enemies)if(!e.dead&&!z.hits.includes(e)&&Math.abs(e.x-z.x)<90){z.hits.push(e);damage(e,z.dmg,120,z.x-z.vx,'ice');e.frozen=Math.max(e.frozen,z.freeze)}continue}
   if(z.pull)for(const e of G.enemies)if(!e.dead&&!e.boss&&Math.hypot(e.x-z.x,e.y-z.y)<z.r*1.4){e.x+=(z.x-e.x)*dt*1.5;e.y+=(z.y-e.y)*dt*1.5}
   if(z.acc>=z.tick&&z.dmg){z.acc=0;
    if(z.strike){const tg=G.enemies.filter(e=>!e.dead&&Math.hypot(e.x-z.x,e.y-z.y)<z.r);const e=pick(tg.length?tg:[null]);if(e){bolt(e.x,e.y-500,e.x,e.y-e.z);damage(e,z.dmg,40,z.x,'thunder');e.stun=Math.max(e.stun,z.stun)}else{bolt(z.x+rnd(-200,200),z.y-500,z.x+rnd(-200,200),z.y+rnd(-40,40))}}
    else{aoe(z.x,z.y,z.r,z.dmg,z.elem,{freeze:z.freeze,stun:z.stun,kb:20,burn:z.burn})}
    if(z.tick>=9)z.dmg=0}}
- G.zones=G.zones.filter(z=>z.t<z.dur);
+ DSRC='';G.zones=G.zones.filter(z=>z.t<z.dur);
  // 万剑归宗
- for(const s of G.swords){s.t+=dt;if(s.t>=.35&&!s.done){s.done=1;if(!s.deco&&s.e&&!s.e.dead){damage(s.e,s.dmg,60,G.p.x,null,{ult:1});G.hitstop=.03}particles(s.x,s.y,4,s.gold?'#ffd34a':'#9fe0ff',6,150)}}
+ for(const s of G.swords){s.t+=dt;if(s.t>=.35&&!s.done){s.done=1;if(!s.deco&&s.e&&!s.e.dead){damage(s.e,s.dmg,60,G.p.x,null,{ult:1,src:'终结技 万剑归宗'});G.hitstop=.03}particles(s.x,s.y,4,s.gold?'#ffd34a':'#9fe0ff',6,150)}}
  G.swords=G.swords.filter(s=>s.t<.75);
  for(const b of G.bolts)b.life-=dt;G.bolts=G.bolts.filter(b=>b.life>0);
  // 金币物理
@@ -533,6 +541,7 @@ function stageClear(){const p=G.p,S=G.S,P=PROFILE;sfx('win');
  Object.assign(P,{gold:p.gold,exp:p.exp,mp:Math.round(p.mp),atkLv:p.atkLv,defLv:p.defLv,prof:p.prof,plv:p.plv,spells:p.spells,sel:p.sel,owned:p.owned.slice(),eq:Object.assign({},p.eq),slv:Object.assign({},p.slv)});
  P.unlocked=Math.max(P.unlocked,Math.min(STAGES.length,S.id+1));const tm=Math.round(G.time);const best=P.best[S.id];if(!best||tm<best)P.best[S.id]=tm;
  if(S.final){P.ngplusUnlocked=1}
+ {const g=p.gold-G.goldStart,sold=(G.drops||[]).reduce((a,d)=>a+(d.g||0),0);GOLDLOG.push({stage:S.id,name:S.name,first,time:tm,gold:g,coins:g-bonus-sold,bonus,soldGear:sold,total:p.gold,at:new Date().toLocaleTimeString()})}
  RES_T=0;writeSave();RES={S,time:tm,gold:p.gold-G.goldStart,bonus,drops:(G.drops||[]).slice(),exp:G.expGain||0,kills:G.kills,first,best:P.best[S.id],final:!!S.final};MODE='results'}
 // ---------- 绘制辅助 ----------
 function txt(t,x,y,size=16,col='#fff',align='left',stroke='#000',bold=true){ctx.font=(bold?'bold ':'')+size+'px "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif';ctx.textAlign=align;ctx.textBaseline='middle';
@@ -921,7 +930,7 @@ function drawHUD(){const p=G.p;
  bar(108,478,180,11,p.energy/100,p.energy>=100?(G.t*6%2<1?'#7fe0ff':'#3a8aff'):'#3a6ad8');txt('怒气 '+Math.floor(p.energy),198,484,10,'#fff','center');
  drawMpBar(108,494,180,11);
  if(p.energy>=100)txt('[L] 怒气必杀·万剑归宗',108,442,13,'#7fe0ff');
- const st=p.st||NOST;if(DBG_ATK!==1||DBG_GOD){ctx.font='bold 12px sans-serif';txt((DBG_GOD?'调试：无敌 ':'')+(DBG_ATK!==1?'调试：伤害 ×'+DBG_ATK:''),W-20,66,12,'#ff6060','right')}
+ const st=p.st||NOST;if(DBG_ATK!==1||DBG_GOD){ctx.font='bold 12px sans-serif';txt((DBG_GOD?'调试：无敌 ':'')+(DBG_ATK!==1?'调试：全部伤害 ×'+DBG_ATK+'（含法术）':''),W-20,66,12,'#ff6060','right')}
  txt('攻 '+(DBG_ATK!==1?Math.round(atk()*DBG_ATK)+'(×'+DBG_ATK+')':atk())+'  防 '+def()+(st.crit?'  暴击 '+Math.round(st.crit*100)+'%':'')+(st.boss?'  Boss+'+Math.round(st.boss*100)+'%':''),108,522,12,'#ffd34a');
  drawSpellHUD(362,474);
  const pl=p.plv,pf=pl>=5?1:(p.prof-PROF[pl-1])/(PROF[pl]-PROF[pl-1]);txt('砍杀熟练度 Lv'+pl,446,474,12,'#ffd34a');bar(446,484,110,11,pf,'#e8a020');txt(pl>=5?'MAX':p.prof+'/'+PROF[pl],501,490,10,'#fff','center');
@@ -1101,7 +1110,14 @@ requestAnimationFrame(frame);
 function tapAt(x,y){for(let i=RECTS.length-1;i>=0;i--){const r=RECTS[i];if(x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h){auInit();r.fn(x,y);return true}}return false}
 cv.addEventListener('click',e=>{const b=cv.getBoundingClientRect();tapAt((e.clientX-b.left)*W/b.width,(e.clientY-b.top)*H/b.height)});
 window.__tap=tapAt;window.__G=()=>G;window.__help=()=>{if(canHelp('p'))toggleHelp()};window.__helpOpen=()=>!!HELP;
-window.__dbg={mode:()=>MODE,start:i=>startSel(i),profile:()=>PROFILE,
+window.__dbg={mode:()=>MODE,profile:()=>PROFILE,
+ // start(n)：按关卡编号（1 起）开始，start(1) = 第 1 关
+ start:n=>{n=Math.floor(+n);if(!(n>=1&&n<=STAGES.length)){console.warn('__dbg.start(n)：n 为关卡编号 1–'+STAGES.length+'（start(1) = 第 1 关）');return false}if(PROFILE.unlocked<n){PROFILE.unlocked=n;writeSave()}startSel(n-1);return n},// 调试：未解锁的关卡自动解锁
+ // 伤害日志：dmgLog(30) 打印最近 30 条；dmgLog('clear') 清空；dmgStats() 按来源汇总；goldLog() 每关金币
+ dmgLog:(n=30)=>{if(n==='clear'){DLOG.length=0;return 0}const L=DLOG.slice(-Math.max(1,+n||30));console.table(L);return L},
+ dmgStats:()=>{const m={};for(const r of DLOG){const k=r.src+' → '+(r.target.startsWith('玩家')?'玩家':r.isBoss?'首领':'敌人');const o=m[k]||(m[k]={source:r.src,vs:r.target.startsWith('玩家')?'玩家':r.isBoss?'首领':'敌人',hits:0,raw:0,total:0,avg:0,max:0});o.hits++;o.raw+=r.raw;o.total+=r.final;o.max=Math.max(o.max,r.final)}
+  const T=Object.values(m).map(o=>({...o,raw:+o.raw.toFixed(1),total:+o.total.toFixed(1),avg:+(o.total/o.hits).toFixed(1),max:+o.max.toFixed(1)})).sort((a,b)=>b.total-a.total);console.table(T);return T},
+ goldLog:()=>{console.table(GOLDLOG);return GOLDLOG.slice()},
  skip:n=>{if(!G||!G.B||!G.B.waves.length)return false;const L=G.B.waves.length;n=Math.max(0,Math.min(L-1,Math.floor(+n)||0));const w=G.B.waves[n];if(!w)return false;G.enemies=[];G.reinf=[];G.lockX=null;G.boss=null;G.mini=null;G.wave=n;G.p.x=w.x+W*.4-30;G.camX=Math.max(0,w.x-60);return n},
  god:(on=true)=>{DBG_GOD=!!on;if(G&&G.p){const p=G.p;if(on){p.dead=0;p.deadT=0;p.hp=p.maxhp}}return DBG_GOD},atk:(m=1)=>{DBG_ATK=Math.max(0,+m||1);return DBG_ATK},give:(e=0,m=0)=>{e=+e||0;m=+m||0;const inStage=MODE==='play'&&G&&G.p;// 关卡外：直接写进存档
   if(inStage){G.p.exp+=e;G.p.mp=Math.min(G.p.mpMax,G.p.mp+m)}else{PROFILE.exp=(PROFILE.exp|0)+e;PROFILE.mp=Math.min(MP_BASE+totalStats(PROFILE).mp,(PROFILE.mp|0)+m);writeSave()}

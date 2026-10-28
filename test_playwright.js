@@ -24,10 +24,10 @@ await ev(()=>{__dbg.god();const B=__dbg.boss();B.hp=B.maxhp*.45});await pg.waitF
 await ev(()=>__dbg.killAll());await pg.waitForTimeout(3200);await shot('f_results');console.log('mode',await ev(()=>__dbg.mode()),await ev(()=>JSON.stringify(__dbg.profile())));
 await pg.keyboard.press('k');await pg.waitForTimeout(300);await shot('f_select2');
 // final stage ending
-await ev(()=>{__dbg.unlockAll();__dbg.start(4);__dbg.god();const G=__G();__dbg.skip(G.B.waves.length-1)});await pg.keyboard.down('d');await pg.waitForTimeout(500);await pg.keyboard.up('d');await pg.waitForTimeout(1500);
+await ev(()=>{__dbg.unlockAll();__dbg.start(5);__dbg.god();const G=__G();__dbg.skip(G.B.waves.length-1)});await pg.keyboard.down('d');await pg.waitForTimeout(500);await pg.keyboard.up('d');await pg.waitForTimeout(1500);
 await ev(()=>{const B=__dbg.boss();B.hp=B.maxhp*.2});await pg.waitForTimeout(5000);await shot('f_vamp3');
 await ev(()=>__dbg.killAll());await pg.waitForTimeout(3200);await pg.keyboard.press('Enter');await pg.waitForTimeout(2500);await shot('f_ending');
 console.log('mode',await ev(()=>__dbg.mode()),await ev(()=>JSON.stringify(__dbg.profile().ngplusUnlocked)));
 // game over
-await ev(()=>{__dbg.god(false);__dbg.start(0);__G().p.hp=1});await pg.keyboard.down('d');await pg.waitForTimeout(400);await pg.keyboard.up('d');await ev(()=>{hurtPlayer(50,null)});await pg.waitForTimeout(2200);await shot('f_over');console.log('mode',await ev(()=>__dbg.mode()));
+await ev(()=>{__dbg.god(false);__dbg.start(1);__G().p.hp=1});await pg.keyboard.down('d');await pg.waitForTimeout(400);await pg.keyboard.up('d');await ev(()=>{hurtPlayer(50,null)});await pg.waitForTimeout(2200);await shot('f_over');console.log('mode',await ev(()=>__dbg.mode()));
 console.log('ERRS',errs.slice(0,10));console.log(errs.length?'DESKTOP_FAIL':'DESKTOP_PASS');await b.close();process.exit(errs.length?1:0)})();
