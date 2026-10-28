@@ -33,8 +33,11 @@
   "jump_05": {
    "ax": 128,
    "ay": 185,
-   "shift": -106,
-   "clipped_px": 0
+   "shift": 34,
+   "clipped_px": 0,
+   "source": "grok via sprite-gen gen, /workspace/fix3/j05_c.png, scale 0.215",
+   "revision": "fix3 2026-10-28",
+   "shift_note": "x offset of the scaled, bbox-cropped grok cutout on the 288x192 canvas (not the 480px slice-cell offset used by v1 frames)"
   },
   "jump_06": {
    "ax": 128,
@@ -81,8 +84,11 @@
   "whirlwind_01": {
    "ax": 128,
    "ay": 185,
-   "shift": -115,
-   "clipped_px": 0
+   "shift": 75,
+   "clipped_px": 0,
+   "source": "grok via sprite-gen gen, /workspace/fix3/w01_a.png, scale 0.1823",
+   "revision": "fix3 2026-10-28",
+   "shift_note": "x offset of the scaled, bbox-cropped grok cutout on the 288x192 canvas (not the 480px slice-cell offset used by v1 frames)"
   },
   "whirlwind_02": {
    "ax": 128,
@@ -123,8 +129,11 @@
   "whirlwind_08": {
    "ax": 128,
    "ay": 185,
-   "shift": -120,
-   "clipped_px": 0
+   "shift": 70,
+   "clipped_px": 0,
+   "source": "grok via sprite-gen gen, /workspace/fix3/w08_b.png, scale 0.1791",
+   "revision": "fix3 2026-10-28",
+   "shift_note": "x offset of the scaled, bbox-cropped grok cutout on the 288x192 canvas (not the 480px slice-cell offset used by v1 frames)"
   }
  }
 }
