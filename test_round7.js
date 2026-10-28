@@ -1,4 +1,4 @@
-// 第 7 轮测试：法术平衡（公共冷却、首领 ×0.6、不吃追赶）、首领伤害%（固定攻击）、装备掉落提示（J/K/点按）+结算掉落列表、消息分道、调试命令、女巫营地传送
+// 第 7 轮测试：法术平衡（公共冷却、首领 ×0.75、与近战同追赶）、首领伤害%（固定攻击）、装备掉落提示（J/K/点按）+结算掉落列表、消息分道、调试命令、女巫营地传送
 // 用法：node test_round7.js（桌面 8931，移动 8932）；截图存到 OUT（默认本目录）
 const {chromium,devices}=require('playwright-core');
 const URL=process.env.URL||'http://localhost:8931/index.html',MURL=process.env.MURL||'http://localhost:8932/game/index.html',OUT=process.env.OUT||__dirname;
@@ -19,7 +19,7 @@ const fails=[];const ok=(c,m)=>{if(!c){console.log('FAIL',m);fails.push(m)}else 
   p.st=Object.assign({},p.st,{crit:0,spell:0,boss:0});out.b0=hit(10);p.st.boss=.3;out.b30=hit(10);p.st.boss=0;out.atk16=hit(16);
   out.ice=hit(10,'ice');out.iceRes=resistOf(e,'ice');PROFILE.cleared.push(STAGES[0].id);out.afterClear=hit(10);return out});
  ok(Math.abs(r.b30/r.b0-1.3)<.01&&Math.abs(r.atk16/r.b0-1.6)<.01,'固定攻击 10：首领伤害+30% → ×'+(r.b30/r.b0).toFixed(2)+'；攻击 16 → ×'+(r.atk16/r.b0).toFixed(2)+' '+JSON.stringify(r));
- ok(Math.abs(r.ice-10*r.iceRes*.6)<.05,'法术打首领 ×0.6，不吃追赶系数 '+r.ice);
+ ok(Math.abs(r.ice-10*r.iceRes*.75*r.cu[1])<.05,'法术打首领 ×0.75，与近战同样吃追赶系数，首领抗性 ≥0.75 '+r.ice);
  ok(r.cu[0]===1&&r.cu[1]>1&&Math.abs(r.afterClear-10)<.05,'追赶系数只看关卡进度（通关上一关后 =1）'+JSON.stringify(r.cu));
  // 无敌
  await ev(()=>__dbg.start(1));await W(300);r=await ev(()=>{__dbg.god();const G=__G(),p=G.p;const d=hurtPlayer(9999);for(let i=0;i<6;i++)spawn('goblin',p.x+30+i*8,p.y,{});return {d,max:p.maxhp}});await W(3500);
@@ -37,7 +37,7 @@ const fails=[];const ok=(c,m)=>{if(!c){console.log('FAIL',m);fails.push(m)}else 
  r=await ev(()=>{const p=__G().p;const m1=p.mp,g=p.gcd;p.sel=p.spells.indexOf('t1');return {m1,g}});
  await pg.keyboard.press('u');await W(60);
  let r2=await ev(()=>({mp:__G().p.mp,t1:__G().p.cds.t1||0}));
- ok(Math.abs(r.m1-(999-15))<1&&r.g>0&&r2.mp<=r.m1+1&&r2.mp>=r.m1-.5&&!r2.t1,'公共冷却：火球后立刻换闪电不能施放 '+JSON.stringify({r,r2}));
+ ok(Math.abs(r.m1-(999-20))<1&&r.g>0&&r2.mp<=r.m1+1&&r2.mp>=r.m1-.5&&!r2.t1,'公共冷却：火球后立刻换闪电不能施放 '+JSON.stringify({r,r2}));
  await W(900);await pg.keyboard.press('u');await W(60);r2=await ev(()=>__G().p.mp);ok(r2<r.m1,'公共冷却结束后可施放 mp='+r2);
  // 装备掉落提示：暂停、K 留在背包、J 装备，结算列出掉落
  await ev(()=>{__dbg.resetSave();__dbg.start(1)});await W(300);await ev(()=>{__dbg.gear('w1');__dbg.gear('a1');__G().drops=[]});await W(200);

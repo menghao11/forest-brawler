@@ -31,7 +31,7 @@ function fmtV(k,v,sign=true){const s=sign&&v>=0?'+':'';return PCT[k]?s+Math.roun
 function fmtStat(k,v){return STAT_SHORT[k]+fmtV(k,v)}
 function gearStats(eq){const s={atk:0,hp:0,def:0,crit:0,boss:0,spell:0,mp:0,regen:0};for(const sl in eq||{}){const it=EQ(eq[sl]);if(it)for(const k in it.st)s[k]+=it.st[k]}return s}
 function sellPrice(it){return it.price?Math.round(it.price*.5):100+it.tier*120}
-const MP_BASE=100,MP_REGEN=.5,POTION_MP=20;
+const MP_BASE=150,MP_REGEN=.8,POTION_MP=20;
 // 总属性（基础 + 淬炼 + 装备）；who = 存档(PROFILE) 或 关内玩家(G.p)
 function totalStats(who,eq){const g=gearStats(eq||who.eq);return {atk:10+(who.atkLv|0)*4+g.atk,hp:maxHpFor(PROFILE)+g.hp,def:(who.defLv|0)*2+g.def,crit:g.crit,boss:g.boss,spell:g.spell,mp:MP_BASE+g.mp,regen:MP_REGEN+g.regen}}
 // 关内：重新计算装备加成（最大生命、魔力上限、烈炎剑外观）

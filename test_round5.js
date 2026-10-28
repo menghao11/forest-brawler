@@ -10,7 +10,7 @@ const ok=(c,m)=>{if(!c){console.log('FAIL',m);fails.push(m)}else console.log('ok
  // 1. 旧存档迁移
  await ev(()=>{localStorage.setItem('qingyi_brawler_save_v2',JSON.stringify({unlocked:2,cleared:[1],best:{},gold:100,exp:50,mp:7,atkLv:2,defLv:1,prof:0,plv:1,spells:['f1'],sel:0,flameSword:1,vol:.8}))});
  await pg.reload();await W(800);
- let P=await ev(()=>__dbg.profile());ok(P.mp===100&&P.gold===160&&P.eq.weapon==='w_flame'&&P.owned.includes('w_flame')&&P.mpv===3&&P.flameSword===undefined,'旧存档迁移 '+JSON.stringify({mp:P.mp,gold:P.gold,eq:P.eq}));
+ let P=await ev(()=>__dbg.profile());ok(P.mp===150&&P.gold===115&&P.eq.weapon==='w_flame'&&P.owned.includes('w_flame')&&P.mpv===3&&P.flameSword===undefined,'旧存档迁移 '+JSON.stringify({mp:P.mp,gold:P.gold,eq:P.eq}));
  // 2. 商店：B 打开，点两下购买
  await ev(()=>{__dbg.resetSave();__dbg.gold(5000)});await pg.keyboard.press('b');await W(300);ok(await ev(()=>__dbg.mode())==='shop','B 打开装备商店');
  const cell=(c,r)=>({x:36+c*200+90,y:112+r*58+26});
@@ -23,7 +23,7 @@ const ok=(c,m)=>{if(!c){console.log('FAIL',m);fails.push(m)}else console.log('ok
  // 3. 关内属性 + 首领追赶
  await ev(()=>__dbg.start(1));await W(300);
  let r=await ev(()=>{const p=__G().p;return {atk:atk(),def:def(),maxhp:p.maxhp,mpMax:p.mpMax,crit:p.st.crit,spell:p.st.spell}});
- ok(r.atk===22&&r.def===1&&r.maxhp===117&&r.mpMax===140,'关内装备属性 '+JSON.stringify(r));
+ ok(r.atk===22&&r.def===1&&r.maxhp===117&&r.mpMax===190,'关内装备属性 '+JSON.stringify(r));
  r=await ev(()=>{const G=__G();G.idx=2;const a=bossCatchUp();G.p.eq={};applyGear(G.p);const b=bossCatchUp();G.idx=0;return {withGear:+(a*(10+12)).toFixed(1),noGear:+(b*10).toFixed(1)}});
  ok(r.withGear>r.noGear&&r.noGear>=30,'首领追赶（按关卡进度）：有装备对首领有效攻击更高 '+JSON.stringify(r));
  await ev(()=>{const p=__G().p;p.eq={weapon:'w2',armor:'a1',acc:'r3'};applyGear(p)});
@@ -40,7 +40,7 @@ const ok=(c,m)=>{if(!c){console.log('FAIL',m);fails.push(m)}else console.log('ok
  // 5. 施法：冷却 / 魔力 / 灼烧
  await ev(()=>{const G=__G();G.p.mp=100;G.p.sel=0;});
  await pg.keyboard.press('u');await W(100);
- r=await ev(()=>{const p=__G().p;return {mp:Math.round(p.mp),cd:+(p.cds.f1||0).toFixed(2)}});ok(r.mp>=84&&r.mp<=86&&r.cd>0.5,'施法扣魔力 15 并进入冷却 '+JSON.stringify(r));
+ r=await ev(()=>{const p=__G().p;return {mp:Math.round(p.mp),cd:+(p.cds.f1||0).toFixed(2)}});ok(r.mp>=79&&r.mp<=81&&r.cd>0.5,'施法扣魔力 20 并进入冷却 '+JSON.stringify(r));
  await pg.keyboard.press('u');await W(80);ok(Math.round(await ev(()=>__G().p.mp))>=r.mp,'冷却中不能再施放');
  r=await ev(()=>{const G=__G(),p=G.p;spawn('goblin',p.x+200,p.y,{});const e=G.enemies[G.enemies.length-1];e.hp=e.maxhp=500;damage(e,30,0,p.x,'fire',{burn:3});return {id:G.enemies.length-1,hp:e.hp,burn:e.burnT}}).catch(e=>({err:String(e)}));
  if(r.err){console.log('spawn api?',r.err)}else{await W(1600);const hp2=await ev(i=>__G().enemies[i].hp,r.id);ok(r.burn>0&&hp2<r.hp,'火系灼烧持续掉血 '+r.hp.toFixed(0)+'→'+hp2.toFixed(0));}
