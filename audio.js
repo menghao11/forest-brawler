@@ -36,7 +36,11 @@ const SFX={
  go:()=>arp([659,784,988],.1,'square',.15),
  win:()=>arp([523,659,784,1047,784,1047,1319],.13,'square',.18),
  over:()=>arp([392,370,349,330,262],.22,'sawtooth',.18),
- fail:()=>tone(150,.12,'square',.12)};
+ fail:()=>tone(150,.12,'square',.12),
+ explode:()=>{noise(.5,.5,1200,'lowpass',0,100);tone(90,.4,'sawtooth',.3,30)},
+ roar:()=>{tone(110,.8,'sawtooth',.3,55);noise(.7,.3,400,'bandpass',0,150)},
+ erupt:()=>{noise(.6,.45,200,'lowpass',0,1500);tone(60,.5,'square',.2,40)},
+ block:()=>{tone(1800,.08,'square',.12,900);noise(.05,.2,5000,'highpass')}};
 function sfx(n){if(AU.ctx&&SFX[n])try{SFX[n]()}catch(e){}}
 function startMusic(){const bass=[110,110,131,98],mel=[220,262,247,196,220,330,294,247];const beat=.42;
  AU.musTimer=setInterval(()=>{const c=AU.ctx;if(!c||c.state!=='running')return;const s=AU.step++;

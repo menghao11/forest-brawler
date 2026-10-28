@@ -1,27 +1,33 @@
-const {chromium}=require('playwright-core');(async()=>{const b=await chromium.launch({args:['--autoplay-policy=no-user-gesture-required'],executablePath:'/usr/bin/google-chrome'});const pg=await b.newPage({viewport:{width:960,height:540}});
-const errs=[];pg.on('console',m=>{if(m.type()==='error')errs.push(m.text())});pg.on('pageerror',e=>errs.push(String(e)));
-await pg.goto((process.env.URL||'http://localhost:8932/game/index.html'));await pg.waitForTimeout(500);console.log('E',errs);
-await pg.keyboard.down('d');await pg.waitForTimeout(4500);await pg.keyboard.up('d');
-for(let i=0;i<60;i++){await pg.keyboard.press('j');await pg.waitForTimeout(120);if(i%10==0){await pg.keyboard.down('d');await pg.waitForTimeout(150);await pg.keyboard.up('d')}}
-await pg.keyboard.press('u');await pg.waitForTimeout(200);
-let s=await pg.evaluate(()=>{const G=__G();return {prof:G.p.prof,plv:G.p.plv,witchVisible:G.witches.some(w=>w.x>G.camX-60&&w.x<G.camX+1020),lock:G.lockX,wave:G.wave,en:G.enemies.filter(e=>!e.dead).length,gold:G.p.gold,exp:G.p.exp,hp:G.p.hp,en2:G.p.energy,pick:G.pickups.length,msgs:G.msgs.map(m=>m.t)}});console.log(JSON.stringify(s),errs);
-// test spells & special
-await pg.evaluate(()=>{const G=__G();G.p.spells=['fire','frost','bolt'];G.p.mp=9;G.p.energy=100;G.p.hp=97;});
-await pg.keyboard.press('u');await pg.waitForTimeout(150);await pg.screenshot({path:'/workspace/game/screenshot.png'});await pg.keyboard.press('i');await pg.keyboard.press('u');await pg.waitForTimeout(100);
-await pg.keyboard.press('l');await pg.waitForTimeout(250);await pg.screenshot({path:'/workspace/game/screenshot_special.png'});
-// witch menu
-await pg.evaluate(()=>{const G=__G();G.enemies=[];G.lockX=null;G.p.x=1800;G.p.y=330;G.p.spells=[];G.p.exp=60;G.camX=1450});await pg.waitForTimeout(300);
-await pg.keyboard.press('e');await pg.waitForTimeout(100);await pg.keyboard.press('1');await pg.waitForTimeout(100);await pg.screenshot({path:'/workspace/game/screenshot_witch.png'});
-console.log(JSON.stringify(await pg.evaluate(()=>({sp:__G().p.spells,exp:__G().p.exp,state:__G().state}))));
-// proficiency test
-await pg.evaluate(()=>{const G=__G();G.state='play';G.witchMenu=false;G.p.plv=1;G.p.prof=14;G.p.specialT=0;G.go=0;G.flash=0;G.p.x=2500;G.p.y=390;G.camX=2200;G.p.face=1;G.enemies=[];G.lockX=2200;G.popup=null;G.msgs=[];['g','g','elite'].forEach((t,i)=>{G.enemies.push&&0});});
-await pg.evaluate(()=>{const G=__G();const sp=(x,y)=>{G.enemies.push({type:'g',x,y,z:0,vz:0,hp:300,maxhp:300,sp:0,dmg:0,r:1,exp:10,face:-1,state:'walk',t:0,hurtT:0,frozen:0,kx:0,walk:0,cd:99,dead:0})};sp(2550,390);sp(2580,400);sp(2440,385)});
-await pg.keyboard.press('j');await pg.waitForTimeout(350);await pg.screenshot({path:'/workspace/game/screenshot_skill.png'});
-await pg.waitForTimeout(500);let spun=0;for(let i=0;i<4;i++){await pg.keyboard.press('j');await pg.waitForTimeout(i==2?360:220);console.log('c',await pg.evaluate(()=>[__G().p.combo,__G().p.atkT.toFixed(2),__G().p.plv]));if(await pg.evaluate(()=>__G().p.spinT>0))spun=1}
-const r1=await pg.evaluate((spun)=>({plv:__G().p.plv,popup:!!__G().popup,spun}),spun);
-await pg.evaluate(()=>{const G=__G();G.p.plv=4;G.p.prof=80;G.p.x=2450;G.p.comboWin=0;G.p.atkT=0;G.p.combo=0});await pg.waitForTimeout(700);
-await pg.keyboard.down('d');await pg.keyboard.press('j');await pg.waitForTimeout(80);const dash=await pg.evaluate(()=>__G().p.dashT>0);await pg.keyboard.up('d');await pg.waitForTimeout(800);
-await pg.keyboard.down('j');await pg.waitForTimeout(900);await pg.keyboard.up('j');await pg.waitForTimeout(60);const wave=await pg.evaluate(()=>__G().projs.some(f=>f.wave));
-await pg.screenshot({path:'/workspace/game/screenshot_wave.png'});
-console.log('skills',JSON.stringify({r1,dash,wave}));
-const au=await pg.evaluate(async()=>{const r={ctx:!!AU.ctx,state:AU.ctx&&AU.ctx.state};for(const k in SFX)sfx(k);await new Promise(r=>setTimeout(r,300));r.m0=AU.muted;return r});await pg.keyboard.press('m');au.m1=await pg.evaluate(()=>AU.muted);await pg.screenshot({path:'/workspace/game/screenshot_mute.png'});await pg.keyboard.press('m');console.log('audio',JSON.stringify(au));console.log('errors',errs);await b.close()})();
+// 桌面端流程测试：选关→波次→终结技→女巫学习→施法→首领→结算→第五关→结局→失败
+// 用法：URL=... OUT=截图目录 node test_playwright.js
+const {chromium}=require('playwright-core');
+(async()=>{const b=await chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--autoplay-policy=no-user-gesture-required']});
+const pg=await b.newPage({viewport:{width:960,height:540}});const errs=[];pg.on('pageerror',e=>errs.push('PE '+e.message));pg.on('console',m=>{if(m.type()==='error')errs.push(m.text())});
+await pg.goto((process.env.URL||'http://localhost:8931/index.html'));await pg.waitForTimeout(800);await pg.evaluate(()=>{__dbg.resetSave()});
+const shot=n=>pg.screenshot({path:(process.env.OUT||'/tmp')+'/'+n+'.png'});const ev=f=>pg.evaluate(f);
+await pg.keyboard.press('Enter');await pg.waitForTimeout(300);
+await pg.keyboard.down('d');await pg.waitForTimeout(3200);await pg.keyboard.up('d');await pg.waitForTimeout(1800);
+console.log(await ev(()=>{const G=__G();return JSON.stringify({x:G.p.x,lock:G.lockX,en:G.enemies.map(e=>[e.type,Math.round(e.x),Math.round(e.y)])})}));
+await shot('f_wave1');
+for(let k=0;k<20;k++){await pg.keyboard.press('j');await pg.waitForTimeout(120)}
+console.log(await ev(()=>{const G=__G();return JSON.stringify({hp:G.p.hp,prof:G.p.prof,en:G.enemies.map(e=>[e.type,Math.round(e.hp),e.dead])})}));
+await ev(()=>{__dbg.energy()});await pg.keyboard.press('l');await pg.waitForTimeout(450);await shot('f_ult');await pg.waitForTimeout(1500);
+console.log(await ev(()=>JSON.stringify(__G().enemies.map(e=>[e.type,Math.round(e.hp),e.dead]))));
+// witch
+await ev(()=>{const G=__G();G.enemies=[];G.lockX=null;G.wave=3;G.p.exp=200;const w=G.B.witches[0];G.p.x=w.x-40;G.p.y=w.y+10;G.camX=w.x-400});await pg.waitForTimeout(300);
+await pg.keyboard.press('e');await pg.waitForTimeout(200);await pg.keyboard.press('j');await pg.waitForTimeout(100);await pg.keyboard.press('ArrowRight');await pg.keyboard.press('j');await pg.waitForTimeout(200);await shot('f_witch');
+console.log(await ev(()=>JSON.stringify({sp:__G().p.spells,exp:__G().p.exp,menu:!!__G().menu})));
+await pg.keyboard.press('e');await ev(()=>{__G().p.mp=5});await pg.keyboard.press('u');await pg.waitForTimeout(300);await shot('f_cast');
+// boss & results
+await ev(()=>{const G=__G();__dbg.skip(G.B.waves.length-1)});await pg.keyboard.down('d');await pg.waitForTimeout(500);await pg.keyboard.up('d');await pg.waitForTimeout(1500);
+await ev(()=>{__dbg.god();const B=__dbg.boss();B.hp=B.maxhp*.45});await pg.waitForTimeout(3500);await shot('f_boss1');
+await ev(()=>__dbg.killAll());await pg.waitForTimeout(3200);await shot('f_results');console.log('mode',await ev(()=>__dbg.mode()),await ev(()=>JSON.stringify(__dbg.profile())));
+await pg.keyboard.press('k');await pg.waitForTimeout(300);await shot('f_select2');
+// final stage ending
+await ev(()=>{__dbg.unlockAll();__dbg.start(4);__dbg.god();const G=__G();__dbg.skip(G.B.waves.length-1)});await pg.keyboard.down('d');await pg.waitForTimeout(500);await pg.keyboard.up('d');await pg.waitForTimeout(1500);
+await ev(()=>{const B=__dbg.boss();B.hp=B.maxhp*.2});await pg.waitForTimeout(5000);await shot('f_vamp3');
+await ev(()=>__dbg.killAll());await pg.waitForTimeout(3200);await pg.keyboard.press('Enter');await pg.waitForTimeout(2500);await shot('f_ending');
+console.log('mode',await ev(()=>__dbg.mode()),await ev(()=>JSON.stringify(__dbg.profile().ngplusUnlocked)));
+// game over
+await ev(()=>{__dbg.start(0);__G().p.hp=1});await pg.keyboard.down('d');await pg.waitForTimeout(400);await pg.keyboard.up('d');await ev(()=>{hurtPlayer(50,null)});await pg.waitForTimeout(2200);await shot('f_over');console.log('mode',await ev(()=>__dbg.mode()));
+console.log('ERRS',errs.slice(0,10));console.log(errs.length?'DESKTOP_FAIL':'DESKTOP_PASS');await b.close();process.exit(errs.length?1:0)})();

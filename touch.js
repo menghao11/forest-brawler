@@ -29,12 +29,9 @@
  const jend=e=>{e.preventDefault();for(const t of e.changedTouches)if(t.identifier===jid){jid=null;setDir(0,0)}};
  zone.addEventListener('touchend',jend,{passive:false});zone.addEventListener('touchcancel',jend,{passive:false});
  // 画布点击：女巫菜单选法术 / 结束后重开
- cv.addEventListener('touchstart',e=>{e.preventDefault();const G=window.__G();const r=cv.getBoundingClientRect(),t=e.changedTouches[0];
-  const x=(t.clientX-r.left)*960/r.width,y=(t.clientY-r.top)*540/r.height;
-  if(G.state!=='play'){pressed.r=true;return}
-  if(G.witchMenu){for(let i=0;i<3;i++)if(x>240&&x<720&&Math.abs(y-(222+i*60))<28){pressed[String(i+1)]=true;return}if(y>380||x<230||x>730)pressed.e=true}},{passive:false});
- // UI 状态
- const bE=document.getElementById('bE'),bL=document.getElementById('bL'),bM=document.getElementById('bM');
- setInterval(()=>{const G=window.__G(),p=G.p;const near=G.witches.some(w=>Math.abs(w.x-p.x)<80&&Math.abs(w.y-p.y)<90);
-  bE.style.display=near||G.witchMenu?'flex':'none';bE.textContent=G.witchMenu?'关闭':'对话';bL.classList.toggle('ready',p.energy>=100);bM.textContent=AU.muted?'静音':'音'},120);
+ cv.addEventListener('touchstart',e=>{e.preventDefault();const r=cv.getBoundingClientRect();
+  for(const t of e.changedTouches){const x=(t.clientX-r.left)*960/r.width,y=(t.clientY-r.top)*540/r.height;window.__tap(x,y)}},{passive:false});
+ setInterval(()=>{const G=window.__G(),M=window.__dbg.mode();document.body.classList.toggle('inplay',M==='play');document.body.classList.toggle('inmenu',!!(G&&G.menu&&M==='play'));if(!G||M!=='play')return;const p=G.p;
+  const near=G.lockX==null&&G.B.witches.some(w=>Math.abs(w.x-p.x)<90&&Math.abs(w.y-p.y)<90);
+  bE.style.display=near||G.menu?'flex':'none';bE.textContent=G.menu?'关闭':'女巫';bL.classList.toggle('ready',p.energy>=100);bM.textContent=AU.muted?'静音':'音'},120);
 })();

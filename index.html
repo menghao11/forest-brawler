@@ -10,6 +10,8 @@ html,body{margin:0;padding:0;background:#07060f;width:100%;height:100%;overflow:
 canvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);touch-action:none;display:block}
 #touch{position:fixed;inset:0;display:none;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 body.touch #touch{display:block}
+body.touch:not(.inplay) #touch{display:none}
+body.inmenu #joyZone,body.inmenu #touch .btn{display:none!important}
 #joyZone{position:absolute;left:0;top:25%;width:42%;bottom:0;pointer-events:auto;touch-action:none}
 #joy{position:absolute;width:116px;height:116px;border-radius:50%;background:rgba(160,140,220,.18);border:3px solid rgba(220,200,255,.45);left:calc(env(safe-area-inset-left) + 30px);bottom:calc(env(safe-area-inset-bottom) + 110px)}
 #knob{position:absolute;width:56px;height:56px;border-radius:50%;left:30px;top:30px;background:rgba(220,200,255,.55);border:3px solid #15101f}
@@ -23,13 +25,13 @@ body.touch #touch{display:block}
 #bU{width:50px;height:50px;right:calc(env(safe-area-inset-right) + 100px);bottom:calc(env(safe-area-inset-bottom) + 155px);background:rgba(150,80,220,.5)}
 #bI{width:40px;height:40px;right:calc(env(safe-area-inset-right) + 25px);bottom:calc(env(safe-area-inset-bottom) + 155px);background:rgba(110,70,160,.5);font-size:12px}
 #bE{width:50px;height:50px;right:calc(env(safe-area-inset-right) + 175px);bottom:calc(env(safe-area-inset-bottom) + 145px);background:rgba(200,120,255,.5);display:none}
-#bM{width:40px;height:40px;left:calc(env(safe-area-inset-left) + 140px);top:calc(env(safe-area-inset-top) + 8px);background:rgba(60,50,90,.5);font-size:12px}
+#bM{width:40px;height:40px;right:calc(env(safe-area-inset-right) + 10px);top:calc(env(safe-area-inset-top) + 64px);background:rgba(60,50,90,.5);font-size:12px}
 #rot{display:none;position:fixed;inset:0;background:#07060f;color:#e0b0ff;font:bold 26px "PingFang SC",sans-serif;align-items:center;justify-content:center;flex-direction:column;z-index:9}
 @media (orientation:portrait){body.touch #rot{display:flex}}
 </style></head>
 <body><canvas id="c" width="960" height="540"></canvas>
 <div id="touch"><div id="joyZone"><div id="joy"><div id="knob"></div></div></div>
-<div class="btn" id="bJ" data-k="j">攻击</div><div class="btn" id="bK" data-k="k">跳跃</div><div class="btn" id="bL" data-k="l">必杀</div>
+<div class="btn" id="bJ" data-k="j">攻击</div><div class="btn" id="bK" data-k="k">跳跃</div><div class="btn" id="bL" data-k="l">终结技</div>
 <div class="btn" id="bU" data-k="u">魔法</div><div class="btn" id="bI" data-k="i">切换</div><div class="btn" id="bE" data-k="e">对话</div><div class="btn" id="bM">音</div></div>
 <div id="rot"><div style="font-size:60px">📱↻</div>请横屏游戏</div>
-<script src="audio.js"></script><script src="game.js"></script><script src="touch.js"></script></body></html>
+<script src="assets/hero_atlas.js"></script><script src="assets/fx_atlas.js"></script><script src="assets/goblin_atlas.js"></script><script src="assets/vampire_atlas.js"></script><script src="stages.js"></script><script src="audio.js"></script><script src="game.js"></script><script src="touch.js"></script></body></html>
