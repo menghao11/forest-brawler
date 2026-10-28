@@ -1,0 +1,130 @@
+{
+ "canvas": [
+  288,
+  192
+ ],
+ "anchor_x": 128,
+ "baseline_y": 185,
+ "frames": {
+  "jump_01": {
+   "ax": 128,
+   "ay": 185,
+   "shift": -134,
+   "clipped_px": 0
+  },
+  "jump_02": {
+   "ax": 128,
+   "ay": 185,
+   "shift": -117,
+   "clipped_px": 0
+  },
+  "jump_03": {
+   "ax": 128,
+   "ay": 185,
+   "shift": -125,
+   "clipped_px": 0
+  },
+  "jump_04": {
+   "ax": 128,
+   "ay": 185,
+   "shift": -144,
+   "clipped_px": 0
+  },
+  "jump_05": {
+   "ax": 128,
+   "ay": 185,
+   "shift": -106,
+   "clipped_px": 0
+  },
+  "jump_06": {
+   "ax": 128,
+   "ay": 185,
+   "shift": -152,
+   "clipped_px": 0
+  },
+  "thrust_01": {
+   "ax": 128,
+   "ay": 185,
+   "shift": -107,
+   "clipped_px": 0
+  },
+  "thrust_02": {
+   "ax": 128,
+   "ay": 185,
+   "shift": -148,
+   "clipped_px": 0
+  },
+  "thrust_03": {
+   "ax": 128,
+   "ay": 185,
+   "shift": -94,
+   "clipped_px": 0
+  },
+  "thrust_04": {
+   "ax": 128,
+   "ay": 185,
+   "shift": -89,
+   "clipped_px": 0
+  },
+  "thrust_05": {
+   "ax": 128,
+   "ay": 185,
+   "shift": -149,
+   "clipped_px": 0
+  },
+  "thrust_06": {
+   "ax": 128,
+   "ay": 185,
+   "shift": -116,
+   "clipped_px": 0
+  },
+  "whirlwind_01": {
+   "ax": 128,
+   "ay": 185,
+   "shift": -115,
+   "clipped_px": 0
+  },
+  "whirlwind_02": {
+   "ax": 128,
+   "ay": 185,
+   "shift": -104,
+   "clipped_px": 0
+  },
+  "whirlwind_03": {
+   "ax": 128,
+   "ay": 185,
+   "shift": -136,
+   "clipped_px": 0
+  },
+  "whirlwind_04": {
+   "ax": 128,
+   "ay": 185,
+   "shift": -90,
+   "clipped_px": 0
+  },
+  "whirlwind_05": {
+   "ax": 128,
+   "ay": 185,
+   "shift": -136,
+   "clipped_px": 0
+  },
+  "whirlwind_06": {
+   "ax": 128,
+   "ay": 185,
+   "shift": -97,
+   "clipped_px": 0
+  },
+  "whirlwind_07": {
+   "ax": 128,
+   "ay": 185,
+   "shift": -96,
+   "clipped_px": 0
+  },
+  "whirlwind_08": {
+   "ax": 128,
+   "ay": 185,
+   "shift": -120,
+   "clipped_px": 0
+  }
+ }
+}

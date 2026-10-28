@@ -1,12 +1,14 @@
 'use strict';
 // 程序化合成音效 (Web Audio API)，无外部文件
-const AU={ctx:null,master:null,sfx:null,mus:null,muted:false,musTimer:null,step:0};
+const AU={ctx:null,master:null,sfx:null,mus:null,muted:false,musTimer:null,step:0,vol:.8};
+const auGain=()=>AU.muted?0:.75*AU.vol;   // 主音量：vol 0–1（存档 PROFILE.vol），默认 .8 ≈ 原 .6
 function auInit(){if(AU.ctx){if(AU.ctx.state==='suspended')AU.ctx.resume();return}
  const C=window.AudioContext||window.webkitAudioContext;if(!C)return;AU.ctx=new C();
- AU.master=AU.ctx.createGain();AU.master.gain.value=AU.muted?0:.6;AU.master.connect(AU.ctx.destination);
+ AU.master=AU.ctx.createGain();AU.master.gain.value=auGain();AU.master.connect(AU.ctx.destination);
  AU.sfx=AU.ctx.createGain();AU.sfx.gain.value=.8;AU.sfx.connect(AU.master);
  AU.mus=AU.ctx.createGain();AU.mus.gain.value=.22;AU.mus.connect(AU.master);startMusic();}
-function auMute(){AU.muted=!AU.muted;if(AU.master)AU.master.gain.setTargetAtTime(AU.muted?0:.6,AU.ctx.currentTime,.02)}
+function auMute(){AU.muted=!AU.muted;if(AU.master)AU.master.gain.setTargetAtTime(auGain(),AU.ctx.currentTime,.02)}
+function auSetVol(v){AU.vol=Math.max(0,Math.min(1,v));if(AU.master)AU.master.gain.setTargetAtTime(auGain(),AU.ctx.currentTime,.02)}
 function tone(f,d,type='square',v=.3,f2=null,delay=0,dest){const c=AU.ctx;if(!c)return;const t=c.currentTime+delay,o=c.createOscillator(),g=c.createGain();
  o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(dest||AU.sfx);o.start(t);o.stop(t+d+.02)}

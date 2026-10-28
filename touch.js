@@ -15,7 +15,7 @@
  // 按钮（多点触控，每个按钮跟踪自己的 touch id）
  document.querySelectorAll('.btn').forEach(b=>{let id=null;
   b.addEventListener('touchstart',e=>{e.preventDefault();id=e.changedTouches[0].identifier;b.classList.add('on');
-   if(b.id==='bM'){auInit();auMute();return}press(b.dataset.k)},{passive:false});
+   if(b.id==='bM'){auInit();auMute();return}if(b.id==='bP'){window.__help();return}press(b.dataset.k)},{passive:false});
   const end=e=>{for(const t of e.changedTouches)if(t.identifier===id){id=null;b.classList.remove('on');if(b.dataset.k)release(b.dataset.k)}e.preventDefault()};
   b.addEventListener('touchend',end,{passive:false});b.addEventListener('touchcancel',end,{passive:false});});
  // 摇杆（8方向）
@@ -31,7 +31,7 @@
  // 画布点击：女巫菜单选法术 / 结束后重开
  cv.addEventListener('touchstart',e=>{e.preventDefault();const r=cv.getBoundingClientRect();
   for(const t of e.changedTouches){const x=(t.clientX-r.left)*960/r.width,y=(t.clientY-r.top)*540/r.height;window.__tap(x,y)}},{passive:false});
- setInterval(()=>{const G=window.__G(),M=window.__dbg.mode();document.body.classList.toggle('inplay',M==='play');document.body.classList.toggle('inmenu',!!(G&&G.menu&&M==='play'));if(!G||M!=='play')return;const p=G.p;
+ setInterval(()=>{const G=window.__G(),M=window.__dbg.mode();document.body.classList.toggle('inplay',M==='play');document.body.classList.toggle('inmenu',!!(G&&G.menu&&M==='play'));const hp=window.__helpOpen();document.body.classList.toggle('inhelp',hp);bP.textContent=hp?'继续':'暂停';if(!G||M!=='play')return;const p=G.p;
   const near=G.lockX==null&&G.B.witches.some(w=>Math.abs(w.x-p.x)<90&&Math.abs(w.y-p.y)<90);
   bE.style.display=near||G.menu?'flex':'none';bE.textContent=G.menu?'关闭':'女巫';bL.classList.toggle('ready',p.energy>=100);bM.textContent=AU.muted?'静音':'音'},120);
 })();

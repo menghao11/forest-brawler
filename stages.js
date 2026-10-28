@@ -32,7 +32,7 @@ const STAGES=[
   decor:'valley',ambient:['leaves','fireflies','shafts'],diff:2.2,hpMul:1.1,batches:2,boss:'goblin_king',
   waves:['goblin*4,goblin_spear*2','goblin_archer*2,goblin*3','goblin_jumper*2,goblin*3,goblin_spear*1|rest','goblin_spear*3,goblin_archer*2,goblin*2','goblin_jumper*3,goblin*4','goblin_lt*1,goblin*3,goblin_archer*1|elite',
    'goblin*5,goblin_spear*2|rest','goblin_archer*3,goblin_jumper*3','goblin*3,goblin_spear*3|bridge','goblin_jumper*3,goblin_archer*2|bridge','goblin*4,goblin_spear*2,goblin_archer*2|river|rest','goblin_lt*1,goblin_jumper*2,goblin_archer*2|elite|river',
-   'goblin*6,goblin_archer*3','goblin_jumper*4,goblin_spear*3','goblin_lt*2,goblin*3|elite|rest','goblin*5,goblin_archer*3,goblin_jumper*2','goblin_spear*4,goblin_jumper*3,goblin_archer*2','goblin_lt*2,goblin_spear*3,goblin_jumper*2,goblin_archer*2|elite'],
+   'goblin*5,goblin_archer*2','goblin_jumper*3,goblin_spear*2','goblin_lt*1,goblin*3|elite|rest','goblin*4,goblin_archer*2,goblin_jumper*1|b3','goblin_spear*3,goblin_jumper*2,goblin_archer*1|b3|rest','goblin_lt*2,goblin_spear*2,goblin_jumper*1,goblin_archer*1|elite|b3'],
   hazards:{},bridge:{top:360,bot:416},river:{top:300,bot:470,slow:.55}},
  {id:5,name:'黑夜古堡',theme:'古堡',placeholder:false,far:'assets/bg/stage5_far.jpg',farY:-20,farAlpha:1,final:1,
   sky:['#05060f','#1a1a30'],ground:{base:'#1a1a24',path:'#2e2e3c',pathHi:'rgba(180,200,255,.14)',edge:'#2a2a36'},
@@ -47,7 +47,7 @@ const WAVE_GAP=760,WAVE_START=520;
 function buildStage(s){
  const waves=[],witches=[],segs=[];let x=WAVE_START;
  s.waves.forEach((w,i)=>{const [list,...flags]=w.split('|');const L=[];if(list.startsWith('mini:')){L.push(list)}else list.split(',').forEach(p=>{const [t,n]=p.split('*');const c=Math.max(1,Math.round((+n||1)*(s.countMul||1)));for(let k=0;k<c;k++)L.push(t)});
-  const wv={x,list:L,elite:flags.includes('elite'),bridge:flags.includes('bridge')};waves.push(wv);
+  const wv={x,list:L,elite:flags.includes('elite'),bridge:flags.includes('bridge')};const bf=flags.find(f=>/^b\d$/.test(f));if(bf)wv.batches=+bf[1];waves.push(wv);
   if(wv.bridge)segs.push({x0:x-200,x1:x+W+200,top:s.bridge.top,bot:s.bridge.bot,type:'bridge'});
   if(flags.includes('hall'))segs.push({x0:x-300,x1:x+W+400,top:LANE_TOP,bot:LANE_BOT,type:'hall'});
   if(flags.includes('river'))segs.push({x0:x-100,x1:x+W+100,top:s.river.top,bot:s.river.bot,type:'river',slow:s.river.slow});

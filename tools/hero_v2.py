@@ -3,6 +3,8 @@
 # 2) 本脚本：棋盘格清理（与外部连通的中性浅灰/白像素一律透明）→ 只留主体（含剑）→ alpha 收紧 + 边缘去灰晕
 #    → 全部帧统一缩放（以待机身高为准）→ 脚底基线 + 躯干中心（同动画内平滑）作为锚点
 # 3) 与旧图集中保留的动作（跳、突刺、旋风斩、剑气、蓄力、终结技、倒地等）合并；旧帧蓝色衣袍色相偏移到新青绿色
+# 4) 新动作帧（ref/jump_01~06、thrust_01~06、whirlwind_01~08，288x192 透明 PNG，已统一 1.6 倍分辨率）：
+#    锚点取 ref/new_moves_anchors.json（ax=128 躯干中心，ay=185 脚底基线），裁到包围盒后入图集，替换旧的跳跃/突刺/旋风斩帧
 # 输出 assets/hero_atlas.png/.json/.js（帧带 s 字段：绘制时额外缩放，新帧以 1.6 倍分辨率存储）
 import os,sys,json
 import numpy as np
@@ -106,7 +108,8 @@ por=im0.crop((px,py,px+P,py+P)).resize((128,128),Image.LANCZOS)
 bgc=Image.new('RGBA',(128,128),(30,40,46,255));bgc.alpha_composite(por);OUT['portrait']=(bgc,64,64,.78)
 # 旧帧：从现有图集取出（保留的动作），蓝色衣袍色相偏移到青绿
 J=json.load(open(f'{ROOT}/assets/hero_atlas_v1.json'));A=Image.open(f'{ROOT}/assets/hero_atlas_v1.png').convert('RGBA')
-KEEP=['jump','turn','thrust','hslash','upslash','downslash','spin','wavecast','dodge','block','charge','ult','down']
+KEEP=['turn','hslash','upslash','downslash','wavecast','dodge','block','charge','ult','down']
+NEW={'jump':'jump','thrust':'thrust','spin':'whirlwind'}   # 动画名 → ref 文件前缀
 def teal(im):
   a=np.array(im);hsv=np.array(im.convert('RGB').convert('HSV')).astype(int)
   h,sat,v=hsv[...,0],hsv[...,1],hsv[...,2];m=(h>=135)&(h<=180)&(sat>35)
@@ -118,7 +121,16 @@ for an in KEEP:
     f=J['frames'][k];im=A.crop((f['x'],f['y'],f['x']+f['w'],f['y']+f['h']));OUT[k]=(teal(im),f['ax'],f['ay'],1)
 for k in ['fx_sword','fx_wave']:
   f=J['frames'][k];OUT[k]=(A.crop((f['x'],f['y'],f['x']+f['w'],f['y']+f['h'])),f['ax'],f['ay'],1)
+NEW_DIR=os.environ.get('NEW_MOVES_DIR','ref')   # 新招式帧目录；换一版美术：NEW_MOVES_DIR=ref/v2 python3 tools/hero_v2.py
+NA=json.load(open(f'{ROOT}/{NEW_DIR}/new_moves_anchors.json'))
 anims={a:list(J['anims'][a]) for a in KEEP}
+import glob
+for an,pre in NEW.items():
+  fs=sorted(glob.glob(f'{ROOT}/{NEW_DIR}/{pre}_[0-9][0-9].png'));anims[an]=[]
+  for i,f in enumerate(fs):
+    im=Image.open(f).convert('RGBA');a=np.array(im);a[...,3][a[...,3]<10]=0;a[...,:3][a[...,3]==0]=0;im=Image.fromarray(a)
+    m=NA['frames'].get(os.path.basename(f)[:-4],{});ax,ay=m.get('ax',NA['anchor_x']),m.get('ay',NA['baseline_y'])
+    bb=im.getbbox();k=f'{an}_{i}';OUT[k]=(im.crop(bb),ax-bb[0],ay-bb[1],1/RES);anims[an].append(k)
 anims['idle']=[f'idle_{i}' for i in range(6)];anims['walk']=[f'walk_{i}' for i in range(8)];anims['run']=anims['walk']
 for i in range(1,5):anims[f'atk{i}']=[f'attack{i}_{j}' for j in range(6)]
 anims['hurt']=[f'hit_{i}' for i in range(3)]
