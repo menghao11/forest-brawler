@@ -9,7 +9,7 @@ const hit=k=>{if(pressed[k]){pressed[k]=false;return true}return false};
 const rnd=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),pick=a=>a[Math.floor(Math.random()*a.length)];
 // ---------- 资源 ----------
 const IMG={};function loadImg(k,src){const i=new Image();i.src=src;IMG[k]=i;return i}
-loadImg('hero',HERO_ATLAS.image);loadImg('gob',GOBLIN_ATLAS.image);loadImg('big',BIGGOBLIN_ATLAS.image);loadImg('bat',BAT_ATLAS.image);loadImg('vamp',VAMPIRE_ATLAS.image);loadImg('fx',FX_ATLAS.image);loadImg('snow',SNOWMAN_ATLAS.image);loadImg('snowboss',SNOWBOSS_ATLAS.image);
+loadImg('hero',HERO_ATLAS.image);loadImg('gob',GOBLIN_ATLAS.image);loadImg('big',BIGGOBLIN_ATLAS.image);loadImg('bat',BAT_ATLAS.image);loadImg('vamp',VAMPIRE_ATLAS.image);loadImg('fx',FX_ATLAS.image);loadImg('snow',SNOWMAN_ATLAS.image);loadImg('snowboss',SNOWBOSS_ATLAS.image);if(window.PROPS_ATLAS)loadImg('props',PROPS_ATLAS.image);
 STAGES.forEach(s=>{if(s.far)loadImg('far'+s.id,s.far)});
 const ready=k=>IMG[k]&&IMG[k].complete&&IMG[k].naturalWidth>0;
 function drawHeroFrame(name,x,y,face,scale=HS,alpha=1,qx=1,qy=1,rot=0){const f=HERO_ATLAS.frames[name];if(!f||!ready('hero'))return;
@@ -103,11 +103,17 @@ function startStage(idx){
 }
 function genDecor(){trees=[];props=[];const S=G.S,end=G.B.end;
  for(let i=0;i<end/100;i++)trees.push({x:i*110+rnd(-30,30),w:rnd(30,70),layer:Math.random()<.5?0:1,h:rnd(.8,1)});
- const D=S.decor;const sets={forest:[['torch',300,'edge'],['crystal',420,'back'],['rock',200,'front']],snow:[['pine',260,'back'],['lantern',420,'edge'],['icerock',220,'front']],
-  volcano:[['brazier',330,'edge'],['pillar',380,'back'],['chainpost',260,'front'],['banner',600,'back']],valley:[['lantern',380,'edge'],['fern',170,'front'],['mossrock',300,'back']],
-  castle:[['torch',300,'edge'],['gargoyle',700,'back'],['ivy',230,'front'],['banner',520,'back']]}[D]||[];
+ const D=S.decor;const sets={forest:[['crystal',520,'back'],['rock',260,'front']],snow:[['pine',300,'back'],['icerock',260,'front']],
+  volcano:[['pillar',420,'back'],['chainpost',320,'front'],['banner',640,'back']],valley:[['mossrock',340,'back']],
+  castle:[['gargoyle',760,'back'],['banner',560,'back']]}[D]||[];
  for(const [type,gap,where] of sets)for(let x=rnd(100,300);x<end;x+=rnd(gap*.8,gap*1.3)){
   const y=where==='back'?rnd(268,292):where==='edge'?(Math.random()<.5?290:488):rnd(484,520);props.push({type,x,y,s:rnd(.7,1.25)})}
+ // 立绘道具（ref/props_sheet.png）：中景灯具 + 灌木/草，走道下沿零星草丛（参与深度排序），近景层见 drawForeground
+ const PS=PROPSET[D];if(PS&&window.PROPS_ATLAS){const sp=PS.sparse?2.2:1,fl=()=>Math.random()<.5?-1:1;
+  for(let x=rnd(160,340);x<end;x+=rnd(360,500))props.push({type:'spr',k:pick(PS.lamps),x,y:rnd(280,293),s:rnd(.8,.95),lamp:1,fl:rnd(0,9),flip:fl()});
+  for(let x=rnd(40,160);x<end;x+=rnd(120,210)*sp)props.push({type:'spr',k:pick(PS.mid),x,y:rnd(284,299),s:rnd(.55,.85),flip:fl()});
+  for(let x=rnd(200,500);x<end;x+=rnd(380,620)*sp)props.push({type:'spr',k:pick(PS.edge),x,y:rnd(474,484),s:rnd(.42,.55),flip:fl(),fade:1})}
+ props.sort((a,b)=>a.y-b.y);
  // 关卡危险：熔岩裂缝等（周期性）
  const hz=S.hazards||{};
  if(hz.cracks){G.B.waves.forEach((w,i)=>{if(w.boss)return;for(let k=0;k<hz.cracks.per;k++){const per=hz.cracks.idle+hz.cracks.warn+hz.cracks.act;
@@ -477,7 +483,30 @@ function drawBG(){const S=G.S,cx=G.camX,th=THEME[S.decor]||THEME.forest;
  if(G.shrink>1){ctx.save();ctx.globalCompositeOperation='lighter';ctx.fillStyle='rgba(255,70,0,.55)';ctx.fillRect(0,LANE_TOP-24,W,G.shrink+24);ctx.fillRect(0,LANE_BOT-G.shrink,W,G.shrink+24);ctx.restore()}
 }
 // ---------- 道具/装饰 ----------
-function drawProp(o,x){const y=o.y,s=o.s;ctx.save();ctx.translate(x,y);ctx.scale(s,s);
+const PROPSET={
+ forest:{lamps:['lamp_wood','lamp_stonehang','brazier'],mid:['bush_dark','grass_fern','bush_blue','bush_dark'],edge:['grass_fern','grass_green'],fg:['bush_dark','grass_fern','bush_blue']},
+ snow:{lamps:['lamp_crystal'],mid:['bush_snow','grass_frost','grass_frost'],edge:['grass_frost'],fg:['bush_snow','grass_frost']},
+ volcano:{lamps:['brazier'],mid:['grass_dry','grass_dry','grass_dry','bush_red'],edge:['grass_dry'],fg:['grass_dry','grass_dry','bush_red'],sparse:1},
+ valley:{lamps:['lamp_wood','lamp_stonehang','lamp_wall'],mid:['bush_flower','bush_yellow','grass_pampas','grass_fern','grass_flower','grass_green'],edge:['grass_flower','grass_green','grass_fern'],fg:['grass_fern','grass_pampas','bush_flower','grass_green']},
+ castle:{lamps:['lamp_gothic','lamp_wall'],mid:['bush_red'],edge:['bush_red'],fg:['bush_red'],sparse:1}};
+const GLOWCOL={lamp_wood:'255,170,70',lamp_stonehang:'255,165,60',lamp_iron:'255,190,100',lamp_wall:'255,160,60',lamp_crystal:'110,180,255',brazier:'255,120,30',lamp_gothic:'255,40,40'};
+const GLOWC={};function glowTex(c){if(GLOWC[c])return GLOWC[c];const cv=document.createElement('canvas');cv.width=cv.height=128;const g=cv.getContext('2d');const gr=g.createRadialGradient(64,64,0,64,64,64);
+ gr.addColorStop(0,`rgba(${c},.9)`);gr.addColorStop(.25,`rgba(${c},.45)`);gr.addColorStop(.6,`rgba(${c},.12)`);gr.addColorStop(1,`rgba(${c},0)`);g.fillStyle=gr;g.fillRect(0,0,128,128);return GLOWC[c]=cv}
+// 玩家被前景道具遮挡时淡出（不影响可读性）
+function propFade(o,sx,f,s){const p=G.p;if(!p)return 1;const px=p.x-G.camX,py=p.y-(p.z||0),x0=sx-f.ax*s,x1=sx+(f.w-f.ax)*s,y0=o.y-f.ay*s;
+ const hit=px+28>x0&&px-28<x1&&py>y0+8&&py-125<o.y&&py<o.y+40;o.fade+=((hit?.32:1)-o.fade)*.18;return o.fade}
+function drawPropSpr(o,x){const A=window.PROPS_ATLAS,f=A&&A.frames[o.k];if(!f||!ready('props')||x<-260||x>W+260)return;const s=o.s,t=G.t+o.fl*1.7;
+ const al=o.fade!=null?propFade(o,x,f,s):1;ctx.save();ctx.globalAlpha=al;ctx.translate(x,o.y);
+ if(o.lamp){ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.3*al;ctx.drawImage(glowTex(GLOWCOL[o.k]),-130*s,-30*s,260*s,60*s);ctx.restore()}
+ ctx.save();ctx.scale(s*o.flip,s);ctx.drawImage(IMG.props,f.x,f.y,f.w,f.h,-f.ax,-f.ay,f.w,f.h);
+ if(o.k==='brazier'){const g=A.frames.brazier_flame,L=f.lights[0];ctx.translate(L[0],L[1]+f.h*.16);ctx.transform(1,0,.07*Math.sin(t*6.5)+.04*Math.sin(t*15),1,0,0);
+  ctx.scale(1+.05*Math.sin(t*9),1+.13*Math.sin(t*11)+.07*Math.sin(t*23));ctx.globalCompositeOperation='lighter';ctx.globalAlpha=al*(.5+.25*Math.sin(t*13));ctx.drawImage(IMG.props,g.x,g.y,g.w,g.h,-g.ax,-g.ay,g.w,g.h)}
+ ctx.restore();
+ if(o.lamp&&f.lights){const fk=.86+.09*Math.sin(t*8.3)+.05*Math.sin(t*21.7),c=GLOWCOL[o.k],tex=glowTex(c),big=o.k==='brazier'?1.35:1;ctx.globalCompositeOperation='lighter';
+  for(const [lx,ly] of f.lights){const gx=lx*s*o.flip,gy=ly*s,R=125*s*fk*big;ctx.globalAlpha=al*.7*fk;ctx.drawImage(tex,gx-R,gy-R,R*2,R*2);ctx.globalAlpha=al*.5;const r2=26*s*fk*big;ctx.drawImage(tex,gx-r2,gy-r2,r2*2,r2*2)}
+  if(o.k==='brazier'&&Math.random()<.12)particles(o.x+f.lights[0][0]*s*o.flip,o.y-1,-f.lights[0][1]*s+12,Math.random()<.5?'#ffb040':'#ff7020',1,45)}
+ ctx.restore()}
+function drawProp(o,x){if(o.type==='spr'){drawPropSpr(o,x);return}const y=o.y,s=o.s;ctx.save();ctx.translate(x,y);ctx.scale(s,s);
  const flick=.8+.2*Math.sin(G.t*13+o.x);
  switch(o.type){
   case 'torch':case 'brazier':ctx.fillStyle='#2a1a12';ctx.fillRect(-4,-70,8,70);ctx.fillStyle='#4a3020';ctx.fillRect(-12,-78,24,10);ctx.globalCompositeOperation='lighter';
@@ -726,12 +755,14 @@ function drawAmbient(){ctx.save();for(const p of G.amb){const a=clamp(Math.min(p
  if(A.includes('shafts')){ctx.save();ctx.globalCompositeOperation='lighter';for(let i=0;i<4;i++){const x=((i*300-G.camX*.3)%1200+1200)%1200-120;const g=ctx.createLinearGradient(x,0,x+120,H);g.addColorStop(0,'rgba(255,240,180,.10)');g.addColorStop(1,'rgba(255,240,180,0)');ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+60,0);ctx.lineTo(x+220,H);ctx.lineTo(x+120,H);ctx.fill()}ctx.restore()}
  if(A.includes('shimmer')){ctx.save();ctx.globalAlpha=.06;ctx.fillStyle='#ff8030';for(let i=0;i<6;i++)ctx.fillRect(0,250+i*12+Math.sin(G.t*3+i)*3,W,4);ctx.restore()}
  if(G.light>0){ctx.fillStyle=`rgba(200,210,255,${G.light})`;ctx.fillRect(0,0,W,H)}}
-function drawForeground(){const S=G.S;const cx=G.camX*1.25;ctx.save();
- for(let i=Math.floor(cx/420)-1;i<(cx+W)/420+1;i++){const x=i*420-cx+hash(i)*120;const y=H+10;
-  if(S.decor==='castle'){ctx.fillStyle='#0a0810';ctx.fillRect(x,y-60,30,60);ctx.fillStyle='#5a0a14';for(let k=0;k<6;k++)ell(x+hash(i*k)*60-10,y-hash(k+i)*50,6,3,'#6a0a18')}
-  else if(S.decor==='volcano'){ctx.fillStyle='#120606';ctx.beginPath();ctx.moveTo(x-40,y);ctx.lineTo(x,y-50-hash(i)*30);ctx.lineTo(x+50,y);ctx.fill()}
-  else if(S.decor==='valley'||S.decor==='forest'){ctx.strokeStyle='#0c1a10';ctx.lineWidth=5;for(let k=-3;k<=3;k++){ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x+k*14,y-40,x+k*26,y-50+Math.abs(k)*6);ctx.stroke()}}
-  else if(S.decor==='snow'){ell(x,y-6,60,24,'#d8e4f4')}}
+function drawForeground(){const S=G.S;const cx=G.camX*1.25;const PS=PROPSET[S.decor],A=window.PROPS_ATLAS;ctx.save();
+ if(!G.fgF)G.fgF={};const p=G.p,px=p?p.x-G.camX:-999,py=p?p.y-(p.z||0):0;
+ for(let i=Math.floor(cx/400)-1;i<(cx+W)/400+1;i++){const x=i*400-cx+hash(i)*140;const y=H+16;
+  if(S.decor==='volcano'&&hash(i*7)<.4){ctx.fillStyle='#120606';ctx.beginPath();ctx.moveTo(x-40,y);ctx.lineTo(x,y-50-hash(i)*30);ctx.lineTo(x+50,y);ctx.fill();continue}
+  if(!PS||!A||!ready('props')||(PS.sparse&&hash(i*3)<.35))continue;
+  const k=PS.fg[Math.floor(hash(i*11)*PS.fg.length)]+'_fg',f=A.frames[k];if(!f)continue;const sc=.85+hash(i*5)*.3,fl=hash(i*13)<.5?-1:1;
+  const hit=px+30>x-f.ax*sc&&px-30<x+(f.w-f.ax)*sc&&py>y-f.ay*sc-10;const cur=G.fgF[i]??.95;const a=G.fgF[i]=cur+((hit?.3:.95)-cur)*.15;
+  ctx.globalAlpha=a;ctx.save();ctx.translate(x,y);ctx.scale(sc*fl,sc);ctx.drawImage(IMG.props,f.x,f.y,f.w,f.h,-f.ax,-f.ay,f.w,f.h);ctx.restore()}
  ctx.restore()}
 // ---------- HUD ----------
 function orbIcon(name,x,y,sc){fx(name,x,y,sc,1)}
@@ -863,5 +894,5 @@ window.__tap=tapAt;window.__G=()=>G;
 window.__dbg={mode:()=>MODE,start:i=>startSel(i),profile:()=>PROFILE,
  skip:n=>{const w=G.B.waves[n];G.enemies=[];G.reinf=[];G.lockX=null;G.wave=n;G.p.x=w.x+W*.4-60;G.camX=w.x-60},
  god:()=>{G.p.maxhp=G.p.hp=99999},give:(e,m)=>{G.p.exp+=e;G.p.mp+=m},learnAll:()=>{G.p.spells=SPELLS.map(s=>s.id)},
- killAll:()=>G.enemies.forEach(e=>{if(!e.dead){e.hp=0;kill(e)}}),unlockAll:()=>{PROFILE.unlocked=5;writeSave()},setPlv:l=>{G.p.plv=l;G.p.prof=PROF[l-1]},energy:()=>{G.p.energy=100},
+ props:()=>props,killAll:()=>G.enemies.forEach(e=>{if(!e.dead){e.hp=0;kill(e)}}),unlockAll:()=>{PROFILE.unlocked=5;writeSave()},setPlv:l=>{G.p.plv=l;G.p.prof=PROF[l-1]},energy:()=>{G.p.energy=100},
  boss:()=>G.boss,speed:n=>{SPEED=n},resetSave:()=>{PROFILE=defProfile();writeSave()}};
