@@ -7,21 +7,21 @@ const TIER_COL=['#cfcfcf','#9fe08f','#5ab8ff','#d08cff','#ffb030'];
 // 数据块由 tools/equip_csv.js 从 docs/equipment.csv 生成/回写（name 名称、desc 描述、lore 背景故事）；手改也可以，改完运行 export 同步表格
 // @EQUIP-DATA-BEGIN
 const EQUIP=[
- {"id":"w1","slot":"weapon","tier":1,"name":"青钢剑","price":500,"st":{"atk":6}},
- {"id":"w2","slot":"weapon","tier":2,"name":"寒铁剑","price":1500,"st":{"atk":12,"crit":0.05}},
- {"id":"w3","slot":"weapon","tier":3,"name":"屠魔剑","price":3200,"st":{"atk":18,"boss":0.2}},
- {"id":"w4","slot":"weapon","tier":4,"name":"龙渊剑","price":6500,"st":{"atk":28,"crit":0.1,"boss":0.25}},
- {"id":"w_flame","slot":"weapon","tier":4,"name":"烈炎剑","price":0,"drop":"焰魔王掉落","st":{"atk":20,"spell":0.15,"boss":0.1}},
- {"id":"a1","slot":"armor","tier":1,"name":"皮甲","price":400,"st":{"hp":20,"def":1}},
- {"id":"a2","slot":"armor","tier":2,"name":"锁子甲","price":1200,"st":{"hp":40,"def":3}},
- {"id":"a3","slot":"armor","tier":3,"name":"玄铁甲","price":2800,"st":{"hp":70,"def":5}},
- {"id":"a4","slot":"armor","tier":4,"name":"龙鳞甲","price":5500,"st":{"hp":110,"def":8,"regen":0.3}},
- {"id":"a_king","slot":"armor","tier":4,"name":"大王战甲","price":0,"drop":"哥布林大王掉落","st":{"hp":80,"def":6,"crit":0.05}},
- {"id":"r1","slot":"acc","tier":1,"name":"灵玉坠","price":450,"st":{"mp":20,"spell":0.1,"regen":0.3}},
- {"id":"r2","slot":"acc","tier":2,"name":"鹰眼戒","price":1300,"st":{"crit":0.08,"atk":4}},
- {"id":"r3","slot":"acc","tier":3,"name":"秘法项链","price":3000,"st":{"spell":0.25,"mp":40,"regen":0.6}},
- {"id":"r4","slot":"acc","tier":4,"name":"猎魔徽记","price":6000,"st":{"boss":0.3,"crit":0.1,"spell":0.15}},
- {"id":"r_blood","slot":"acc","tier":4,"name":"血月吊坠","price":0,"drop":"吸血伯爵掉落","st":{"hp":30,"mp":30,"regen":1,"boss":0.15}}];
+ {"id":"w1","slot":"weapon","tier":1,"name":"青钢剑","price":500,"st":{"atk":6},"desc":"入门剑客的佩剑，轻巧趁手。","lore":"师父在你离开山门那天亲手交给你的剑。剑柄缠的青绳打了个奇怪的结，师父说：\"哪天你在别处见到同样的结，就停下来想一想。\""},
+ {"id":"w2","slot":"weapon","tier":2,"name":"寒铁剑","price":1500,"st":{"atk":12,"crit":0.05},"desc":"雪山寒铁所铸，偶尔能刺中要害。","lore":"剑铺老板说，这批寒铁是十年前一位青衣客从雪山背下来的，他付钱时手套里滴出的不是汗，是冰水。那人后来再没回来取剑。"},
+ {"id":"w3","slot":"weapon","tier":3,"name":"屠魔剑","price":3200,"st":{"atk":18,"boss":0.2},"desc":"专为斩杀魔物而铸，对首领伤害更高。","lore":"剑身刻着一行小字：\"斩魔者，终成魔。\"女巫卖给你时说这只是铁匠的玩笑。她说这话时，没有看你的眼睛。"},
+ {"id":"w4","slot":"weapon","tier":4,"name":"龙渊剑","price":6500,"st":{"atk":28,"crit":0.1,"boss":0.25},"desc":"传说中的名剑，锋芒所至，首领亦惧。","lore":"龙渊剑曾封印过黑夜古堡的主人。封印破碎那夜，剑被人从古堡带出，剑柄上缠着一根青绳，打着你见过的那个结。"},
+ {"id":"w_flame","slot":"weapon","tier":4,"name":"烈炎剑","price":0,"drop":"焰魔王掉落","st":{"atk":20,"spell":0.15,"boss":0.1},"desc":"焰魔王的心火凝成，挥剑时法术更强。","lore":"焰魔王倒下前，把剑推到你面前：\"拿去吧，反正……他也用过。\"火光里，剑身映出一个穿青衣的背影，不是你。"},
+ {"id":"a1","slot":"armor","tier":1,"name":"皮甲","price":400,"st":{"hp":20,"def":1},"desc":"朴素的皮甲，聊胜于无。","lore":"森林猎户的旧甲，内衬绣着一个名字，被人用刀刮掉了。猎户说，这是从一个昏倒在林边的青衣少年身上捡来的。"},
+ {"id":"a2","slot":"armor","tier":2,"name":"锁子甲","price":1200,"st":{"hp":40,"def":3},"desc":"环环相扣，挡得住哥布林的乱刀。","lore":"锁子甲的扣环有一枚是银的，与别的都不一样。女巫说那是\"补丁\"。吸血伯爵最怕的，就是银。"},
+ {"id":"a3","slot":"armor","tier":3,"name":"玄铁甲","price":2800,"st":{"hp":70,"def":5},"desc":"火山玄铁所铸，沉重而坚固。","lore":"铸甲的老矿工说，火山里的熔岩本来是冷的，是\"那个人\"去了以后才烧起来的。他不肯说那个人是谁，只说那人穿青衣，带着一位女巫。"},
+ {"id":"a4","slot":"armor","tier":4,"name":"龙鳞甲","price":5500,"st":{"hp":110,"def":8,"regen":0.3},"desc":"龙鳞缀成，能慢慢愈合穿戴者的伤口。","lore":"据说龙鳞甲会记住每一任主人的血。你穿上它的第一晚，梦里有人叫你\"师弟\"。"},
+ {"id":"a_king","slot":"armor","tier":4,"name":"大王战甲","price":0,"drop":"哥布林大王掉落","st":{"hp":80,"def":6,"crit":0.05},"desc":"哥布林大王的战甲，粗犷却意外合身。","lore":"大王战甲是按人类身形打的，根本不是哥布林的尺码。山谷里的哥布林说，大王的甲是\"古堡里的老爷\"赏的，作为看守山门的报酬。"},
+ {"id":"r1","slot":"acc","tier":1,"name":"灵玉坠","price":450,"st":{"mp":20,"spell":0.1,"regen":0.3},"desc":"温润的灵玉，能涵养魔力。","lore":"女巫送你的第一件礼物，免费的。玉里封着一缕红雾，她说那是\"好运\"。夜深时，红雾会朝着黑夜古堡的方向轻轻飘动。"},
+ {"id":"r2","slot":"acc","tier":2,"name":"鹰眼戒","price":1300,"st":{"crit":0.08,"atk":4},"desc":"鹰眼宝石镶嵌的戒指，让出手更精准。","lore":"戒指内圈刻着两个名字的首字，一个是你师父的，另一个被磨平了。猎鹰从不落在戴着它的人肩上，除非那人穿着青衣。"},
+ {"id":"r3","slot":"acc","tier":3,"name":"秘法项链","price":3000,"st":{"spell":0.25,"mp":40,"regen":0.6},"desc":"流动着秘法的项链，大幅强化法术。","lore":"女巫年轻时的项链。她说自己早就不需要了，可每次你施法时，她的手都会下意识地按住空空的领口。"},
+ {"id":"r4","slot":"acc","tier":4,"name":"猎魔徽记","price":6000,"st":{"boss":0.3,"crit":0.1,"spell":0.15},"desc":"猎魔人公会的最高徽记，对首领效果拔群。","lore":"徽记背面刻着历任持有者的名字，最后一行是你师父，倒数第二行被划掉了，旁边有人用血补了一句：\"他没有堕落，他是为了救她。\""},
+ {"id":"r_blood","slot":"acc","tier":4,"name":"血月吊坠","price":0,"drop":"吸血伯爵掉落","st":{"hp":30,"mp":30,"regen":1,"boss":0.15},"desc":"吸血伯爵心爱的吊坠，生命与魔力源源不绝。","lore":"打开吊坠，里面是一张小像：年轻的女巫依偎着一个穿青衣的剑客。伯爵临死前握着它说：\"告诉她……锅里的药，我一直没喝。\"原来女巫卖给你的每一件装备，都是在引你去古堡，替她结束那个她下不了手的人。"}];
 // @EQUIP-DATA-END
 const EQ=id=>EQUIP.find(q=>q.id===id);
 const STAT_SHORT={atk:'攻击',hp:'生命',def:'防御',crit:'暴击',boss:'Boss伤',spell:'法伤',mp:'魔力',regen:'回魔'};
@@ -49,10 +49,10 @@ function gainGear(id){const p=G.p,it=EQ(id);if(!it)return;
 const SHOP={col:0,row:0,note:'',noteC:'#fff',noteUntil:0};
 function shopNote(t,c='#fff'){SHOP.note=t;SHOP.noteC=c;SHOP.noteUntil=performance.now()+2600}
 function shopWho(){return MODE==='play'&&G?G.p:PROFILE}
-function shopSelDesc(){const c=shopCols()[SHOP.col],it=c&&c[SHOP.row];return it&&it.desc||''}
+function shopSelDesc(){const c=shopCols()[SHOP.col],it=c&&c[SHOP.row];if(!it)return '';return (it.desc||'')+(it.lore&&SHOP.view!==1?'   ·  点「说明」或按 V 看背景故事':'')}
 function shopCols(){return SLOTS.map(s=>EQUIP.filter(q=>q.slot===s.id))}
 function itemState(who,it){if(who.eq&&who.eq[it.slot]===it.id)return 'eq';if((who.owned||[]).includes(it.id))return 'own';if(!it.price)return 'drop';return who.gold>=it.price?'ok':'poor'}
-function shopInput(){const cols=shopCols();if(hit('arrowleft')||hit('a'))SHOP.col=(SHOP.col+2)%3;if(hit('arrowright')||hit('d'))SHOP.col=(SHOP.col+1)%3;
+function shopInput(){const cols=shopCols();if(hit('v')){SHOP.view=SHOP.view?0:1;sfx('coin')}if(SHOP.view===1){if(hit('pageup'))scrollLore(-60);if(hit('pagedown'))scrollLore(60)}if(hit('arrowleft')||hit('a'))SHOP.col=(SHOP.col+2)%3;if(hit('arrowright')||hit('d'))SHOP.col=(SHOP.col+1)%3;
  if(hit('arrowup')||hit('w'))SHOP.row=Math.max(0,SHOP.row-1);if(hit('arrowdown')||hit('s'))SHOP.row++;SHOP.row=Math.min(SHOP.row,cols[SHOP.col].length-1);
  if(hit('j')||hit('enter'))shopAct(cols[SHOP.col][SHOP.row])}
 function shopAct(it){const who=shopWho(),inPlay=who!==PROFILE,st=itemState(who,it);
@@ -84,18 +84,53 @@ function drawShopGrid(x0,y0){const who=shopWho(),cols=shopCols();
    txt(lab,x+SHOP_CW-7,y+14,12,st==='eq'?'#8f8':st==='own'?'#9fd0ff':st==='ok'?'#ffd34a':st==='drop'?'#c9a0ff':'#ff8080','right');ctx.globalAlpha=1;
    RECTS.push({x,y,w:SHOP_CW,h:SHOP_CH,fn:()=>{if(SHOP.col===ci&&SHOP.row===ri)shopAct(it);else{SHOP.col=ci;SHOP.row=ri;sfx('coin')}}})})})}
 // 右侧：当前装备 + 总属性（选中物品时显示装备后的变化）
+// 自动换行（中文逐字；行首不放标点，行尾不放开引号/开括号）
+const NO_HEAD='，。、；：？！…）」』”’》〉】,.;:?!)%',NO_TAIL='（「『“‘《〈【(';
+function wrapText(t,maxW,size,bold=false){ctx.font=(bold?'bold ':'')+size+'px "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif';
+ const out=[];for(const para of String(t||'').split('\n')){let line='';const ch=[...para];
+  for(let i=0;i<ch.length;i++){const c=ch[i];if(line&&ctx.measureText(line+c).width>maxW){
+    if(NO_HEAD.includes(c)){line+=c;continue} // 标点悬挂在行尾
+    let carry='';while(line.length>1&&NO_TAIL.includes(line[line.length-1])){carry=line[line.length-1]+carry;line=line.slice(0,-1)}
+    out.push(line);line=carry+c}else line+=c}
+  out.push(line)}return out}
+// 物品说明（名称、品质、属性、描述、背景故事）；内容超出时可滚动（滚轮 / 拖动 / ▲▼ / PgUp PgDn）
+function drawItemInfo(it,x,y,w,h){const who=shopWho(),st=itemState(who,it),tc=TIER_COL[it.tier];
+ const key=it.id+'|'+w;if(SHOP.loreFor!==key){SHOP.loreFor=key;SHOP.loreY=0}
+ const pad=12;let iw=w-pad*2,rows;const build=()=>{rows=[];const L=(t,sz,c,lh,bold=false)=>{for(const l of wrapText(t,iw,sz,bold))rows.push({t:l,sz,c,lh,bold})};
+ L(SLOTS.find(s=>s.id===it.slot).name+' · '+['','一','二','三','四'][it.tier]+'阶 · '+(st==='eq'?'装备中':st==='own'?'已拥有':it.price?it.price+' 金币':(it.drop||'首领掉落')),11.5,'#aaa',17);
+ {ctx.font='bold 12.5px "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif';let ln='';for(const tk of Object.entries(it.st).map(([k,v])=>fmtStat(k,v))){const t2=ln?ln+'  '+tk:tk;if(ln&&ctx.measureText(t2).width>iw){rows.push({t:ln,sz:12.5,c:'#9fe08f',lh:18,bold:true});ln=tk}else ln=t2}if(ln)rows.push({t:ln,sz:12.5,c:'#9fe08f',lh:18,bold:true})} // 属性按词条换行，不拆开
+ if(it.desc){rows.push({gap:6});L(it.desc,13,'#f0e6c8',19)}
+ if(it.lore){rows.push({gap:8,rule:1});L(it.lore,12.5,'#cbbfe6',19)}
+ if(!it.desc&&!it.lore){rows.push({gap:6});L('（暂无说明）',12,'#777',18)}};
+ const vh0=h-32,tot=()=>rows.reduce((a,r)=>a+(r.gap||r.lh),0);build();if(tot()>vh0-4){iw-=20;build()} // 需要滚动时给 ▲▼ 留出位置
+ gearIcon(it.slot,x+pad+9,y+14,1,tc);txt(it.name,x+pad+26,y+14,17,tc);
+ const top=y+32,vh=h-32;let total=0;for(const r of rows)total+=r.gap||r.lh;const maxS=Math.max(0,total-vh+4);SHOP.loreMax=maxS;SHOP.loreY=clamp(SHOP.loreY||0,0,maxS);
+ ctx.save();ctx.beginPath();ctx.rect(x,top,w,vh);ctx.clip();let cy=top-SHOP.loreY;
+ for(const r of rows){if(r.gap){if(r.rule){ctx.fillStyle='rgba(201,160,255,.25)';ctx.fillRect(x+pad,cy+r.gap/2,iw,1)}cy+=r.gap;continue}
+  if(cy+r.lh>top-20&&cy<top+vh+20)txt(r.t,x+pad,cy+r.lh/2,r.sz,r.c,'left','#000',r.bold);cy+=r.lh}
+ ctx.restore();
+ if(maxS>0){const bx=x+w-22;const fr=SHOP.loreY/maxS;ctx.fillStyle='rgba(255,255,255,.12)';ctx.fillRect(x+w-5,top+4,3,vh-8);ctx.fillStyle='#c9a0ff';ctx.fillRect(x+w-5,top+4+(vh-8-24)*fr,3,24);
+  [[-1,top+2,'▲'],[1,top+vh-24,'▼']].forEach(([d,by,t])=>{const off=d<0?SHOP.loreY<=0:SHOP.loreY>=maxS;rr(bx-6,by,20,22,6);ctx.fillStyle=off?'rgba(40,30,60,.5)':'rgba(90,60,140,.9)';ctx.fill();txt(t,bx+4,by+11,11,off?'#666':'#fff','center');
+   RECTS.push({x:bx-14,y:by-6,w:36,h:34,fn:()=>scrollLore(d*60)})})}}
+function scrollLore(d){SHOP.loreY=clamp((SHOP.loreY||0)+d,0,SHOP.loreMax||0)}
+function shopPanelOpen(){return MODE==='shop'||(MODE==='play'&&G&&G.menu&&G.menu.tab===1)}
+window.__scrollPanel=d=>{if(shopPanelOpen()&&SHOP.view===1)scrollLore(d)};
+document.getElementById('c').addEventListener('wheel',e=>{if(shopPanelOpen()&&SHOP.view===1){e.preventDefault();scrollLore(e.deltaY*.5)}},{passive:false});
+// 右侧面板：页签「属性」（当前装备 + 总属性，选中物品时显示装备后的变化）/「说明」（选中物品的描述与背景故事）
 function drawGearPanel(x,y,w,h){const who=shopWho(),cols=shopCols(),sel=cols[SHOP.col]&&cols[SHOP.col][SHOP.row];
  rr(x,y,w,h,12);ctx.fillStyle='rgba(10,6,24,.75)';ctx.fill();ctx.strokeStyle='#5a4a80';ctx.lineWidth=2;ctx.stroke();
- txt('当前装备',x+14,y+18,15,'#ffd34a');
- SLOTS.forEach((sl,i)=>{const yy=y+44+i*26,it=EQ(who.eq[sl.id]);gearIcon(sl.id,x+22,yy,.75,it?TIER_COL[it.tier]:'#555');txt(sl.name,x+36,yy,12,'#aaa');txt(it?it.name:'— 空 —',x+76,yy,13,it?TIER_COL[it.tier]:'#666')});
- const ref=(who.atkLv|0)+(who.defLv|0);let yy=y+44+3*26;if(ref){txt('淬炼  武器+'+(who.atkLv|0)+'  护甲+'+(who.defLv|0),x+14,yy,11,'#c9a0ff','left','#000',false);yy+=18}
+ ['属性','说明'].forEach((t,i)=>{const tx=x+8+i*62,on=(SHOP.view|0)===i;rr(tx,y+6,58,26,8);ctx.fillStyle=on?'#6a3aa0':'rgba(0,0,0,.35)';ctx.fill();ctx.strokeStyle=on?'#ffd34a':'#5a4a80';ctx.lineWidth=1.5;ctx.stroke();
+  txt(t,tx+29,y+19,13,on?'#fff':'#aaa','center');RECTS.push({x:tx,y:y+2,w:58,h:34,fn:()=>{SHOP.view=i}})});
+ txt('(V)',x+134,y+19,10,'#777','left','#000',false);txt('金币 '+who.gold,x+w-12,y+19,14,'#ffd34a','right');
+ if(SHOP.view===1){if(sel)drawItemInfo(sel,x,y+40,w,h-44);return}
+ SLOTS.forEach((sl,i)=>{const yy=y+52+i*24,it=EQ(who.eq[sl.id]);gearIcon(sl.id,x+22,yy,.75,it?TIER_COL[it.tier]:'#555');txt(sl.name,x+36,yy,12,'#aaa');txt(it?it.name:'— 空 —',x+76,yy,13,it?TIER_COL[it.tier]:'#666')});
+ const ref=(who.atkLv|0)+(who.defLv|0);let yy=y+52+3*24-4;if(ref){txt('淬炼  武器+'+(who.atkLv|0)+'  护甲+'+(who.defLv|0),x+14,yy,11,'#c9a0ff','left','#000',false);yy+=18}
  const cur=totalStats(who),eq2=sel?Object.assign({},who.eq,{[sel.slot]:sel.id}):who.eq,nxt=totalStats(who,eq2);
- txt('总属性'+(sel&&who.eq[sel.slot]!==sel.id?'（→ 装备 '+sel.name+'）':''),x+14,yy+4,13,'#ffd34a');yy+=24;
+ txt('总属性'+(sel&&who.eq[sel.slot]!==sel.id?'（→ '+sel.name+'）':''),x+14,yy+4,13,'#ffd34a');yy+=24;
  const keys=['atk','hp','def','crit','boss','spell','mp','regen'];
  const rh=Math.min(20,(y+h-yy-4)/keys.length);
  keys.forEach((k,i)=>{const cy=yy+i*rh;txt(STAT_LONG[k],x+16,cy,11.5,'#c9a0ff','left','#000',false);
-  const v=cur[k],d=nxt[k]-v;txt(fmtV(k,v,false),x+w-74,cy,12,'#fff','right');if(Math.abs(d)>1e-6)txt((d>0?'▲':'▼')+fmtV(k,Math.abs(d),false),x+w-68,cy,11,d>0?'#7f7':'#f77','left','#000',false)});
- txt('金币 '+who.gold,x+w-14,y+18,15,'#ffd34a','right')}
+  const v=cur[k],d=nxt[k]-v;txt(fmtV(k,v,false),x+w-74,cy,12,'#fff','right');if(Math.abs(d)>1e-6)txt((d>0?'▲':'▼')+fmtV(k,Math.abs(d),false),x+w-68,cy,11,d>0?'#7f7':'#f77','left','#000',false)})}
 // 关卡选择界面的商店（B 键 / 按钮进入）
 function drawShopScreen(){panelBG();txt('装备商店',W/2,40,30,'#ffd34a','center');drawWitchPortrait(70,46,30);txt('女巫的杂货摊：金币购买，存档保存',112,46,13,'#c9a0ff');
  drawShopGrid(36,112);drawGearPanel(642,90,290,330);

@@ -31,6 +31,10 @@
  // 画布点击：女巫菜单选法术 / 结束后重开
  cv.addEventListener('touchstart',e=>{e.preventDefault();const r=cv.getBoundingClientRect();
   for(const t of e.changedTouches){const x=(t.clientX-r.left)*960/r.width,y=(t.clientY-r.top)*540/r.height;window.__tap(x,y)}},{passive:false});
+ // 在说明面板上下拖动 = 滚动背景故事
+ let dragY=null;cv.addEventListener('touchstart',e=>{dragY=e.changedTouches[0].clientY},{passive:true});
+ cv.addEventListener('touchmove',e=>{e.preventDefault();if(dragY===null)return;const r=cv.getBoundingClientRect(),y=e.changedTouches[0].clientY;if(window.__scrollPanel)window.__scrollPanel((dragY-y)*540/r.height);dragY=y},{passive:false});
+ cv.addEventListener('touchend',()=>{dragY=null},{passive:true});
  setInterval(()=>{const G=window.__G(),M=window.__dbg.mode();document.body.classList.toggle('inplay',M==='play');document.body.classList.toggle('inmenu',!!(G&&G.menu&&M==='play'));const hp=window.__helpOpen();document.body.classList.toggle('inhelp',hp);bP.textContent=hp?'继续':'暂停';if(!G||M!=='play')return;const p=G.p;
   const near=G.lockX==null&&G.B.witches.some(w=>Math.abs(w.x-p.x)<90&&Math.abs(w.y-p.y)<90);
   bE.style.display=near||G.menu?'flex':'none';bE.textContent=G.menu?'关闭':'女巫';bL.classList.toggle('ready',p.energy>=100);bM.textContent=AU.muted?'静音':'音'},120);
