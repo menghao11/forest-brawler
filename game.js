@@ -9,7 +9,7 @@ addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 const hit=k=>{if(pressed[k]){pressed[k]=false;return true}return false};
 const rnd=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),pick=a=>a[Math.floor(Math.random()*a.length)];
 // ---------- 资源 ----------
-const ASSET_V='20261028b';const IMG={};function loadImg(k,src){const i=new Image();i.src=src+(/^assets\/[a-z_]+_atlas\.png$/.test(src)?'?v='+ASSET_V:'');IMG[k]=i;return i}
+const ASSET_V='20261028c';const IMG={};function loadImg(k,src){const i=new Image();i.src=src+(/^assets\/[a-z_]+_atlas\.png$/.test(src)?'?v='+ASSET_V:'');IMG[k]=i;return i}
 loadImg('hero',HERO_ATLAS.image);loadImg('gob',GOBLIN_ATLAS.image);loadImg('big',BIGGOBLIN_ATLAS.image);loadImg('bat',BAT_ATLAS.image);loadImg('vamp',VAMPIRE_ATLAS.image);loadImg('fx',FX_ATLAS.image);loadImg('snow',SNOWMAN_ATLAS.image);loadImg('snowboss',SNOWBOSS_ATLAS.image);if(window.PROPS_ATLAS)loadImg('props',PROPS_ATLAS.image);
 STAGES.forEach(s=>{if(s.far)loadImg('far'+s.id,s.far)});
 const ready=k=>IMG[k]&&IMG[k].complete&&IMG[k].naturalWidth>0;
@@ -179,7 +179,7 @@ function kill(e){e.dead=1;e.deadT=0;sfx('death');const p=G.p;p.exp+=e.exp;G.expG
  if(e.boss&&!e.mini){G.clearT=2.5;G.ep=[];G.hz=G.hz.filter(h=>h.stage);G.enemies.forEach(o=>{if(!o.dead&&o!==e){o.hp=0;kill(o)}})}
  if(e.boss&&e.mini)G.mini=null}
 let DBG_GOD=false,DBG_ATK=1;// 调试：无敌 / 伤害倍率（整页有效，跨关卡保留）
-function hurtPlayer(d,src){const p=G.p;if(DBG_GOD||p.inv>0||p.dead||G.clearT>0)return 0;if(!(d>0))return 0;d=Math.max(1,Math.round(d-def()));p.hp-=d;p.hurtT=.3;p.inv=.7;G.hurtFlash=Math.min(.45,.22+d/p.maxhp*2);p.energy=Math.min(100,p.energy+8);G.shake=6;
+function hurtPlayer(d,src){const p=G.p;if(DBG_GOD||p.inv>0||p.dead||G.clearT>0)return 0;if(!(d>0))return 0;d=Math.max(1,Math.round(d-def()));p.hp-=d;p.hurtT=.3;p.inv=.7;{const k=clamp(.3+d/p.maxhp*3,.3,1),rapid=G.t-(G.hurtAt||-9)<.4;G.hurtAt=G.t;G.hurtFlash=Math.max(G.hurtFlash,k*(rapid?.7:1));G.hurtTint=.15;G.hurtTintK=k*(rapid?.45:1)}p.energy=Math.min(100,p.energy+8);G.shake=6;
  numPop(p.x,p.y,80,d,'#ff5555');sfx('hurt');if(src&&src.x!=null)p.x+=Math.sign(p.x-src.x||1)*20;
  if(p.hp<=0){p.hp=0;p.dead=1;p.deadT=0;sfx('over')}return d}
 // ---------- 玩家 ----------
@@ -466,7 +466,7 @@ function stageClear(){const p=G.p,S=G.S,P=PROFILE;sfx('win');
  Object.assign(P,{gold:p.gold,exp:p.exp,mp:p.mp,atkLv:p.atkLv,defLv:p.defLv,prof:p.prof,plv:p.plv,spells:p.spells,sel:p.sel,flameSword:p.flameSword});
  P.unlocked=Math.max(P.unlocked,Math.min(STAGES.length,S.id+1));const tm=Math.round(G.time);const best=P.best[S.id];if(!best||tm<best)P.best[S.id]=tm;
  if(S.final){P.ngplusUnlocked=1}
- writeSave();RES={S,time:tm,gold:p.gold-G.goldStart,exp:G.expGain||0,kills:G.kills,first,best:P.best[S.id],final:!!S.final};MODE='results'}
+ RES_T=0;writeSave();RES={S,time:tm,gold:p.gold-G.goldStart,exp:G.expGain||0,kills:G.kills,first,best:P.best[S.id],final:!!S.final};MODE='results'}
 // ---------- 绘制辅助 ----------
 function txt(t,x,y,size=16,col='#fff',align='left',stroke='#000',bold=true){ctx.font=(bold?'bold ':'')+size+'px "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif';ctx.textAlign=align;ctx.textBaseline='middle';
  if(stroke){ctx.lineWidth=Math.max(3,size/5);ctx.strokeStyle=stroke;ctx.lineJoin='round';ctx.strokeText(t,x,y)}ctx.fillStyle=col;ctx.fillText(t,x,y)}
@@ -876,8 +876,9 @@ function drawPlay(){ctx.save();if(G.shake>0)ctx.translate(rnd(-G.shake,G.shake),
  if(G.clearT>0)txt(G.S.final?'吸血伯爵已被击败！':'关卡完成！',W/2,200,40,'#ffd34a','center')}
 // 受击红闪 + 低血量（<25%）脉动红色暗角
 function drawDanger(){const p=G.p;
- if(G.hurtFlash>0){ctx.fillStyle=`rgba(255,20,20,${G.hurtFlash*.55})`;ctx.fillRect(0,0,W,H);
-  const g=ctx.createRadialGradient(W/2,H/2,H*.3,W/2,H/2,W*.62);g.addColorStop(0,'rgba(255,0,0,0)');g.addColorStop(1,`rgba(220,0,0,${G.hurtFlash*1.4})`);ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}
+ // 受伤反馈：0.15 s 全屏红色闪（按伤害比例，连击时减弱）+ 约 0.45 s 边缘红色暗角
+ if(G.hurtTint>0){ctx.fillStyle=`rgba(255,30,30,${(.12+.2*G.hurtTintK)*(G.hurtTint/.15)})`;ctx.fillRect(0,0,W,H)}
+ if(G.hurtFlash>0){const a=Math.min(.85,G.hurtFlash*.85);const g=ctx.createRadialGradient(W/2,H/2,H*.22,W/2,H/2,W*.6);g.addColorStop(0,'rgba(255,0,0,0)');g.addColorStop(.55,`rgba(230,0,0,${a*.35})`);g.addColorStop(1,`rgba(200,0,0,${a})`);ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}
  const r=p.hp/p.maxhp;if(!p.dead&&r<.25){const pulse=.5+.5*Math.sin(G.t*(5+8*(.25-r)));const a=(.28+.3*(1-r/.25))*(.55+.45*pulse);
   const g=ctx.createRadialGradient(W/2,H/2,H*.38,W/2,H/2,W*.66);g.addColorStop(0,'rgba(120,0,0,0)');g.addColorStop(.6,`rgba(150,0,0,${a*.35})`);g.addColorStop(1,`rgba(200,0,10,${a})`);ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}}
 // ---------- 帮助 / 暂停面板（P 或 Esc，触屏右上“暂停”按钮）----------
@@ -940,10 +941,12 @@ function drawResults(){panelBG();const R=RES;rr(200,70,560,400,16);ctx.fillStyle
  const rows=[['用时',fmtT(R.time)+(R.best===R.time?'  (新纪录)':'  最佳 '+fmtT(R.best))],['获得金币',R.gold],['获得经验',R.exp],['击败敌人',R.kills]];
  rows.forEach((r,i)=>{txt(r[0],300,200+i*40,18,'#c9a0ff');txt(String(r[1]),660,200+i*40,18,'#fff','right')});
  if(R.first&&!R.final)txt('解锁：第'+(R.S.id+1)+'关 · '+STAGES[R.S.id].name+'   最大生命 +12',W/2,365,15,'#8f8','center');
- if(R.final){btn(W/2-110,400,220,46,'观看结局',()=>{MODE='ending';CREDY=H},'#7a1a2a')}
- else{btn(W/2-230,400,200,46,'下一关',()=>{SEL=R.S.id;startSel(R.S.id)},'#7a3a1a');btn(W/2+30,400,200,46,'返回关卡选择',()=>{MODE='select';SEL=R.S.id})}
+ const ok=RES_T>=.8;if(!ok)ctx.globalAlpha=.45;// 0.8 s 防误触：连按 J 不会直接跳过结算
+ if(R.final){btn(W/2-110,400,220,46,'观看结局',()=>{if(RES_T>=.8){MODE='ending';CREDY=H}},'#7a1a2a')}
+ else{btn(W/2-230,400,200,46,'下一关 (J)',()=>{if(RES_T>=.8){SEL=R.S.id;startSel(R.S.id)}},'#7a3a1a');btn(W/2+30,400,200,46,'返回关卡选择 (K)',()=>{if(RES_T>=.8){MODE='select';SEL=R.S.id}})}
+ ctx.globalAlpha=1;if(!ok)return;
  if(hit('enter')||hit('j')){if(R.final){MODE='ending';CREDY=H}else{SEL=R.S.id;startSel(R.S.id)}}if(hit('escape')||hit('k')){MODE='select';SEL=Math.min(4,R.S.id)}}
-let OVER_T=0;
+let OVER_T=0,RES_T=0;
 function drawOver(){drawPlay();const ok=OVER_T>=.8;ctx.fillStyle='rgba(20,0,0,.65)';ctx.fillRect(0,0,W,H);txt('战败……',W/2,190,48,'#ff5050','center');txt('本关进度未保存，可从关卡开头重新挑战',W/2,240,16,'#ddd','center');
  if(!ok){ctx.globalAlpha=.45}btn(W/2-230,300,200,48,'重新挑战 (J)',()=>{if(OVER_T>=.8)startSel(G.idx)},'#7a3a1a');btn(W/2+30,300,200,48,'关卡选择 (K)',()=>{if(OVER_T>=.8)MODE='select'});ctx.globalAlpha=1;
  if(!ok){for(const k in pressed)pressed[k]=false;return}
@@ -962,12 +965,12 @@ function frame(now){let dt=Math.min(.05,(now-last)/1000);last=now;RECTS.length=0
  if(HELP&&MODE!=='play'&&MODE!=='select')HELP=0;
  if(HELP&&MODE==='select'){panelBG();drawHelp()}
  else if(HELP&&MODE==='play'){drawPlay();drawHelp()}
- else if(MODE==='select')drawSelect(dt);else if(MODE==='results')drawResults();else if(MODE==='ending')drawEnding(dt);
+ else if(MODE==='select')drawSelect(dt);else if(MODE==='results'){RES_T+=dt;drawResults()}else if(MODE==='ending')drawEnding(dt);
  else if(MODE==='over'){OVER_T+=dt;drawOver()}
  else if(MODE==='play'){
   if(G.menu){witchMenuInput()}
   for(let si=0;si<SPEED&&MODE==='play';si++){if(G.hitstop>0){G.hitstop-=dt}else if(!G.menu){G.t+=dt;G.time+=dt;updatePlayer(dt);updateWorld(dt);ambient(dt)}}
-  G.shake=Math.max(0,G.shake-dt*30);G.flash=Math.max(0,G.flash-dt*1.5);G.hurtFlash=Math.max(0,G.hurtFlash-dt*1.6);drawPlay()}
+  G.shake=Math.max(0,G.shake-dt*30);G.flash=Math.max(0,G.flash-dt*1.5);G.hurtFlash=Math.max(0,G.hurtFlash-dt*2.2);G.hurtTint=Math.max(0,(G.hurtTint||0)-dt);drawPlay()}
  }catch(err){FRAME_ERR++;if(FRAME_ERR<5)console.error(err);window.__lastErr=String(err&&err.stack||err)}
  if(HELP||!(MODE==='play'&&G&&G.hitstop>0))for(const k in pressed)pressed[k]=false;requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
@@ -978,4 +981,4 @@ window.__dbg={mode:()=>MODE,start:i=>startSel(i),profile:()=>PROFILE,
  skip:n=>{if(!G||!G.B||!G.B.waves.length)return false;const L=G.B.waves.length;n=Math.max(0,Math.min(L-1,Math.floor(+n)||0));const w=G.B.waves[n];if(!w)return false;G.enemies=[];G.reinf=[];G.lockX=null;G.boss=null;G.mini=null;G.wave=n;G.p.x=w.x+W*.4-30;G.camX=Math.max(0,w.x-60);return n},
  god:(on=true)=>{DBG_GOD=!!on;if(G&&G.p){const p=G.p;if(on){p.dead=0;p.deadT=0;p.hp=p.maxhp}}return DBG_GOD},atk:(m=1)=>{DBG_ATK=Math.max(0,+m||1);return DBG_ATK},give:(e,m)=>{G.p.exp+=e;G.p.mp+=m},learnAll:()=>{G.p.spells=SPELLS.map(s=>s.id)},
  props:()=>props,killAll:()=>{const L=G.enemies.slice();const bs=L.filter(e=>e.boss&&!e.mini);L.filter(e=>!bs.includes(e)).concat(bs).forEach(e=>{if(!e.dead){e.hp=0;kill(e)}})},unlockAll:()=>{PROFILE.unlocked=5;writeSave()},setPlv:l=>{G.p.plv=l;G.p.prof=PROF[l-1]},energy:()=>{G.p.energy=100},
- boss:()=>G.boss,speed:n=>{SPEED=n},help:()=>HELP,overT:()=>OVER_T,resetSave:()=>{PROFILE=defProfile();writeSave()}};
+ boss:()=>G.boss,speed:n=>{SPEED=n},help:()=>HELP,overT:()=>OVER_T,resT:()=>RES_T,resetSave:()=>{PROFILE=defProfile();writeSave()}};
