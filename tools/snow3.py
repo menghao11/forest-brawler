@@ -10,7 +10,7 @@ CELLS={
       'walk':[(832,930),(930,1019),(1020,1112),(1240,1337),(1338,1440)],'_y_walk':(575,643),
       'attack':[(1235,1355),(1355,1480)],'_y_attack':(650,726),
       'shock':[(945,1060),(1060,1165),(1165,1268)],'_y_shock':(734,805),
-      'throw':[(835,927),(925,1032),(1030,1140)],'_y_throw':(814,902),
+      'throw':[(835,927),(1030,1140)],'_y_throw':(814,902),
       'summon':[(995,1150),(1158,1305)],'_y_summon':(912,1002)}}
 FXS={'snowball':(330,405,470,548),'iceblock':(215,310,460,550)}
 FXCUT=55;KF=150;KB=170
@@ -59,14 +59,17 @@ def build(key,name,scale=1.0):
   W=1024;x=y=rowh=0;pos=[]
   for k,img,ax,ay in imgs:
     t=Image.fromarray(img)
-    if scale!=1:t=t.resize((round(t.width*scale),round(t.height*scale)),Image.LANCZOS);ax*=scale;ay*=scale
+    if scale!=1:
+      t=t.resize((round(t.width*scale),round(t.height*scale)),Image.LANCZOS);ax*=scale;ay*=scale
+      from PIL import ImageFilter
+      rgb=t.convert('RGB').filter(ImageFilter.UnsharpMask(radius=1.4,percent=90,threshold=2));rgb.putalpha(t.getchannel('A'));t=rgb
     if x+t.width+2>W:x=0;y+=rowh+2;rowh=0
     pos.append((t,x,y));frames[k]=dict(x=x,y=y,w=t.width,h=t.height,ax=int(round(ax)),ay=int(round(ay)));x+=t.width+2;rowh=max(rowh,t.height)
   at=Image.new('RGBA',(W,y+rowh));[at.paste(t,(x,y)) for t,x,y in pos]
   at.save(f'/workspace/game/assets/{name}_atlas.png',optimize=True)
   return {'image':f'assets/{name}_atlas.png','source':'ref/snowman_sheet.png','frames':frames,'anims':anims}
 if __name__=='__main__':
-  A=build('m','snowman',1.5);Bo=build('b','snowboss',1.5)
+  A=build('m','snowman',1.5);Bo=build('b','snowboss',2.0)
   A['anims']['hurt']=['death_0'];Bo['anims']['hurt']=['shock_0'];Bo['anims']['death']=['shock_0','summon_1'][:1]
   json.dump(A,open('/workspace/game/assets/snowman_atlas.json','w'));json.dump(Bo,open('/workspace/game/assets/snowboss_atlas.json','w'))
   open('/workspace/game/assets/snowman_atlas.js','w').write('window.SNOWMAN_ATLAS='+json.dumps(A)+';\nwindow.SNOWBOSS_ATLAS='+json.dumps(Bo)+';\n')

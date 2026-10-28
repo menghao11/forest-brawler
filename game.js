@@ -43,7 +43,7 @@ const EN={
 const BOSSES={
  goblin_chief:{name:'哥布林酋长',shape:'big',hp:900,dmg:16,sp:55,exp:150,r:1.9,sc:1.12,col:'#4f8a3a',
   phases:[{at:1,pats:['combo','charge'],cd:1.9},{at:.5,pats:['combo','smash','summon'],summon:'goblin',cd:1.5,msg:'酋长怒吼，召唤援军！'}]},
- great_yeti:{name:'大雪人',shape:'snowboss',hp:1700,dmg:18,sp:60,exp:260,r:2.3,col:'#f2f7ff',face:'#3a6ac8',horns:1,crystals:1,
+ great_yeti:{name:'大雪人',shape:'snowboss',hp:2300,dmg:18,sp:60,exp:260,r:2.3,col:'#f2f7ff',face:'#3a6ac8',horns:1,crystals:1,
   phases:[{at:1,pats:['hammer','snowballs','slam','roll'],cd:1.6},{at:.6,pats:['snowballs','summon','hammer','roll','slam'],summon:'yeti_pup',cd:1.35,msg:'大雪人举锤怒吼，小雪人蜂拥而来！'},{at:.25,pats:['blizzard','hammer','slam','roll','snowballs'],cd:1.05,enrage:1,msg:'暴风雪降临！冰石如雨！'}]},
  flame_king:{name:'焰魔王·赤烎',shape:'warrior',hp:2400,dmg:22,sp:60,exp:400,r:2.4,col:'#7a0a08',horn:'#1a0a08',weapon:'#ff6a10',flame:1,king:1,
   phases:[{at:1,pats:['sweep','fireWave','sweep'],cd:1.6},{at:.6,pats:['geysers','summon','sweep','fireWave'],summon:'lava_imp',cd:1.35,msg:'赤烎召唤熔岩喷泉！'},
@@ -353,14 +353,17 @@ function updateBoss(e,dt,sl){const p=G.p,d=e.def;const ph=curPhase(e);
 }
 // ---------- 世界更新 ----------
 function hzActive(h){if(h.cyc){const t=(G.t+h.cyc.ofs)%h.cyc.per,i=h.cyc.per-h.cyc.warn-h.cyc.act;return t<i?0:t<i+h.cyc.warn?1:2}return h.t<h.warn?1:h.t<h.warn+h.act?2:3}
+function spawnBatch(w,L){const b=laneAt(w.x+W/2);L.forEach((t,i)=>{const side=t.startsWith('mini:')?1:(i%3===2?-1:1);spawn(t,side>0?w.x+W+40+i*30:w.x-40-i*20,rnd(b[0],b[1]))})}
 function updateWorld(dt){const p=G.p,B=G.B;
  // 波次
  if(G.lockX==null&&G.wave<B.waves.length&&p.x-W*.4>=B.waves[G.wave].x-40){const w=B.waves[G.wave];G.lockX=w.x;G.go=0;
   if(w.boss){spawnBoss(w.boss,w.x+W-150,(LANE_TOP+LANE_BOT)/2)}
-  else{w.list.forEach((t,i)=>{const side=t.startsWith('mini:')?1:(i%3===2?-1:1);const b=laneAt(w.x+W/2);spawn(t,side>0?w.x+W+40+i*30:w.x-40-i*20,rnd(b[0],b[1]))});
+  else{const n=w.list.some(t=>t.startsWith('mini:'))?1:Math.min(G.S.batches||1,Math.max(1,Math.floor(w.list.length/3)));
+   const bs=[];for(let k=0;k<n;k++)bs.push(w.list.filter((_,i)=>i%n===k));spawnBatch(w,bs.shift());G.reinf=bs;
    msg('第 '+(G.wave+1)+' 波'+(w.elite?' · 精英来袭！':''),w.elite?'#ff9a40':'#fff')}}
  if(G.lockX!=null){const camT=G.lockX;G.camX+=(camT-G.camX)*Math.min(1,dt*5);
-  if(G.enemies.every(e=>e.dead)&&!G.B.waves[G.wave].boss){G.lockX=null;G.wave++;G.go=2.5;sfx('go');
+  if(G.reinf&&G.reinf.length&&!G.B.waves[G.wave].boss&&G.enemies.filter(e=>!e.dead).length<=1){spawnBatch(G.B.waves[G.wave],G.reinf.shift());msg('增援来袭！','#ffb080')}
+  if(G.enemies.every(e=>e.dead)&&!(G.reinf&&G.reinf.length)&&!G.B.waves[G.wave].boss){G.lockX=null;G.wave++;G.go=2.5;sfx('go');
    if(B.witches.some(w=>Math.abs(w.x-(B.waves[G.wave-1].x+W+60))<5))msg('前方有女巫营地（按 E 学习魔法/恢复）','#c9a0ff')}}
  else G.camX+=(clamp(p.x-W*.4,0,B.end-W)-G.camX)*Math.min(1,dt*6);
  G.go=Math.max(0,G.go-dt);
@@ -537,17 +540,33 @@ function enemyAnim(e){const d=e.def;if(e.dead)return ['death',e.deadT,false,6];i
  if(e.state==='wind'||e.state==='strike'){const T=e.state==='wind'?e.t/e.wind*.5:.5+e.t;if(sh==='big'&&e.atkType==='smash')return ['smash',T*1.5,false,4];return ['attack',T*1.8,false,5]}
  if(e.state==='leap')return [sh==='big'?'leap':'jumpatk',e.t,false,6];
  if(e.moving)return [d.ai==='fast'||e.boss&&curPhase(e).enrage?'run':'walk',e.at,true,8];return ['idle',e.at,true,5]}
+// 大雪人：单张正面高清立绘 + 补间姿态（避免低清动作帧的锯齿与特效残留）
+function bossPose(e){const P=e.pat,T=e.patT||0,o={dx:0,dy:0,qx:1,qy:1,rot:0,glow:0};const br=Math.sin(G.t*3);
+ if(e.dead){const k=Math.min(1,e.deadT);o.rot=-.35*k;o.dy=10*k;o.qy=1-.15*k;return o}
+ if(e.hurtT>0){o.rot=-.05;o.dx=-e.face*3}
+ if(P==='hammer'||P==='roll'){const w=P==='hammer'?.6:.8;if(T<w){const k=T/w;o.rot=-.14*k;o.qy=1+.06*k;o.qx=1-.03*k;o.dx=-e.face*6*k}
+  else{const k=Math.min(1,(T-w)/.1),r=Math.max(0,1-(T-w-.1)/.45);o.rot=(.18*k)*r;o.qy=1-.1*k*r;o.qx=1+.08*k*r;o.dx=e.face*14*k*r}}
+ else if(P==='slam'){if(T<.2){const k=T/.2;o.qy=1-.12*k;o.qx=1+.08*k}else if(T<.95){const k=(T-.2)/.75;o.dy=-Math.sin(k*Math.PI)*80;o.qy=1.06;o.qx=.96;o.rot=.05*Math.sin(k*Math.PI)}
+  else{const r=Math.max(0,1-(T-.95)/.35);o.qy=1-.16*r;o.qx=1+.12*r}}
+ else if(P==='snowballs'||P==='blizzard'){const per=P==='blizzard'?.14:.42,ph=T<.55?T/.55:((T-.55)/per)%1;const s=Math.sin(ph*Math.PI*2);o.rot=-.1*s;o.qy=1+.05*s;o.qx=1-.03*s}
+ else if(P==='summon'){o.dx=Math.sin(G.t*45)*3;o.qy=1.05+.02*br;o.glow=.18+.08*Math.sin(G.t*10)}
+ else if(e.moving){const w=Math.sin(e.at*7);o.dy=-Math.abs(w)*6;o.rot=.04*w;o.qy=1+.02*Math.abs(w)}
+ else{o.qy=1+.02*br;o.qx=1-.01*br}
+ if(curPhase(e)&&curPhase(e).enrage&&!o.glow)o.glow=.08+.05*Math.sin(G.t*6);return o}
 function drawEnemy(e,sx){const d=e.def,sh=d.shape;const y=e.y-e.z;if(e.hidden){return}
  const alpha=e.dead?clamp(1.2-e.deadT,0,1):1;ctx.save();ctx.globalAlpha=alpha;
  shadow(sx,e.y,22*e.r*(d.fly?.7:1),d.fly?.25:.35);
  const [an,t,loop,fps]=enemyAnim(e);
  if(sh==='gob'||sh==='big'||sh==='bat'||sh==='vamp'||sh==='snow'||sh==='snowboss'){const A={gob:GOBLIN_ATLAS,big:BIGGOBLIN_ATLAS,bat:BAT_ATLAS,vamp:VAMPIRE_ATLAS,snow:SNOWMAN_ATLAS,snowboss:SNOWBOSS_ATLAS}[sh];const ik=sh;
-  const base={gob:1.35,big:1.7,bat:1.5,vamp:1.55,snow:.85*e.r,snowboss:1.9}[sh];let sc=base*(e.sc||1);
+  const base={gob:1.35,big:1.7,bat:1.5,vamp:1.55,snow:.85*e.r,snowboss:.82}[sh];let sc=base*(e.sc||1);
   const an2=A.anims[an]?an:'idle';
   if(e.frozen>0)ctx.filter='saturate(.2) brightness(1.3) hue-rotate(160deg)';else if(e.hurtT>0)ctx.filter='brightness(2)';else if(e.stun>0)ctx.filter='brightness(1.3)';else if(d.tintF)ctx.filter=d.tintF;
   if(d.tintF&&!e.dead){ctx.save();ctx.globalCompositeOperation='lighter';ell(sx,y-45*e.r,30*e.r,40*e.r,'rgba(90,170,255,.13)');ctx.restore()}
   if(sh==='snowboss'&&e.pat==='slam'&&e.patT<.95){ctx.save();ctx.globalCompositeOperation='lighter';ell(sx+e.face*40,y,60*e.patT+20,(60*e.patT+20)*.3,`rgba(140,210,255,${.25*e.patT})`);ctx.restore()}
-  drawAtlas(A,ik,an2,loop?t:t,sx,y,e.face*GOB_FACE,sc,loop,fps);ctx.filter='none';
+  if(sh==='snowboss'){const q=bossPose(e);ctx.save();ctx.translate(sx+q.dx,y+q.dy);ctx.rotate(q.rot*e.face);ctx.scale(q.qx,q.qy);
+   if(q.glow){ctx.save();ctx.globalCompositeOperation='lighter';ell(0,-95,95,110,`rgba(120,200,255,${q.glow})`);ctx.restore()}
+   drawAtlas(A,ik,'idle',0,0,0,e.face*GOB_FACE,sc,true,1);ctx.restore()}
+  else drawAtlas(A,ik,an2,loop?t:t,sx,y,e.face*GOB_FACE,sc,loop,fps);ctx.filter='none';
   if(d.tint||(d.phases&&e.boss&&e.def.tint)){/* 色调靠光晕表现 */ctx.save();ctx.globalCompositeOperation='lighter';ell(sx,y-40*e.r,26*e.r,34*e.r,'rgba(160,0,40,.12)');ctx.restore()}
   if(d.gear==='spear'){ctx.strokeStyle='#8a6a3a';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(sx-e.face*10,y-34);ctx.lineTo(sx+e.face*46,y-46);ctx.stroke();ctx.fillStyle='#cfd8e0';ctx.beginPath();ctx.moveTo(sx+e.face*46,y-50);ctx.lineTo(sx+e.face*58,y-47);ctx.lineTo(sx+e.face*46,y-42);ctx.fill()}
   if(d.gear==='bow'){ctx.strokeStyle='#6a4a2a';ctx.lineWidth=3;ctx.beginPath();ctx.arc(sx+e.face*16,y-40,18,-1.3,1.3,e.face<0);ctx.stroke()}
@@ -828,7 +847,7 @@ function tapAt(x,y){for(let i=RECTS.length-1;i>=0;i--){const r=RECTS[i];if(x>=r.
 cv.addEventListener('click',e=>{const b=cv.getBoundingClientRect();tapAt((e.clientX-b.left)*W/b.width,(e.clientY-b.top)*H/b.height)});
 window.__tap=tapAt;window.__G=()=>G;
 window.__dbg={mode:()=>MODE,start:i=>startSel(i),profile:()=>PROFILE,
- skip:n=>{const w=G.B.waves[n];G.enemies=[];G.lockX=null;G.wave=n;G.p.x=w.x+W*.4-60;G.camX=w.x-60},
+ skip:n=>{const w=G.B.waves[n];G.enemies=[];G.reinf=[];G.lockX=null;G.wave=n;G.p.x=w.x+W*.4-60;G.camX=w.x-60},
  god:()=>{G.p.maxhp=G.p.hp=99999},give:(e,m)=>{G.p.exp+=e;G.p.mp+=m},learnAll:()=>{G.p.spells=SPELLS.map(s=>s.id)},
  killAll:()=>G.enemies.forEach(e=>{if(!e.dead){e.hp=0;kill(e)}}),unlockAll:()=>{PROFILE.unlocked=5;writeSave()},setPlv:l=>{G.p.plv=l;G.p.prof=PROF[l-1]},energy:()=>{G.p.energy=100},
  boss:()=>G.boss,speed:n=>{SPEED=n},resetSave:()=>{PROFILE=defProfile();writeSave()}};
