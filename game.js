@@ -9,11 +9,11 @@ const hit=k=>{if(pressed[k]){pressed[k]=false;return true}return false};
 const rnd=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),pick=a=>a[Math.floor(Math.random()*a.length)];
 // ---------- 资源 ----------
 const IMG={};function loadImg(k,src){const i=new Image();i.src=src;IMG[k]=i;return i}
-loadImg('hero',HERO_ATLAS.image);loadImg('gob',GOBLIN_ATLAS.image);loadImg('big',BIGGOBLIN_ATLAS.image);loadImg('bat',BAT_ATLAS.image);loadImg('vamp',VAMPIRE_ATLAS.image);loadImg('fx',FX_ATLAS.image);
+loadImg('hero',HERO_ATLAS.image);loadImg('gob',GOBLIN_ATLAS.image);loadImg('big',BIGGOBLIN_ATLAS.image);loadImg('bat',BAT_ATLAS.image);loadImg('vamp',VAMPIRE_ATLAS.image);loadImg('fx',FX_ATLAS.image);loadImg('snow',SNOWMAN_ATLAS.image);loadImg('snowboss',SNOWBOSS_ATLAS.image);
 STAGES.forEach(s=>{if(s.far)loadImg('far'+s.id,s.far)});
 const ready=k=>IMG[k]&&IMG[k].complete&&IMG[k].naturalWidth>0;
-function drawHeroFrame(name,x,y,face,scale=HS,alpha=1){const f=HERO_ATLAS.frames[name];if(!f||!ready('hero'))return;
- ctx.save();ctx.globalAlpha*=alpha;ctx.translate(x,y);ctx.scale(face*scale,scale);ctx.drawImage(IMG.hero,f.x,f.y,f.w,f.h,-f.ax,-f.ay,f.w,f.h);ctx.restore()}
+function drawHeroFrame(name,x,y,face,scale=HS,alpha=1,qx=1,qy=1,rot=0){const f=HERO_ATLAS.frames[name];if(!f||!ready('hero'))return;
+ ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.globalAlpha*=alpha;ctx.translate(x,y);if(rot)ctx.rotate(rot*face);ctx.scale(face*scale*qx,scale*qy);ctx.drawImage(IMG.hero,f.x,f.y,f.w,f.h,-f.ax,-f.ay,f.w,f.h);ctx.restore()}
 function fx(name,x,y,sc=1,alpha=1,flip=1,rot=0,anchor='c'){const f=FX_ATLAS.frames[name];if(!f||!ready('fx'))return;
  ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=clamp(alpha,0,1);ctx.translate(x,y);if(rot)ctx.rotate(rot);ctx.scale(flip*sc,sc);
  const oy=anchor==='b'?-f.h:-f.h/2;ctx.drawImage(IMG.fx,f.x,f.y,f.w,f.h,-f.w/2,oy,f.w,f.h);ctx.restore()}
@@ -27,10 +27,10 @@ const EN={
  goblin_jumper:{name:'哥布林跳斩手',shape:'gob',ai:'jumper',hp:34,dmg:10,sp:80,exp:14,r:1,col:'#7a8a3a'},
  goblin_captain:{name:'哥布林队长',shape:'big',ai:'brute',hp:120,dmg:11,sp:55,exp:40,r:1.3,sc:.72,col:'#6a7a3a',elite:1},
  goblin_lt:{name:'大哥布林副将',shape:'big',ai:'brute',hp:280,dmg:16,sp:52,exp:70,r:1.5,sc:.85,col:'#6a7a3a',elite:1},
- snow_wolf:{name:'雪狼',shape:'beast',ai:'fast',hp:28,dmg:7,sp:150,exp:12,r:1,col:'#dfe8f2'},
- ice_soldier:{name:'冰甲兵',shape:'warrior',ai:'shield',hp:50,dmg:9,sp:55,exp:16,r:1.1,col:'#7aa8d8',horn:'#e0f0ff',weapon:'#bfe6ff'},
- frost_mage:{name:'冰霜术士',shape:'caster',ai:'ranged',hp:32,dmg:9,sp:60,exp:16,r:1,col:'#a8c8f0',robe:'#3a5a9a',orb:'#9fe0ff',shot:'ice'},
- yeti:{name:'雪原巨人',shape:'golem',ai:'golem',hp:220,dmg:18,sp:38,exp:60,r:1.8,col:'#e8eef6',elite:1},
+ yeti_pup:{name:'小雪人',shape:'snow',ai:'fast',hp:26,dmg:7,sp:150,exp:12,r:.72,col:'#f4f8ff',face:'#6a9ae0'},
+ yeti:{name:'木棒雪人',shape:'snow',ai:'brute',hp:58,dmg:10,sp:62,exp:16,r:1,col:'#eef4fc',face:'#5a8ad8'},
+ yeti_thrower:{name:'雪球雪人',shape:'snow',ai:'ranged',hp:40,dmg:10,sp:58,exp:18,r:.92,col:'#f0f6ff',face:'#4a7ac8',shot:'snowball'},
+ yeti_big:{name:'冰甲雪人',shape:'snow',tintF:'sepia(.45) hue-rotate(170deg) saturate(2.2) brightness(.97)',ai:'golem',hp:300,dmg:20,sp:40,exp:70,r:1.6,col:'#e4eefa',face:'#3a6ac0',elite:1,horns:1},
  lava_imp:{name:'熔岩小魔',shape:'imp',ai:'fast',hp:24,dmg:7,sp:165,exp:12,r:.85,col:'#d0401a',explode:1},
  flame_warrior:{name:'火焰战士',shape:'warrior',ai:'shield',hp:60,dmg:11,sp:55,exp:18,r:1.15,col:'#8a1a14',horn:'#2a1a10',weapon:'#ff8a20',flame:1},
  flame_caster:{name:'焰灵术士',shape:'caster',ai:'ranged',hp:34,dmg:10,sp:62,exp:18,r:1,col:'#ff9a40',robe:'#5a140c',orb:'#ffb030',shot:'fire'},
@@ -43,8 +43,8 @@ const EN={
 const BOSSES={
  goblin_chief:{name:'哥布林酋长',shape:'big',hp:900,dmg:16,sp:55,exp:150,r:1.9,sc:1.12,col:'#4f8a3a',
   phases:[{at:1,pats:['combo','charge'],cd:1.9},{at:.5,pats:['combo','smash','summon'],summon:'goblin',cd:1.5,msg:'酋长怒吼，召唤援军！'}]},
- frost_wolf_king:{name:'霜狼王·凛',shape:'beast',hp:1500,dmg:18,sp:90,exp:260,r:2.3,col:'#eaf4ff',
-  phases:[{at:1,pats:['charge','sweep'],cd:1.7},{at:.6,pats:['iceSpikes','charge','summon'],summon:'snow_wolf',cd:1.4,msg:'狼王长啸，冰棘破地！'},{at:.25,pats:['icicles','iceSpikes','charge'],cd:1.1,enrage:1,msg:'暴风雪降临！'}]},
+ great_yeti:{name:'大雪人',shape:'snowboss',hp:1700,dmg:18,sp:60,exp:260,r:2.3,col:'#f2f7ff',face:'#3a6ac8',horns:1,crystals:1,
+  phases:[{at:1,pats:['hammer','snowballs','slam','roll'],cd:1.6},{at:.6,pats:['snowballs','summon','hammer','roll','slam'],summon:'yeti_pup',cd:1.35,msg:'大雪人举锤怒吼，小雪人蜂拥而来！'},{at:.25,pats:['blizzard','hammer','slam','roll','snowballs'],cd:1.05,enrage:1,msg:'暴风雪降临！冰石如雨！'}]},
  flame_king:{name:'焰魔王·赤烎',shape:'warrior',hp:2400,dmg:22,sp:60,exp:400,r:2.4,col:'#7a0a08',horn:'#1a0a08',weapon:'#ff6a10',flame:1,king:1,
   phases:[{at:1,pats:['sweep','fireWave','sweep'],cd:1.6},{at:.6,pats:['geysers','summon','sweep','fireWave'],summon:'lava_imp',cd:1.35,msg:'赤烎召唤熔岩喷泉！'},
    {at:.25,pats:['meteors','fireWave','sweep','geysers'],cd:1.0,enrage:1,shrink:1,msg:'火山爆发！熔岩吞噬战场边缘！'}],
@@ -124,11 +124,11 @@ function numPop(x,y,z,v,col){G.parts.push({num:Math.round(v),x,y,z,vz:60,life:.8
 function spawn(type,x,y,opts={}){
  if(type.startsWith('mini:'))return spawnBoss(type.slice(5),x,y,true);
  const d=EN[type];const df=G.diff;
- const e={type,def:d,x,y,z:d.fly?70:0,vz:0,hp:d.hp*df,maxhp:d.hp*df,dmg:d.dmg*(1+.6*(df-1)),sp:d.sp*(1+.1*(df-1)),r:d.r,sc:d.sc||1,exp:Math.round(d.exp*(1+.5*(G.idx))),
+ const e={type,def:d,x,y,z:d.fly?70:0,vz:0,hp:d.hp*df*(d.elite?1.5:1)*(G.S.hpMul||1),maxhp:d.hp*df*(d.elite?1.5:1)*(G.S.hpMul||1),dmg:d.dmg*(1+.6*(df-1)),sp:d.sp*(1+.1*(df-1)),r:d.r,sc:d.sc||1,exp:Math.round(d.exp*(1+.5*(G.idx))),
   face:-1,state:'walk',t:0,at:rnd(0,1),hurtT:0,frozen:0,stun:0,slow:0,kx:0,cd:rnd(.6,1.6),dead:0,deadT:0,cool:0,hoverZ:rnd(60,90),ofs:rnd(-1,1),...opts};
  G.enemies.push(e);return e}
 function spawnBoss(id,x,y,mini=false){const d=BOSSES[id];const df=G.diff/STAGES[G.idx].diff*(1+.15*(G.diff-1));
- const e={type:id,def:d,boss:1,mini,x,y,z:0,vz:0,hp:d.hp*df,maxhp:d.hp*df,dmg:d.dmg*(G.diff>STAGES[G.idx].diff?1.3:1),sp:d.sp,r:d.r,sc:d.sc||1,exp:d.exp,face:-1,state:'walk',t:0,at:0,hurtT:0,frozen:0,stun:0,slow:0,kx:0,cd:1.5,dead:0,deadT:0,phase:0,pat:null,patT:0,inv:0,hidden:0};
+ const hm=G.S.hpMul||1;const e={type:id,def:d,boss:1,mini,x,y,z:0,vz:0,hp:d.hp*df*hm,maxhp:d.hp*df*hm,dmg:d.dmg*(G.diff>STAGES[G.idx].diff?1.3:1),sp:d.sp,r:d.r,sc:d.sc||1,exp:d.exp,face:-1,state:'walk',t:0,at:0,hurtT:0,frozen:0,stun:0,slow:0,kx:0,cd:1.5,dead:0,deadT:0,phase:0,pat:null,patT:0,inv:0,hidden:0};
  G.enemies.push(e);if(!mini)G.boss=e;else G.mini=e;msg((mini?'强敌 · ':'首领 · ')+d.name+' 出现！','#ff6060');sfx('roar');G.shake=10;return e}
 function resistOf(e,elem){const r=(e.def.resist)||(G.S.resist)||{};return elem&&r[elem]!=null?r[elem]:1}
 function damage(e,d,kb,fromX,elem,opts={}){if(e.dead||e.inv>0||e.hidden)return 0;
@@ -179,18 +179,18 @@ function updatePlayer(dt){const p=G.p;
  let mx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),my=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
  if(p.specialT>0){p.specialT-=dt;mx=my=0}
  if(p.castT>0){p.castT-=dt;mx=my=0}
- if(hit('j'))p.bufJ=.2;
+ if(hit('j'))p.bufJ=.3;
  // 突刺
  if(p.dashT>0){p.dashT-=dt;p.x+=p.face*720*dt;for(const e of G.enemies)if(!p.dashHits.includes(e)&&inReach(e,p.x-40,p.x+40,36)){p.dashHits.push(e);damage(e,atk()*2,180,p.x-p.face*50,null);G.hitstop=.05;gainProf(1)}
  }else if(p.spinT>0){p.spinT-=dt;p.x+=mx*80*dt}
- else if(p.atkT>0){p.atkT-=dt;p.x+=p.face*30*dt}
+ else if(p.atkT>0){p.atkT-=dt;p.x+=p.face*30*dt;if(p.bufJ>0&&p.combo!==9&&p.atkT<p.atkDur*.4)p.atkT=0}
  else if(p.specialT<=0&&p.castT<=0&&p.hurtT<=0){
   if(mx)p.face=mx;p.x+=mx*sp*dt;p.y+=my*sp*.6*dt;p.walk+=(mx||my)?dt:0;p.moving=!!(mx||my);
   if(p.bufJ>0&&p.z<=0){
    if(p.plv>=3&&mx&&p.dashCd<=0&&(keys.d||keys.arrowright||keys.a||keys.arrowleft)&&p.tdash>.18){p.bufJ=0;startDash()}
    else{p.bufJ=0;p.combo=p.comboWin>0?p.combo%4+1:1;if(p.combo===4&&p.plv<2)p.combo=1;
     if(p.combo===4){p.spinT=.42;sfx('spin');setTimeout(()=>G&&meleeHit(110,1.6,160,{all:1,ytol:50}),120)}
-    else{p.atkT=p.combo===3?.34:.26;p.atkDur=p.atkT;sfx('swing');const c=p.combo;setTimeout(()=>G&&meleeHit(c===3?95:82,c===3?1.4:1,c===3?140:60,{up:c===3}),70)}
+    else{p.atkT=p.combo===3?.28:.21;p.atkDur=p.atkT;sfx('swing');const c=p.combo;setTimeout(()=>G&&meleeHit(c===3?95:82,c===3?1.4:1,c===3?140:60,{up:c===3}),50)}
     p.comboWin=.55}}
   else if(p.bufJ>0&&p.z>0&&p.atkT<=0){p.bufJ=0;p.atkT=.3;p.atkDur=.3;p.combo=9;sfx('swing');setTimeout(()=>G&&meleeHit(80,1.3,90,{up:1}),60)}
   if(hit('k')&&p.z<=0){p.vz=520;sfx('jump')}
@@ -245,7 +245,7 @@ const CAST={
 function learn(id){const p=G.p,s=SP(id);const i=SPELLS.indexOf(s);const prev=SPELLS[i-1];
  if(p.spells.includes(id))return;if(prev&&prev.s===s.s&&!p.spells.includes(prev.id)){msg('需先学会【'+prev.name+'】','#f88');sfx('fail');return}
  if(p.exp<s.exp){msg('经验不足（需要'+s.exp+'）','#f88');sfx('fail');return}
- p.exp-=s.exp;p.spells.push(id);p.sel=p.spells.length-1;msg('学会了【'+s.name+'】！按 U 施放','#c9a0ff');sfx('levelup')}
+ p.exp-=s.exp;p.spells.push(id);p.sel=p.spells.length-1;PROFILE.spells=p.spells.slice();PROFILE.sel=p.sel;PROFILE.exp=Math.max(0,PROFILE.exp-s.exp);writeSave();msg('学会了【'+s.name+'】！按 U 施放','#c9a0ff');sfx('levelup')}
 function spellState(id){const p=G.p,s=SP(id),i=SPELLS.indexOf(s),prev=SPELLS[i-1];
  if(p.spells.includes(id))return 'learned';if(prev&&prev.s===s.s&&!p.spells.includes(prev.id))return 'locked';return p.exp>=s.exp?'ok':'poor'}
 // ---------- 敌人AI ----------
@@ -254,7 +254,7 @@ EN.war_banner={name:'哥布林战旗',shape:'banner',ai:'static',hp:160,dmg:0,sp
 function strike(e,range,dmgMul=1,ytol=34){const p=G.p;const dx=(p.x-e.x)*e.face;
  if(dx>-20&&dx<range&&Math.abs(p.y-e.y)<ytol&&p.z<60){const d=hurtPlayer(e.dmg*dmgMul*(bannerBuff()&&e.def.shape!=='vamp'?1.3:1),e);
   if(d&&(e.def.drain||(e.boss&&curPhase(e).lifesteal))){const h=e.boss?d*2:d;e.hp=Math.min(e.maxhp,e.hp+h);numText(e,'+'+Math.round(h),'#ff4060');particles(p.x,p.y,50,'#c00020',8)}return 1}return 0}
-function eShot(e,k){const p=G.p;const a=Math.atan2((p.y-e.y),(p.x-e.x));const sp=k==='arrow'?380:260;
+function eShot(e,k){const p=G.p;if(k==='snowball'){lobSnow(e,p.x+rnd(-30,30),p.y+rnd(-12,12),e.dmg,40,1);sfx('swing');return}const a=Math.atan2((p.y-e.y),(p.x-e.x));const sp=k==='arrow'?380:260;
  G.ep.push({k,x:e.x+e.face*20,y:e.y,z:40*e.r+e.z,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp*.5,dmg:e.dmg,life:3,own:e});sfx(k==='arrow'?'swing':k==='ice'?'frost':'fire')}
 function updateEnemy(e,dt){const p=G.p,d=e.def;
  if(e.dead){e.deadT+=dt;e.z=Math.max(0,e.z-200*dt);return}
@@ -292,6 +292,7 @@ function updateEnemy(e,dt){const p=G.p,d=e.def;
   const s=e.sp*sl*(ai==='fast'?1:1);e.x+=vx*s*dt;e.y+=vy*s*.6*dt;e.moving=1}
  const b=laneAt(e.x);e.y=clamp(e.y,b[0],b[1]);
 }
+function lobSnow(e,tx,ty,dmg,rx=46,sc=1,fl=1.05){const b=laneAt(tx);G.hz.push({k:'snowball',x:clamp(tx,G.camX+20,G.camX+W-20),y:clamp(ty,b[0],b[1]),ox:e.x+e.face*20*e.r,oy:e.y,oz:(e.boss?150:70)*e.r/ (e.boss?2.3:1),rx,ry:rx*.4,t:0,warn:fl,act:.15,dmg,once:1,sc})}
 // ---------- 首领AI ----------
 function curPhase(e){return e.def.phases[e.phase]}
 function updateBoss(e,dt,sl){const p=G.p,d=e.def;const ph=curPhase(e);
@@ -302,7 +303,7 @@ function updateBoss(e,dt,sl){const p=G.p,d=e.def;const ph=curPhase(e);
   const reach=60+30*e.r;
   if(ad>reach-10||Math.abs(dy)>14){e.x+=Math.sign(dx)*e.sp*sl*en*dt*(ad>reach-10?1:0);e.y+=clamp(dy,-1,1)*e.sp*.6*sl*dt;e.moving=1}else e.moving=0;
   if(e.cd<=0){e.patI=(e.patI||0)+1;let pt=ph.pats[(e.patI+Math.floor(rnd(0,2)))%ph.pats.length];
-   if(['combo','sweep','rapier','smash'].includes(pt)&&ad>220)pt=ph.pats.find(q=>!['combo','sweep','rapier','smash'].includes(q))||pt;
+   if(['combo','sweep','rapier','smash','hammer'].includes(pt)&&ad>220)pt=ph.pats.find(q=>!['combo','sweep','rapier','smash','hammer'].includes(q))||pt;
    e.pat=pt;e.patT=0;e.step=0}
   const b=laneAt(e.x);e.y=clamp(e.y,b[0],b[1]);return}
  e.patT+=dt*en;const T=e.patT;const done=()=>{e.pat=null;e.cd=ph.cd*rnd(.8,1.2)};const reach=70+30*e.r;
@@ -338,6 +339,16 @@ function updateBoss(e,dt,sl){const p=G.p,d=e.def;const ph=curPhase(e);
   case 'bloodOrbs':if(T>.5&&e.step<3&&T>.5+e.step*.3){e.step++;const a0=Math.atan2(p.y-e.y,p.x-e.x);for(let i=-2;i<=2;i++){const a=a0+i*.22;G.ep.push({k:'bloodorb',x:e.x+e.face*30,y:e.y,z:60,vx:Math.cos(a)*260,vy:Math.sin(a)*130,dmg:e.dmg*.6,life:3,own:e})}sfx('fire')}
    if(T>1.6)done();break;
   case 'bloodBurst':if(!e.step){e.step=1;G.hz.push({k:'burst',x:e.x,y:e.y,rx:280,ry:110,t:0,warn:1.7,act:.4,dmg:e.dmg*1.8,once:1,noz:1});msg('血爆！远离伯爵！','#ff3040')}if(T>2.3)done();break;
+  case 'hammer':if(T<.6){e.face=dx>0?1:-1;if(ad>reach)e.x+=e.face*e.sp*1.2*dt}else if(!e.step){e.step=1;sfx('swing');G.shake=10;strike(e,reach+60,1.4,60);const hx=e.x+e.face*90;particles(hx,e.y,18,'#dff4ff',18,200);G.hz.push({k:'shock',x:hx,y:e.y,r0:10,r1:120,t:0,act:.35,dmg:0,ice:1})}if(T>1.15)done();break;
+  case 'snowballs':case 'blizzard':{const n=e.pat==='blizzard'?10:3;const per=e.pat==='blizzard'?.14:.42;
+   if(T>.55+e.step*per&&e.step<n){e.step++;sfx('swing');const near=e.pat==='snowballs'&&e.step===1;const ice=e.pat==='snowballs'||e.step%3===0;lobSnow(e,p.x+(near?0:rnd(-220,220)),p.y+rnd(-40,40),e.dmg*(ice?1.1:.8),ice?70:48,ice?2:1.2,1.0+rnd(0,.35));if(ice)G.hz[G.hz.length-1].ice=1}
+   if(T>.9+n*per)done();break}
+  case 'slam':if(T>.95&&!e.step){e.step=1;G.shake=16;sfx('erupt');for(let i=0;i<3;i++)G.hz.push({k:'shock',x:e.x+e.face*40,y:e.y,r0:30,r1:300+i*40,t:-i*.3,act:.9,dmg:e.dmg*.9,ice:1});
+    if(Math.hypot(p.x-e.x-e.face*40,(p.y-e.y)*1.6)<110&&p.z<20)hurtPlayer(e.dmg*1.5,e);particles(e.x+e.face*40,e.y,10,'#ffffff',30,240)}
+   if(T>1.7)done();break;
+  case 'roll':if(!e.step){e.step=1;msg('巨型雪球！跳起或换行躲避！','#bfe6ff')}
+   if(T>.8&&e.step===1){e.step=2;const fromL=p.x>G.camX+W/2;const x0=fromL?G.camX-60:G.camX+W+60;G.ep.push({k:'rollball',x:x0,y:p.y,z:0,vx:(fromL?1:-1)*(360+80*(ph.enrage?1:0)),vy:0,dmg:e.dmg*1.2,life:5,ground:1,hw:52,hh:26,rad:58});sfx('roar')}
+   if(T>1.4)done();break;
   default:done()}
 }
 // ---------- 世界更新 ----------
@@ -365,6 +376,7 @@ function updateWorld(dt){const p=G.p,B=G.B;
   if(h.k==='shock'){if(h.t>0){const r=h.r0+(h.r1-h.r0)*clamp(h.t/h.act,0,1);const d=Math.hypot(p.x-h.x,(p.y-h.y)*2);if(Math.abs(d-r)<18&&p.z<10&&!h.hit){h.hit=1;hurtPlayer(h.dmg,h)}}continue}
   if(st===2&&!h.fired){if(h.once)h.fired=1;if(['meteor','icicle','skybolt','arrows'].includes(h.k)&&!h.fx){h.fx=1;G.shake=Math.max(G.shake,5);sfx(h.k==='skybolt'?'bolt':'erupt');if(h.k==='skybolt')bolt(h.x,h.y-520,h.x,h.y)}
    if((h.k==='geyser'||h.k==='bloodpillar')&&!h.fx){h.fx=1;sfx('erupt')}
+   if(h.k==='snowball'&&!h.fx){h.fx=1;sfx('hit');G.shake=Math.max(G.shake,3*h.sc);particles(h.x,h.y,6,'#ffffff',14+6*h.sc,180*h.sc);particles(h.x,h.y,4,'#bfe0ff',6,120)}
    const inside=((p.x-h.x)/h.rx)**2+((p.y-h.y)/h.ry)**2<1;if(inside&&(h.noz||p.z<30)&&p.hzT<=0){if(h.k==='burst'?Math.hypot(p.x-h.x,(p.y-h.y)*2.5)<h.rx:true){hurtPlayer(h.dmg,h);p.hzT=.6}}
    if(h.k==='burst'&&!h.fx){h.fx=1;G.shake=18;G.flash=.3;sfx('special')}}}
  G.hz=G.hz.filter(h=>h.cyc||(h.k==='shock'?h.t<h.act:h.t<(h.warn||0)+h.act+.3));
@@ -379,8 +391,8 @@ function updateWorld(dt){const p=G.p,B=G.B;
  G.pp=G.pp.filter(q=>q.life>0);
  // 敌方投射物
  for(const q of G.ep){q.x+=q.vx*dt;q.y+=q.vy*dt;q.life-=dt;
-  if(Math.abs(p.x-q.x)<(q.k==='firewave'?40:22)&&Math.abs(p.y-q.y)<(q.k==='firewave'?22:20)&&(q.ground?p.z<25:Math.abs(p.z+40-q.z)<60)){
-   const d=hurtPlayer(q.dmg,q);if(d&&q.k==='bloodorb'&&q.own&&!q.own.dead&&curPhase(q.own)&&curPhase(q.own).lifesteal){q.own.hp=Math.min(q.own.maxhp,q.own.hp+d*1.5)}if(q.k!=='firewave')q.life=0}}
+  if(Math.abs(p.x-q.x)<(q.hw||(q.k==='firewave'?40:22))&&Math.abs(p.y-q.y)<(q.hh||(q.k==='firewave'?22:20))&&(q.ground?p.z<25:Math.abs(p.z+40-q.z)<60)){
+   const d=hurtPlayer(q.dmg,q);if(d&&q.k==='bloodorb'&&q.own&&!q.own.dead&&curPhase(q.own)&&curPhase(q.own).lifesteal){q.own.hp=Math.min(q.own.maxhp,q.own.hp+d*1.5)}if(q.k==='rollball'){if(d){p.vz=Math.max(p.vz||0,0);G.shake=10;particles(p.x,p.y,30,'#ffffff',20,200)}}else if(q.k!=='firewave')q.life=0}}
  G.ep=G.ep.filter(q=>q.life>0&&q.x>G.camX-100&&q.x<G.camX+W+100);
  // 法术区域
  for(const z of G.zones){z.t+=dt;if(z.follow){z.x=p.x;z.y=p.y}if(z.vx)z.x+=z.vx*dt;z.acc+=dt;
@@ -418,7 +430,7 @@ function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h
 function bar(x,y,w,h,v,col,bg='#222'){rr(x,y,w,h,h/2);ctx.fillStyle=bg;ctx.fill();if(v>0){rr(x,y,Math.max(h,w*clamp(v,0,1)),h,h/2);ctx.fillStyle=col;ctx.fill()}rr(x,y,w,h,h/2);ctx.strokeStyle='#000';ctx.lineWidth=2;ctx.stroke()}
 function ell(x,y,rx,ry,col){ctx.beginPath();ctx.ellipse(x,y,Math.max(1,rx),Math.max(1,ry),0,0,Math.PI*2);ctx.fillStyle=col;ctx.fill()}
 function drawAtlas(A,ik,anim,t,x,y,face,sc,loop=true,fps=8){const fr=A.anims[anim]||A.anims.idle;if(!fr||!ready(ik))return;let i=Math.floor(t*fps);i=loop?i%fr.length:Math.min(i,fr.length-1);
- const f=A.frames[fr[i]];ctx.save();ctx.translate(x,y);ctx.scale(face*sc,sc);ctx.drawImage(IMG[ik],f.x,f.y,f.w,f.h,-f.ax,-f.ay,f.w,f.h);ctx.restore()}
+ const f=A.frames[fr[i]];ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.translate(x,y);ctx.scale(face*sc,sc);ctx.drawImage(IMG[ik],f.x,f.y,f.w,f.h,-f.ax,-f.ay,f.w,f.h);ctx.restore()}
 function hash(n){const s=Math.sin(n*127.1)*43758.5453;return s-Math.floor(s)}
 // ---------- 背景 ----------
 const THEME={forest:{mid:'#14202a',tree:'#0d1820'},snow:{mid:'#5a6a86',tree:'#2a3a52'},volcano:{mid:'#2a0f0c',tree:'#1a0808'},valley:{mid:'#1a3020',tree:'#0f2416'},castle:{mid:'#151527',tree:'#0b0b18'}};
@@ -484,13 +496,24 @@ function heroAnim(p){
  if(p.castT>0)return [p.castAnim,1-p.castT/.35];if(p.dashT>0)return ['thrust',.5];if(p.spinT>0)return ['spin',1-p.spinT/.42];
  if(p.atkT>0){const k={1:'atk1',2:'atk2',3:'upslash',9:'downslash'}[p.combo]||'atk1';return [k,1-p.atkT/p.atkDur]}
  if(p.jHold>.3)return ['charge',0];if(p.z>0)return ['jump',p.vz>200?0:p.vz>0?.3:p.vz>-300?.6:.9];
- if(p.moving)return ['walk',(p.walk*2.2)%1];return ['idle',(G.t*.8)%1]}
-function drawHero(p,sx){const [a,pr]=heroAnim(p);const fr=HERO_ATLAS.anims[a];const name=fr[Math.min(fr.length-1,Math.floor(pr*fr.length))];
+ if(p.moving)return ['walk',(p.walk*3.4)%1];return ['idle',(G.t*1.5)%1]}
+// 补间：给帧数少的动作加挤压/位移，避免单帧停顿
+function heroTween(p,a,pr){const e=Math.sin(Math.min(1,pr)*Math.PI);let ox=0,oy=0,qx=1,qy=1,rot=0;
+ if(a==='idle'){qy=1+.012*Math.sin(G.t*3.2);qx=1-.006*Math.sin(G.t*3.2)}
+ else if(a==='walk'){oy=-Math.abs(Math.sin(p.walk*3.4*Math.PI*2))*2.2}
+ else if(/^atk|upslash|downslash/.test(a)){const k=pr<.18?pr/.18:1;ox=(k*10-(pr>.6?(pr-.6)*14:0));qx=1+.05*e;qy=1-.04*e;if(a==='downslash'){rot=.12*e;oy=6*e}if(a==='upslash')oy=-6*e}
+ else if(a==='thrust'){ox=8;qx=1.08;qy=.94}
+ else if(a==='spin'){qx=1+.06*Math.sin(pr*Math.PI*4)}
+ else if(a==='charge'||a==='wavecast'){qy=1+.03*Math.sin(G.t*18);qx=1-.02*Math.sin(G.t*18);if(a==='wavecast')ox=10*e}
+ else if(a==='ult'){qy=1+.05*e;qx=1-.03*e;oy=-6*e}
+ else if(a==='hurt'){ox=-8*e;rot=-.08*e}
+ return {ox,oy,qx,qy,rot}}
+function drawHero(p,sx){const [a,pr]=heroAnim(p);const fr=HERO_ATLAS.anims[a];const name=fr[Math.min(fr.length-1,Math.floor(pr*fr.length))];const tw=heroTween(p,a,pr);
  shadow(sx,p.y,26-Math.min(12,p.z/10));const y=p.y-p.z;
  if(p.specialT>0){ctx.save();ctx.globalCompositeOperation='lighter';const g=ctx.createRadialGradient(sx,y-60,5,sx,y-60,120);g.addColorStop(0,p.plv>=5?'rgba(255,220,100,.6)':'rgba(140,220,255,.55)');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(sx-130,y-190,260,260);ctx.restore()}
  if(p.jHold>.3&&p.plv>=4){ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.4+.3*Math.sin(G.t*20);ell(sx,y-50,40,56,'rgba(120,200,255,.35)');ctx.restore()}
- if(p.dashT>0)for(let i=1;i<4;i++)drawHeroFrame(name,sx-p.face*i*26,y,p.face,HS,.25/i);
- const blink=p.inv>0&&!p.specialT&&!p.dashT&&Math.floor(G.t*20)%2;drawHeroFrame(name,sx,y,p.face,HS,blink?.45:1);
+ if(p.dashT>0){ctx.save();ctx.globalCompositeOperation='lighter';const g=ctx.createLinearGradient(sx-p.face*110,0,sx,0);g.addColorStop(0,'rgba(120,200,255,0)');g.addColorStop(1,'rgba(150,220,255,.35)');ctx.fillStyle=g;ctx.fillRect(Math.min(sx,sx-p.face*110),y-70,110,40);ctx.restore()}
+ const blink=p.inv>0&&!p.specialT&&!p.dashT&&Math.floor(G.t*16)%2;drawHeroFrame(name,sx+p.face*tw.ox,y+tw.oy,p.face,HS,blink?.6:1,tw.qx,tw.qy,tw.rot);
  // 剑光（装备升级=更亮更大，烈炎剑=火焰）
  if(p.atkT>0||p.spinT>0){const pr2=p.spinT>0?1-p.spinT/.42:1-p.atkT/p.atkDur;const sc=.7+.07*Math.min(5,p.atkLv);const al=Math.sin(pr2*Math.PI)*(.55+.08*Math.min(5,p.atkLv));
   if(p.spinT>0){fx('sword_slash',sx+40,y-45,sc*1.2,al,1,pr2*6);fx('sword_slash',sx-40,y-45,sc*1.2,al,-1,-pr2*6)}
@@ -500,6 +523,15 @@ function drawHero(p,sx){const [a,pr]=heroAnim(p);const fr=HERO_ATLAS.anims[a];co
 function enemyAnim(e){const d=e.def;if(e.dead)return ['death',e.deadT,false,6];if(e.hurtT>0)return ['hurt',.12,false,8];
  const sh=d.shape;
  if(sh==='bat'){if(e.state==='dive')return ['attack',e.t,false,9];return ['fly',e.at,true,10]}
+ if(sh==='snowboss'){const P=e.pat,T=e.patT||0;
+  if(P==='snowballs'||P==='blizzard')return ['throw',T,true,P==='blizzard'?9:6];
+  if(P==='slam')return T<.95?['attack',0,false,1]:['shock',(T-.95),false,7];
+  if(P==='hammer'||P==='roll'){const w=P==='hammer'?.6:.8;return ['attack',T<w?0:1,false,1]}
+  if(P==='summon')return ['summon',T,true,4];
+  if(e.moving)return ['walk',e.at,true,curPhase(e)&&curPhase(e).enrage?11:8];return ['idle',e.at,true,6]}
+ if(sh==='snow'){if(d.ai==='ranged'&&e.state==='strike')return ['throw',e.t,false,11];if(d.ai==='ranged'&&e.cd<.3&&!e.moving)return ['throw',0,false,1];
+  if(e.state==='wind')return ['attack',0,false,1];if(e.state==='strike')return ['attack',1,false,1];if(e.state==='leap')return ['attack',1,false,1];
+  if(e.moving)return ['walk',e.at,true,d.ai==='fast'?13:9];return ['idle',e.at,true,6]}
  if(e.boss&&e.pat){const T=e.patT;if(sh==='big'){if(e.pat==='smash')return ['smash',T*.9,false,4];if(e.pat==='leap')return ['leap',T,false,3];if(['combo','sweep'].includes(e.pat))return ['attack',T*1.3,true,8];if(e.pat==='charge')return ['run',T,true,10];return ['idle',T,true,6]}
   if(sh==='vamp'){if(['bloodPillars','bloodOrbs','bloodBurst','batSwarm'].includes(e.pat))return ['attack2',T,false,4];if(e.pat==='lunge')return ['attack2',.6+T,false,6];return ['attack',T*1.6,true,8]}}
  if(e.state==='wind'||e.state==='strike'){const T=e.state==='wind'?e.t/e.wind*.5:.5+e.t;if(sh==='big'&&e.atkType==='smash')return ['smash',T*1.5,false,4];return ['attack',T*1.8,false,5]}
@@ -509,10 +541,12 @@ function drawEnemy(e,sx){const d=e.def,sh=d.shape;const y=e.y-e.z;if(e.hidden){r
  const alpha=e.dead?clamp(1.2-e.deadT,0,1):1;ctx.save();ctx.globalAlpha=alpha;
  shadow(sx,e.y,22*e.r*(d.fly?.7:1),d.fly?.25:.35);
  const [an,t,loop,fps]=enemyAnim(e);
- if(sh==='gob'||sh==='big'||sh==='bat'||sh==='vamp'){const A={gob:GOBLIN_ATLAS,big:BIGGOBLIN_ATLAS,bat:BAT_ATLAS,vamp:VAMPIRE_ATLAS}[sh];const ik={gob:'gob',big:'big',bat:'bat',vamp:'vamp'}[sh];
-  const base={gob:1.35,big:1.7,bat:1.5,vamp:1.55}[sh];let sc=base*(e.sc||1);
+ if(sh==='gob'||sh==='big'||sh==='bat'||sh==='vamp'||sh==='snow'||sh==='snowboss'){const A={gob:GOBLIN_ATLAS,big:BIGGOBLIN_ATLAS,bat:BAT_ATLAS,vamp:VAMPIRE_ATLAS,snow:SNOWMAN_ATLAS,snowboss:SNOWBOSS_ATLAS}[sh];const ik=sh;
+  const base={gob:1.35,big:1.7,bat:1.5,vamp:1.55,snow:.85*e.r,snowboss:1.9}[sh];let sc=base*(e.sc||1);
   const an2=A.anims[an]?an:'idle';
-  if(e.frozen>0)ctx.filter='saturate(.2) brightness(1.3) hue-rotate(160deg)';else if(e.hurtT>0)ctx.filter='brightness(2)';else if(e.stun>0)ctx.filter='brightness(1.3)';
+  if(e.frozen>0)ctx.filter='saturate(.2) brightness(1.3) hue-rotate(160deg)';else if(e.hurtT>0)ctx.filter='brightness(2)';else if(e.stun>0)ctx.filter='brightness(1.3)';else if(d.tintF)ctx.filter=d.tintF;
+  if(d.tintF&&!e.dead){ctx.save();ctx.globalCompositeOperation='lighter';ell(sx,y-45*e.r,30*e.r,40*e.r,'rgba(90,170,255,.13)');ctx.restore()}
+  if(sh==='snowboss'&&e.pat==='slam'&&e.patT<.95){ctx.save();ctx.globalCompositeOperation='lighter';ell(sx+e.face*40,y,60*e.patT+20,(60*e.patT+20)*.3,`rgba(140,210,255,${.25*e.patT})`);ctx.restore()}
   drawAtlas(A,ik,an2,loop?t:t,sx,y,e.face*GOB_FACE,sc,loop,fps);ctx.filter='none';
   if(d.tint||(d.phases&&e.boss&&e.def.tint)){/* 色调靠光晕表现 */ctx.save();ctx.globalCompositeOperation='lighter';ell(sx,y-40*e.r,26*e.r,34*e.r,'rgba(160,0,40,.12)');ctx.restore()}
   if(d.gear==='spear'){ctx.strokeStyle='#8a6a3a';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(sx-e.face*10,y-34);ctx.lineTo(sx+e.face*46,y-46);ctx.stroke();ctx.fillStyle='#cfd8e0';ctx.beginPath();ctx.moveTo(sx+e.face*46,y-50);ctx.lineTo(sx+e.face*58,y-47);ctx.lineTo(sx+e.face*46,y-42);ctx.fill()}
@@ -540,8 +574,49 @@ function drawProc(e,sx,y,an,t){const d=e.def,r=e.r,f=e.face;const bob=an==='walk
    if(d.lava||e.cool>0){ctx.strokeStyle=e.cool>0?'#ffd34a':'#ff6a10';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-10,-50);ctx.lineTo(0,-30);ctx.lineTo(-6,-14);ctx.stroke()}ctx.fillStyle='#ff3';ctx.fillRect(4,-73,4,3);break;
   case 'imp':ctx.beginPath();ctx.arc(0,-20,14,0,7);O(d.col);ctx.beginPath();ctx.moveTo(-8,-30);ctx.lineTo(-12,-42);ctx.lineTo(-2,-32);ctx.moveTo(8,-30);ctx.lineTo(12,-42);ctx.lineTo(2,-32);O('#2a0a04');ctx.fillStyle='#ffd34a';ctx.fillRect(3,-24,3,3);ctx.fillRect(8,-24,3,3);
    ctx.restore();ctx.save();fx('fireball_s',sx,y-r*24,.6*r,.35+.2*Math.sin(G.t*13+e.ofs*9));break;
+  case 'yeti':drawYeti(e,an,t);break;
   case 'banner':ctx.fillStyle='#3a2a1a';ctx.fillRect(-3,-110,6,110);ctx.beginPath();ctx.moveTo(3,-108);ctx.lineTo(50+Math.sin(G.t*4)*4,-100);ctx.lineTo(46,-60);ctx.lineTo(3,-66);O('#a02020');ctx.fillStyle='#ffd34a';ctx.fillRect(18,-92,12,12);break;
  }ctx.restore()}
+function furBlob(cx,cy,rx,ry,n,j,seed){ctx.beginPath();for(let i=0;i<=n;i++){const a=i/n*Math.PI*2;const k=i%2?1:1-j*(.6+.4*Math.sin(seed+i*1.7));const x=cx+Math.cos(a)*rx*k,y=cy+Math.sin(a)*ry*k;i?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.closePath()}
+function drawYeti(e,an,t){const d=e.def,L=3.2/Math.sqrt(e.r);const fur=d.col,shade='#b8cce6',face=d.face,dark='#1d2a4a';
+ const F=(c)=>{ctx.fillStyle=c;ctx.fill();ctx.lineWidth=L;ctx.strokeStyle=OUT;ctx.lineJoin='round';ctx.stroke()};
+ const walk=an==='walk'||an==='run'?Math.sin(e.at*(an==='run'?16:10)):0;
+ // 姿态：举手（投掷/捶地蓄力）、砸下、蹲伏
+ let armUp=0,lean=0,crouch=0,ball=0;const P=e.boss&&e.pat,T=e.patT||0;
+ if(P==='snowballs'||P==='blizzard'){armUp=Math.min(1,T*3)*(.6+.4*Math.abs(Math.sin(T*10)));ball=1}
+ else if(P==='slam'){armUp=T<.95?Math.min(1,T*1.6):0;lean=T>=.95?.35:-.1*armUp;crouch=T>=.95&&T<1.3?6:0}
+ else if(P==='roll'){armUp=T<.8?T:0;lean=T>.8?.3:0}
+ else if(P==='summon'){armUp=.5+.5*Math.abs(Math.sin(T*14))}
+ else if(an==='attack'){const k=clamp(t,0,1);if(d.ai==='ranged'){armUp=k<.5?k*2:0;ball=k<.5;lean=k>.5?.2:0}else{armUp=k<.45?k*2:0;lean=k>.45?.3:0}}
+ else if(an==='smash'){armUp=t<.5?1:0;lean=t>=.5?.35:0}
+ if(e.state==='wind'&&d.ai==='ranged'){armUp=1;ball=1}
+ ctx.translate(0,crouch);
+ // 腿
+ for(const s of[-1,1]){const sw=walk*s*6;ctx.beginPath();ctx.ellipse(-4+s*12+sw,-10,11,13,0,0,7);F(fur);ctx.beginPath();ctx.ellipse(-2+s*12+sw+3,-1,12,5,0,0,7);F('#9ab4d8')}
+ ctx.rotate(lean);
+ // 后臂
+ const arm=(s,front)=>{ctx.save();ctx.translate(s*4+6,-62);const a=front?(armUp*2.7+walk*.35+.15):(armUp*2.4-walk*.35+.05);ctx.rotate(a);ctx.beginPath();ctx.ellipse(0,22,10,24,0,0,7);F(front?fur:shade);ctx.beginPath();ctx.ellipse(0,46,11,9,0,0,7);F('#7f9cc8');
+  if(ball&&front&&armUp>.5)drawSnowball(0,56,e.boss?8:10,0);ctx.restore()};
+ arm(-1,false);
+ // 身体
+ furBlob(0,-46,30,36,26,.12,e.ofs*7);F(fur);
+ ctx.save();furBlob(0,-46,30,36,26,.12,e.ofs*7);ctx.clip();ctx.fillStyle=shade;ctx.beginPath();ctx.ellipse(-10,-22,34,18,0,0,7);ctx.fill();ctx.fillStyle='rgba(255,255,255,.7)';ctx.beginPath();ctx.ellipse(8,-64,14,8,-.4,0,7);ctx.fill();ctx.restore();
+ // 胸毛纹
+ ctx.strokeStyle='rgba(120,150,200,.7)';ctx.lineWidth=1.5;for(let i=0;i<4;i++){ctx.beginPath();ctx.moveTo(6+i*5,-44+i*3);ctx.lineTo(10+i*5,-36+i*3);ctx.stroke()}
+ if(d.crystals){for(let i=0;i<4;i++){ctx.beginPath();const bx=-26+i*7,by=-66+i*10;ctx.moveTo(bx,by);ctx.lineTo(bx-14,by-14+i*2);ctx.lineTo(bx+2,by-4);F('#9fdcff')}}
+ // 头
+ furBlob(10,-80,20,17,20,.14,e.ofs*3);F(fur);
+ if(d.horns){ctx.beginPath();ctx.moveTo(-2,-90);ctx.quadraticCurveTo(-16,-104,-8,-114);ctx.quadraticCurveTo(-4,-100,6,-94);F('#cfd8e6');ctx.beginPath();ctx.moveTo(18,-92);ctx.quadraticCurveTo(26,-106,20,-116);ctx.quadraticCurveTo(30,-102,26,-90);F('#cfd8e6')}
+ // 蓝色脸
+ ctx.beginPath();ctx.ellipse(17,-77,12,11,0,0,7);F(face);
+ ctx.fillStyle='rgba(255,255,255,.25)';ctx.beginPath();ctx.ellipse(14,-82,6,3,0,0,7);ctx.fill();
+ // 眉+眼
+ const angry=e.boss&&curPhase(e).enrage;ctx.fillStyle=dark;ctx.beginPath();ctx.moveTo(9,-86);ctx.lineTo(19,-83);ctx.lineTo(19,-85);ctx.lineTo(9,-89);ctx.fill();ctx.beginPath();ctx.moveTo(21,-83);ctx.lineTo(28,-86);ctx.lineTo(28,-88);ctx.lineTo(21,-85);ctx.fill();
+ ctx.fillStyle=angry?'#ff5040':'#ffe680';ctx.fillRect(12,-82,4,3);ctx.fillRect(22,-82,4,3);
+ // 嘴（攻击时张开）
+ const open=armUp>.3||an==='attack'||P==='summon'?1:0;ctx.beginPath();ctx.ellipse(19,-70,6,open?4.5:1.8,0,0,7);F(dark);if(open){ctx.fillStyle='#fff';ctx.fillRect(15,-74,2,2.5);ctx.fillRect(21,-74,2,2.5)}
+ // 前臂
+ arm(1,true)}
 function drawWitch(w,sx){const y=w.y;shadow(sx,y,24);ctx.save();ctx.translate(sx,y);
  const rg=ctx.createRadialGradient(36,-10,2,36,-10,80);rg.addColorStop(0,'rgba(150,255,120,.4)');rg.addColorStop(1,'rgba(120,60,200,0)');ctx.fillStyle=rg;ctx.fillRect(-60,-100,180,140);
  ell(36,-12,22,14,'#2a2430');ell(36,-24,19,5,'#7cff6a');for(let i=0;i<3;i++)ell(30+i*7,-32-((G.t*30+i*12)%30),3,3,'rgba(180,255,150,.7)');
@@ -555,13 +630,14 @@ function drawPickup(k,sx){const y=k.y,z=k.z+Math.sin(G.t*4+k.x)*2;shadow(sx,y,8)
  if(k.kind==='armor'){ctx.beginPath();ctx.moveTo(sx-10,y-24-z);ctx.lineTo(sx+10,y-24-z);ctx.lineTo(sx+8,y-6-z);ctx.lineTo(sx,y-2-z);ctx.lineTo(sx-8,y-6-z);ctx.closePath();ctx.fillStyle='#8aa8c8';ctx.fill()}}
 // ---------- 特效绘制 ----------
 function drawHazard(h){const sx=h.x-G.camX;if(sx<-300||sx>W+300)return;const st=hzActive(h);
- if(h.k==='shock'){if(h.t<0)return;const r=h.r0+(h.r1-h.r0)*clamp(h.t/h.act,0,1);ctx.strokeStyle=`rgba(255,220,150,${1-h.t/h.act})`;ctx.lineWidth=6;ctx.beginPath();ctx.ellipse(sx,h.y,r,r/2,0,0,7);ctx.stroke();return}
- const wc={crack:'255,90,20',puddle:'255,110,20',geyser:'255,90,20',bloodpillar:'220,0,40',meteor:'255,120,40',icicle:'150,220,255',skybolt:'200,170,255',arrows:'255,230,150',spike:'150,220,255',mark:'255,200,80',burst:'255,0,40'}[h.k]||'255,255,255';
+ if(h.k==='shock'){if(h.t<0)return;const r=h.r0+(h.r1-h.r0)*clamp(h.t/h.act,0,1);if(h.ice){const a=1-h.t/h.act;ctx.save();ctx.globalAlpha=a;for(let i=0;i<14;i++){const an=i/14*Math.PI*2,px=sx+Math.cos(an)*r,py=h.y+Math.sin(an)*r/2,hh=(18+10*hash(i+h.r1))*a+6;ctx.fillStyle=i%2?'#cfeeff':'#8fd0ff';ctx.strokeStyle=OUT;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(px-6,py);ctx.lineTo(px,py-hh);ctx.lineTo(px+6,py);ctx.closePath();ctx.fill();ctx.stroke()}ctx.restore();ctx.strokeStyle=`rgba(170,225,255,${a})`;ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(sx,h.y,r,r/2,0,0,7);ctx.stroke();return}ctx.strokeStyle=`rgba(255,220,150,${1-h.t/h.act})`;ctx.lineWidth=6;ctx.beginPath();ctx.ellipse(sx,h.y,r,r/2,0,0,7);ctx.stroke();return}
+ const wc={crack:'255,90,20',puddle:'255,110,20',geyser:'255,90,20',bloodpillar:'220,0,40',meteor:'255,120,40',icicle:'150,220,255',skybolt:'200,170,255',arrows:'255,230,150',spike:'150,220,255',snowball:'120,170,230',mark:'255,200,80',burst:'255,0,40'}[h.k]||'255,255,255';
  if(st===1||(h.k==='crack'&&st===0)){const pr=h.cyc?0:clamp(h.t/h.warn,0,1);const a=st===0?.18:.35+.35*Math.abs(Math.sin(G.t*12));
   ctx.strokeStyle=`rgba(${wc},${a})`;ctx.lineWidth=3;ctx.setLineDash([8,6]);ctx.beginPath();ctx.ellipse(sx,h.y,h.rx,h.ry,0,0,7);ctx.stroke();ctx.setLineDash([]);
   ctx.fillStyle=`rgba(${wc},${st===0?.08:.18})`;ctx.beginPath();ctx.ellipse(sx,h.y,h.rx*(h.cyc?1:pr),h.ry*(h.cyc?1:pr),0,0,7);ctx.fill();
   if(['meteor','icicle','arrows','skybolt'].includes(h.k)){const fall=(1-pr)*420;ell(sx,h.y,h.rx*.5*pr,h.ry*.5*pr,'rgba(0,0,0,.4)');
    if(h.k==='meteor')fx('fireball',sx+fall*.3,h.y-fall-20,.8,.9,1,.6);else if(h.k==='icicle')fx('ice_lance',sx,h.y-fall-20,.4,.9,1,Math.PI/2);else if(h.k==='arrows'){ctx.strokeStyle='#ddd';ctx.lineWidth=2;for(let i=0;i<4;i++){const ax=sx+(i-1.5)*14,ay=h.y-fall-i*10;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(ax+4,ay-22);ctx.stroke()}}}
+  if(h.k==='snowball'){const ox=h.ox-G.camX;const bx=ox+(sx-ox)*pr,by=h.oy+(h.y-h.oy)*pr-h.oz*(1-pr)-Math.sin(pr*Math.PI)*(160+60*h.sc);ell(sx,h.y,h.rx*.6*pr,h.ry*.6*pr,'rgba(10,20,50,.45)');drawSnowball(bx,by,(h.ice?13:9)*h.sc,G.t*(h.ice?4:8),h.ice)}
   if(h.k==='burst')txt('!',sx,h.y-140,40,'#ff3040','center');return}
  if(st===2){const k=h.k;ctx.save();
   if(k==='crack'||k==='puddle'){ctx.globalCompositeOperation='lighter';ctx.fillStyle=`rgba(255,${100+60*Math.random()|0},20,.55)`;ctx.beginPath();ctx.ellipse(sx,h.y,h.rx,h.ry,0,0,7);ctx.fill();fx('firewall',sx,h.y+4,h.rx/90,.6,1,0,'b')}
@@ -572,13 +648,18 @@ function drawHazard(h){const sx=h.x-G.camX;if(sx<-300||sx>W+300)return;const st=
   else if(k==='skybolt'){fx('thunder_orb',sx,h.y-20,1,1)}
   else if(k==='arrows'){ctx.strokeStyle='#ccc';ctx.lineWidth=2;for(let i=0;i<5;i++){ctx.beginPath();ctx.moveTo(sx+(i-2)*12,h.y);ctx.lineTo(sx+(i-2)*12+3,h.y-18);ctx.stroke()}}
   else if(k==='burst'){fx('blood_burst',sx,h.y-30,3.2,1)}
+  else if(k==='snowball'){const q=clamp((h.t-h.warn)/h.act,0,1);ctx.globalAlpha=1-q*.6;ctx.fillStyle='#f4f8ff';ctx.strokeStyle=OUT;ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(sx,h.y,h.rx*(.5+q*.6),h.ry*(.5+q*.6),0,0,7);ctx.fill();ctx.stroke();for(let i=0;i<6;i++){const a=i*1.05;ell(sx+Math.cos(a)*h.rx*(.4+q*.7),h.y+Math.sin(a)*h.ry*(.4+q*.7)-q*10,5*h.sc,4*h.sc,'#ffffff')}}
   ctx.restore()}}
+function drawSprite(A,ik,name,x,y,sz,rot){const f=A.frames[name];if(!f||!ready(ik))return false;ctx.save();ctx.imageSmoothingEnabled=true;ctx.translate(x,y);ctx.rotate(rot);const k=sz/Math.max(f.w,f.h);ctx.scale(k,k);ctx.drawImage(IMG[ik],f.x,f.y,f.w,f.h,-f.w/2,-f.h/2,f.w,f.h);ctx.restore();return true}
+function drawSnowball(x,y,r,rot,ice){if(drawSprite(SNOWMAN_ATLAS,'snow',ice?'iceblock':'snowball',x,y,r*2.2,rot))return;ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.beginPath();ctx.arc(0,0,r,0,7);const g=ctx.createRadialGradient(-r*.35,-r*.35,r*.1,0,0,r);g.addColorStop(0,'#ffffff');g.addColorStop(.7,'#e4eefa');g.addColorStop(1,'#a8c4e4');ctx.fillStyle=g;ctx.fill();ctx.lineWidth=Math.max(2,r*.08);ctx.strokeStyle=OUT;ctx.stroke();
+ if(r>14){ctx.strokeStyle='rgba(120,160,210,.6)';ctx.lineWidth=r*.06;for(let i=0;i<3;i++){ctx.beginPath();ctx.arc(0,0,r*(.35+i*.18),i*2,i*2+1.6);ctx.stroke()}}ctx.restore()}
 function drawProj(q,enemy){const sx=q.x-G.camX,y=q.y-q.z;shadow(sx,q.y,10,.2);const fl=Math.sign(q.vx)||1;
  const m={fireball:['fireball',q.big?1.3:.8],flame_lance:['flame_lance',1],ice_lance:['ice_lance',q.sc||.6],thunder_blade:['thunder_blade',.8],sword_wave:[null,1],fire:['fireball_s',.8],ice:['ice_orb',.6],orb:['thunder_orb',.5],bloodorb:['blood_pillar',.25],firewave:['firewall',.7]}[q.k];
  if(q.k==='sword_wave'){heroFx('fx_wave',sx,y,.9,.95);return}
  if(q.k==='arrow'){ctx.strokeStyle='#d8c8a0';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(sx,y);ctx.lineTo(sx-q.vx*.06,y-q.vy*.06);ctx.stroke();return}
  if(q.k==='bloodorb'){ctx.save();ctx.globalCompositeOperation='lighter';ell(sx,y,10,10,'rgba(255,20,60,.9)');ell(sx,y,18,18,'rgba(200,0,40,.35)');ctx.restore();return}
  if(q.k==='firewave'){fx('firewall',sx,q.y+6,.7,.95,fl,0,'b');return}
+ if(q.k==='rollball'){ell(sx,q.y+2,q.rad*1.05,q.rad*.32,'rgba(10,20,50,.4)');drawSnowball(sx,q.y-q.rad,q.rad,q.x/q.rad*fl);if(Math.random()<.5)particles(q.x-fl*q.rad,q.y,4,'#ffffff',4,90);return}
  if(m)fx(m[0],sx,y,m[1],1,fl)}
 function drawZone(z){const sx=z.x-G.camX;const a=clamp(Math.min(z.t*4,(z.dur-z.t)*3),0,1);
  switch(z.k){case 'firewall':fx('firewall',sx,z.y+10,1.1,a,1,0,'b');break;case 'vortex':fx('vortex',sx,z.y-40,1.3,a*.9,1,0);break;
@@ -732,7 +813,7 @@ function drawEnding(dt){ctx.fillStyle='#05030a';ctx.fillRect(0,0,W,H);const im=I
  btn(W-200,H-60,170,40,'返回关卡选择',()=>{MODE='select';SEL=0});if(hit('enter')||hit('escape'))MODE='select'}
 // ---------- 主循环 ----------
 let last=performance.now(),SPEED=1;
-function frame(now){let dt=Math.min(.05,(now-last)/1000);last=now;RECTS.length=0;ctx.setTransform(1,0,0,1,0,0);
+function frame(now){let dt=Math.min(.05,(now-last)/1000);last=now;RECTS.length=0;ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,W,H);
  try{
  if(MODE==='select')drawSelect(dt);else if(MODE==='results')drawResults();else if(MODE==='ending')drawEnding(dt);
  else if(MODE==='over'){drawOver()}
