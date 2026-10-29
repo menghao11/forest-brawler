@@ -170,3 +170,12 @@ __dbg.goldLog()                             // 打完几关后看每关金币
 - **第 3/4 关首领黑块 + 橙条**：第 3 关焰魔王本来就是代码绘制（不是贴图丢失），旧画法是红方块 + 黑头 + 橙色剑条；现已重画（披风、分层胸甲、熔岩缝、尖刺肩甲、角盔发光面罩、火焰王冠、盾、烈焰大剑）。另外贴图加载失败会自动重试 3 次；首领出场前确保贴图已加载，未就绪时先画代码替身并重新加载。
 - **暂停面板「首领+30%」**：改名「首领伤害+%」并加说明（装备附带、只对首领生效的额外伤害）。
 - 测试：`OUT=/tmp node test_round13.js` → ROUND13_PASS。
+
+## 普通哥布林新帧（第 14 轮，v20261028m）
+- `python3 tools/goblin_v2.py <旧图集目录> assets/goblin_atlas`：把 ref/mobs/goblin 的新帧（96×80，锚点 48,76，朝右）裁边打包，保留旧的 idle / run / jumpatk，同一个 .js 里的 BIGGOBLIN_ATLAS 不动。
+- 适用所有 shape 'gob' 小怪（哥布林、长矛、弓箭、跳跃、雇佣兵）；长矛 / 弓仍是代码绘制。蝙蝠、雪人不变。
+- 走路 6 帧 10fps；攻击：前摇 01–02（0.45 秒）+ 出刀 03–06（每帧 90ms）；受击 hit 01→02 + 后仰位移；
+  **击倒**（击退 ≥150：连击第 4 段、旋风斩第 2 下、突刺）→ knockdown 01–03（10fps，02 腾空约 14px）→ 躺 0.45 秒 → getup 01–03（8fps），共约 1.1 秒，期间不出手；
+  死亡 4 帧 8fps，停在 04，0.7 秒起 0.8 秒淡出；转身 turn_01 → turn_02 → 镜像 turn_01（12fps，只在走路 / 站立时）。
+- 所有帧脚底贴地（帧底与锚点差 ≤1px，knockdown_02 腾空除外）。
+- 测试：`OUT=/tmp node test_round14.js` → ROUND14_PASS。对比 GIF：ref/mobs/goblin_before.gif、goblin_after.gif、goblin_compare.gif（不提交）。
