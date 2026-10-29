@@ -9,7 +9,10 @@ addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 const hit=k=>{if(pressed[k]){pressed[k]=false;return true}return false};
 const rnd=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),pick=a=>a[Math.floor(Math.random()*a.length)];
 // ---------- 资源 ----------
-const ASSET_V='20261028k';const IMG={};function loadImg(k,src){const i=new Image();i.src=src+(/^assets\/[a-z_]+_atlas\.png$/.test(src)?'?v='+ASSET_V:'');IMG[k]=i;return i}
+const ASSET_V='20261028l';const IMG={};
+// 图片加载：失败自动重试 3 次（换查询串绕开坏缓存），加载后预解码，避免首领出场时贴图还没准备好
+function loadImg(k,src,n=0){const i=new Image();const v=/^assets\/[a-z_]+_atlas\.png$/.test(src)?'?v='+ASSET_V+(n?'&r='+n:''):'';i.onload=()=>{if(i.decode)i.decode().catch(()=>{})};i.onerror=()=>{if(n<3)setTimeout(()=>{if(IMG[k]===i)loadImg(k,src,n+1)},400*(n+1))};i.src=src+v;IMG[k]=i;IMG[k].src0=src;return i}
+function ensureImg(k){const i=IMG[k];if(i&&i.complete&&!(i.naturalWidth>0)&&i.src0)loadImg(k,i.src0,1)}
 loadImg('hero',HERO_ATLAS.image);loadImg('gob',GOBLIN_ATLAS.image);loadImg('big',BIGGOBLIN_ATLAS.image);loadImg('bat',BAT_ATLAS.image);loadImg('vamp',VAMPIRE_ATLAS.image);loadImg('fx',FX_ATLAS.image);loadImg('snow',SNOWMAN_ATLAS.image);loadImg('snowboss',SNOWBOSS_ATLAS.image);if(window.PROPS_ATLAS)loadImg('props',PROPS_ATLAS.image);if(window.WITCH_ATLAS)loadImg('witch',WITCH_ATLAS.image);
 STAGES.forEach(s=>{if(s.far)loadImg('far'+s.id,s.far)});
 const ready=k=>IMG[k]&&IMG[k].complete&&IMG[k].naturalWidth>0;
@@ -46,7 +49,7 @@ const BOSSES={
   phases:[{at:1,pats:['combo','charge','combo','smash'],cd:1.9},{at:.5,pats:['combo','smash','summon'],summon:'goblin',cd:1.5,msg:'酋长怒吼，召唤援军！'}]},
  great_yeti:{name:'大雪人',shape:'snowboss',hp:4600,dmg:14.7,sp:60,exp:260,r:2.3,col:'#f2f7ff',face:'#3a6ac8',horns:1,crystals:1,
   phases:[{at:1,pats:['hammer','snowballs','slam','snowballs','iceSummon','frostwave'],cd:1.6},{at:.5,pats:['snowballs','summon','hammer','snowballs','iceSummon','slam','frostwave'],summon:'yeti_pup',cd:1.35,msg:'大雪人举锤怒吼，小雪人蜂拥而来！'},{at:.25,pats:['blizzard','hammer','slam','iceSummon','frostwave','roll'],cd:1.05,enrage:1,msg:'暴风雪降临！冰石如雨！'}]},
- flame_king:{name:'焰魔王·赤烎',shape:'warrior',hp:7700,dmg:17.4,sp:60,exp:400,r:2.4,col:'#7a0a08',horn:'#1a0a08',weapon:'#ff6a10',flame:1,king:1,
+ flame_king:{name:'焰魔王·赤烎',shape:'warrior',hp:7700,dmg:16.8,sp:60,exp:400,r:2.4,col:'#7a0a08',horn:'#1a0a08',weapon:'#ff6a10',flame:1,king:1,
   phases:[{at:1,pats:['sweep','fireWave','sweep'],cd:1.6},{at:.5,pats:['geysers','fireWave','sweep','summon','fireWave','sweep'],summon:'lava_imp',cd:1.35,msg:'赤烎召唤熔岩喷泉！'},
    {at:.25,pats:['meteors','fireWave','sweep','geysers'],cd:1.0,enrage:1,shrink:1,msg:'火山爆发！熔岩吞噬战场边缘！'}],
   drop:{gear:'w_flame',exp:300,msg:'掉落【烈炎剑】！火系秘典：经验 +300'}},
@@ -173,7 +176,7 @@ function spawn(type,x,y,opts={}){
 const BOSS_INTRO={goblin_chief:{title:'森林霸主',lines:['又来个穿青衣的？','这回别想活着走！']},great_yeti:{title:'冰封巨兽',lines:['青衣……又是青衣！','滚出我的雪山！']},flame_king:{title:'熔岩之主',lines:['火山也是青衣人点的。','看看你的剑够不够烫！']},goblin_king:{title:'山谷之王',lines:['老爷有令，青衣人不许过！']},goblin_king_shade:{title:'山谷之王',lines:['本王……还没倒下！']},vampire_count:{title:'血月之主',lines:['那根青绳，是师父给的吧？','让我看看她挑中的人！']}};
 function bossIntro(e,id){const I=BOSS_INTRO[id];if(!I)return;const seen=PROFILE.introSeen||(PROFILE.introSeen={});const L=seen[id]?I.lines.slice(0,1):I.lines.slice();seen[id]=1;writeSave();
  G.bossIntro={name:e.def.name,title:I.title,t:0,dur:2.8};G.sayQ=L.slice(1);G.say={e,text:L[0],t:0,dur:2.4,intro:1}}
-function spawnBoss(id,x,y,mini=false){const d=BOSSES[id];const df=G.diff/STAGES[G.idx].diff*(1+.15*(G.diff-1));
+function spawnBoss(id,x,y,mini=false){{const sh=BOSSES[id]&&BOSSES[id].shape;if(IMG[sh])ensureImg(sh)}const d=BOSSES[id];const df=G.diff/STAGES[G.idx].diff*(1+.15*(G.diff-1));
  const hm=G.S.hpMul||1;const e={type:id,def:d,boss:1,mini,x,y,z:0,vz:0,hp:d.hp*df*hm,maxhp:d.hp*df*hm,dmg:d.dmg*(G.diff>STAGES[G.idx].diff?1.3:1),sp:d.sp,r:d.r,sc:d.sc||1,exp:d.exp,face:-1,state:'walk',t:0,at:0,hurtT:0,frozen:0,stun:0,slow:0,kx:0,cd:1.5,dead:0,deadT:0,phase:0,pat:null,patT:0,inv:0,hidden:0};
  G.enemies.push(e);if(!mini)G.boss=e;else G.mini=e;bossIntro(e,id);msg((mini?'强敌 · ':'首领 · ')+d.name+' 出现！','#ff6060');sfx('roar');G.shake=10;return e}
 function earlyDmgMul(){return G.idx===0&&!PROFILE.ngplus?.6+.4*Math.min(1,G.wave/8):1}
@@ -186,9 +189,11 @@ function resistOf(e,elem){const r=(e.def.resist)||(G.S.resist)||{};const v=elem&
 // 首领追赶系数（第 7 轮）：只看「关卡进度」，与当前攻击力无关——
 // 跳关（本关之前有未通关的关卡）时，按「本关预期基础攻击 / 最后通关处的预期基础攻击」放大近战对首领的伤害（最多 ×5）；
 // 正常顺序通关或重玩已通关卡 = ×1。系数乘在总攻击上，所以装备攻击、Boss伤害% 都按比例清楚地叠加；法术不吃这个系数。
-const BOSS_EXP_ATK=[10,26,42,62,80],CATCHUP_MAX=2.5,BOSS_CD=.65,BOSS_P2_SPD=1.15;
+const ORB_GAP=.75,BOSS_HIT_GAP=.72;// 首领战：玩家两次受伤至少间隔 0.72 秒（任何来源：近战、血球、地刺……）
+const BOSS_EXP_ATK=[10,26,42,62,80],CATCHUP_MAX=4.5,CATCHUP_EXP=.72,BOSS_CD=.65,BOSS_P2_SPD=1.15;
 function bossCatchUp(){const i=G.idx|0;let k=0;for(let j=0;j<i;j++)if(PROFILE.cleared.includes(STAGES[j].id))k=j+1;
- if(k>=i)return 1;return Math.min(CATCHUP_MAX,Math.pow(BOSS_EXP_ATK[i]/BOSS_EXP_ATK[k],.6))}
+ if(k>=i)return 1;const gap=i-k;// 跳关越多（未通关的前置关卡越多）上限越高：上限：差 1 关 2.25×、2 关 3×、3 关 3.75×、4 关 4.5×（实际值 = (该关预期攻击 / 已通关预期攻击)^0.72）
+ return Math.min(CATCHUP_MAX,1.5+.75*gap,Math.pow(BOSS_EXP_ATK[i]/BOSS_EXP_ATK[k],CATCHUP_EXP))}
 const NOST={atk:0,hp:0,def:0,crit:0,boss:0,spell:0,mp:0,regen:0};
 function damage(e,d,kb,fromX,elem,opts={}){if(e.dead||e.inv>0||e.hidden)return 0;
  const st=G.p.st||NOST;let m=resistOf(e,elem);const LM={res:m,other:1};
@@ -233,7 +238,8 @@ function dlogPush(r){DLOG.push(r);if(DLOG.length>DLOG_MAX)DLOG.splice(0,DLOG.len
 const HZ_NAME={puddle:'爆炸残火',spike:'冰刺',shock:'冲击波',burst:'爆炸',crack:'地裂',bolt:'落雷',icicle:'落冰锥',meteor:'陨石',mark:'标记',snowball:'雪球'};
 function hitSrcName(s){if(!s)return '未知';if(s.def)return (s.def.name||s.type||'敌人')+(s.boss?'（首领）':'');if(s.own&&s.own.def)return (s.own.def.name||'敌人')+' · '+(HZ_NAME[s.k]||s.k||'投射物');if(s.k&&(s.warn!=null||s.act!=null||s.rx!=null||s.cyc))return (s.cyc||s.stage?'地形 · ':'危害 · ')+(HZ_NAME[s.k]||s.k);if(s.k)return '投射物 · '+s.k;return String(s.name||'未知')}
 // 调试：无敌 / 伤害倍率（整页有效，跨关卡保留）
-function hurtPlayer(d,src){const p=G.p;if(!(d>0))return 0;const raw=d,blk=DBG_GOD?'无敌':p.inv>0?'无敌帧':p.dead?'已倒地':G.clearT>0?'过关':'';
+function hurtPlayer(d,src){const p=G.p;if(!(d>0))return 0;const raw=d,bf=G.boss&&!G.boss.dead,blk=bf&&G.time-(G.bossHitT==null?-9:G.bossHitT)<BOSS_HIT_GAP?'受击间隔':DBG_GOD?'无敌':p.inv>0?'无敌帧':p.dead?'已倒地':G.clearT>0?'过关':'';
+ if(bf&&(blk===''||blk==='无敌'))G.bossHitT=G.time;
  if(blk){dlogPush({t:+(G.time||0).toFixed(2),stage:G.S?G.S.id:0,src:hitSrcName(src),target:'玩家（'+blk+'）',isBoss:false,raw:+raw.toFixed(2),def:def(),final:0});return 0}
  d=Math.max(1,Math.round(d-def()));dlogPush({t:+(G.time||0).toFixed(2),stage:G.S?G.S.id:0,src:hitSrcName(src),target:'玩家',isBoss:false,raw:+raw.toFixed(2),def:def(),final:d});p.hp-=d;p.hurtT=.3;p.inv=.7;{const k=clamp(.3+d/p.maxhp*3,.3,1),rapid=G.t-(G.hurtAt||-9)<.4;G.hurtAt=G.t;G.hurtFlash=Math.max(G.hurtFlash,k*(rapid?.7:1));G.hurtTint=.15;G.hurtTintK=k*(rapid?.45:1)}p.energy=Math.min(100,p.energy+8);G.shake=6;
  numPop(p.x,p.y,80,d,'#ff5555');sfx('hurt');if(src&&src.x!=null)p.x+=Math.sign(p.x-src.x||1)*20;
@@ -466,7 +472,7 @@ function updateBoss0(e,dt,sl){const p=G.p,d=e.def;const ph=curPhase(e);
   if(e.chain<(e.phase>=1?3:2)&&Math.random()<(e.phase>=1?.8:.55))e.cd=rnd(.25,.4);else{e.chain=0;e.cd=ph.cd*BOSS_CD*rnd(.8,1.2)}};const reach=70+30*e.r;
  if(['combo','sweep','rapier','smash','hammer'].includes(e.pat)&&T<.45&&ad>reach-20){e.x+=Math.sign(dx)*e.sp*1.8*dt;e.face=dx>0?1:-1}// 近战前摇时逼近
  switch(e.pat){
-  case 'combo':case 'sweep':case 'rapier':{const P2=e.phase>=1?1:0;const n=e.pat==='sweep'?1+P2:e.pat==='rapier'?3+P2:2+P2;const per=e.pat==='rapier'?.72:e.pat==='sweep'?.8:.75;// 连击间隔 ≥0.72 秒（玩家受击无敌 0.7 秒），每一下都能命中也都能躲
+  case 'combo':case 'sweep':case 'rapier':{const P2=e.phase>=1?1:0;const n=e.pat==='sweep'?1+P2:e.pat==='rapier'?3+P2:2+P2;const per=(e.pat==='rapier'?.75:e.pat==='sweep'?.8:.75)*en;// patT 按 en 加速，间隔乘 en 后换算成真实秒数仍 ≥0.72// 连击间隔 ≥0.72 秒（玩家受击无敌 0.7 秒），每一下都能命中也都能躲
    if(T>.5+e.step*per&&e.step<n){e.step++;e.x+=e.face*(e.pat==='rapier'?30:15);sfx('swing');strike(e,reach+(e.pat==='sweep'?50:20),e.pat==='sweep'?1.3:1,e.pat==='sweep'?60:38);
     if(e.pat==='sweep'&&d.flame)particles(e.x+e.face*80,e.y,30,'#ff7a1a',20)}
    if(T>.45+n*per)done();break}
@@ -494,8 +500,10 @@ function updateBoss0(e,dt,sl){const p=G.p,d=e.def;const ph=curPhase(e);
   case 'batTeleport':if(!e.step){e.step=1;e.hidden=1;particles(e.x,e.y,60,'#300010',30,260);sfx('witch')}
    if(e.step===1&&T>.8){e.step=2;e.hidden=0;e.x=clamp(p.x-p.face*110,G.camX+40,G.camX+W-40);e.y=p.y;e.face=p.x>e.x?1:-1;particles(e.x,e.y,60,'#600018',30,260)}
    if(e.step===2&&T>1.15){e.step=3;sfx('swing');strike(e,reach+20,1.1,40)}if(T>1.5)done();break;
-  case 'bloodOrbs':if(T>.5&&e.step<(e.phase>=1?4:3)&&T>.5+e.step*.3){e.step++;const a0=Math.atan2(p.y-e.y,p.x-e.x);for(let i=-2;i<=2;i++){const a=a0+i*.22;G.ep.push({k:'bloodorb',x:e.x+e.face*30,y:e.y,z:60,vx:Math.cos(a)*260,vy:Math.sin(a)*130,dmg:e.dmg*.6,life:3,own:e})}sfx('fire')}
-   if(T>(e.phase>=1?1.9:1.6))done();break;
+  // 血球：一阶段 3 波、二阶段 4 波，每波间隔 0.75 秒（真实时间）；单数波 3 颗对准玩家（扇面 ±0.32），双数波 2 颗分在两侧、中间留空（站着不动就能躲）
+  case 'bloodOrbs':{const nv=e.phase>=1?4:3,gap=ORB_GAP*en;if(T>.5&&e.step<nv&&T>.5+e.step*gap){const odd=e.step%2===1;e.step++;const a0=Math.atan2(p.y-e.y,p.x-e.x);
+    for(const i of odd?[-1.5,1.5]:[-1,0,1]){const a=a0+i*.32;G.ep.push({k:'bloodorb',x:e.x+e.face*30,y:e.y,z:60,vx:Math.cos(a)*240,vy:Math.sin(a)*120,dmg:e.dmg*.6,life:3,own:e})}sfx('fire')}
+   if(T>.5+nv*gap+.3)done();break}
   case 'bloodBurst':if(!e.step){e.step=1;G.hz.push({k:'burst',x:e.x,y:e.y,rx:280,ry:110,t:0,warn:1.7,act:.4,dmg:e.dmg*1.8,once:1,noz:1});msg('血爆！远离伯爵！','#ff3040')}if(T>2.3)done();break;
   case 'hammer':if(T<.6){e.face=dx>0?1:-1;if(ad>reach)e.x+=e.face*e.sp*1.2*dt}else if(!e.step){e.step=1;sfx('swing');G.shake=10;strike(e,reach+60,1.4,60);const hx=e.x+e.face*90;particles(hx,e.y,18,'#dff4ff',18,200);G.hz.push({k:'shock',x:hx,y:e.y,r0:10,r1:120,t:0,act:.35,dmg:0,ice:1,sb:e.def.shape==='snowboss'?1:0})}if(T>1.15)done();break;
   case 'snowballs':case 'blizzard':{const n=e.pat==='blizzard'?10:(e.def.shape==='snowboss'?(e.phase>=1?3:2):3);const per=e.pat==='blizzard'?.14:.6;
@@ -784,7 +792,7 @@ function drawEnemy(e,sx){const d=e.def,sh=d.shape;const y=e.y-e.z;if(e.hidden){r
  const [an,t,loop,fps]=enemyAnim(e);
  if(sh==='gob'||sh==='big'||sh==='bat'||sh==='vamp'||sh==='snow'||sh==='snowboss'){const A={gob:GOBLIN_ATLAS,big:BIGGOBLIN_ATLAS,bat:BAT_ATLAS,vamp:VAMPIRE_ATLAS,snow:SNOWMAN_ATLAS,snowboss:SNOWBOSS_ATLAS}[sh];const ik=sh;
   const base={gob:1.35,big:1.7,bat:1.5,vamp:1.55,snow:.85*e.r,snowboss:.9}[sh];let sc=base*(e.sc||1);
-  const an2=A.anims[an]?an:'idle';
+  const an2=A.anims[an]?an:'idle';if(!ready(ik)){ensureImg(ik);ctx.restore();ctx.save();ctx.globalAlpha=alpha;drawProc(Object.assign(Object.create(e),{def:Object.assign({},d,{shape:{gob:'imp',big:'golem',bat:'beast',vamp:'caster',snow:'yeti',snowboss:'yeti'}[sh]})}),sx,y,an,t);ctx.restore();return}// 贴图未就绪：画代码版替身，不会消失或变黑块
   if(e.frozen>0)ctx.filter='saturate(.2) brightness(1.3) hue-rotate(160deg)';else if(e.gRaise>0)ctx.filter='brightness('+(1.4+e.gRaise*4).toFixed(2)+')';else if(e.hurtT>0)ctx.filter='brightness(2)';else if(e.guard>0)ctx.filter='brightness(1.12) saturate(.6) contrast(1.1)';else if(e.stagT>0)ctx.filter='brightness(.85) saturate(.7)';else if(e.stun>0)ctx.filter='brightness(1.3)';else if(d.tintF)ctx.filter=d.tintF;
   if(d.tintF&&!e.dead){ctx.save();ctx.globalCompositeOperation='lighter';ell(sx,y-45*e.r,30*e.r,40*e.r,'rgba(90,170,255,.13)');ctx.restore()}
   if(sh==='snowboss'&&e.pat==='slam'&&e.patT<.95){ctx.save();ctx.globalCompositeOperation='lighter';ell(sx+e.face*40,y,60*e.patT+20,(60*e.patT+20)*.3,`rgba(140,210,255,${.25*e.patT})`);ctx.restore()}
@@ -811,11 +819,33 @@ function drawProc(e,sx,y,an,t){const d=e.def,r=e.r,f=e.face;const bob=an==='walk
  switch(d.shape){
   case 'beast':ctx.beginPath();ctx.ellipse(0,-22,28,14,0,0,7);O(d.col);ctx.beginPath();ctx.ellipse(26,-32,12,9,-.3,0,7);O(d.col);ctx.beginPath();ctx.moveTo(30,-40);ctx.lineTo(34,-52);ctx.lineTo(38,-38);O(d.col);
    for(const lx of[-18,-8,12,20]){ctx.fillStyle=d.col;ctx.fillRect(lx,-12,5,12+Math.sin(e.at*14+lx)*2)}ctx.fillStyle='#4af';ctx.fillRect(30,-35,3,3);if(e.boss){ctx.fillStyle='#bfe8ff';ctx.beginPath();ctx.moveTo(-10,-34);ctx.lineTo(-4,-48);ctx.lineTo(2,-34);ctx.fill()}break;
-  case 'warrior':ctx.beginPath();ctx.rect(-14,-56,28,40);O(d.col);ctx.beginPath();ctx.arc(0,-66,12,0,7);O('#3a2a28');ctx.beginPath();ctx.moveTo(-10,-74);ctx.lineTo(-18,-90);ctx.lineTo(-4,-76);ctx.moveTo(10,-74);ctx.lineTo(18,-90);ctx.lineTo(4,-76);O(d.horn);
-   ctx.fillStyle='#ff4020';ctx.fillRect(2,-68,3,3);ctx.fillRect(7,-68,3,3);ctx.fillStyle='#222';ctx.fillRect(-12,-16,9,16);ctx.fillRect(3,-16,9,16);
-   ctx.save();ctx.rotate(-.4+atkP*1.6);ctx.fillStyle=d.weapon;ctx.fillRect(8,-60,6,-(e.boss?70:50));ctx.restore();
-   if(d.ai==='shield'){ctx.beginPath();ctx.ellipse(18,-38,8,20,0,0,7);O('#5a5a6a')}
-   if(d.flame){ctx.restore();ctx.save();fx('fireball_s',sx+f*r*30,y-r*90,.5*r,.5+.2*Math.sin(G.t*9));}break;
+  case 'warrior':{// 火焰战士 / 焰魔王（第 13 轮重画：分层铠甲 + 熔岩缝发光 + 角盔 + 烈焰大剑，不再是方块）
+   const K=!!d.king,st=an==='walk'||an==='run'?Math.sin(e.at*10):0,gl=.6+.4*Math.sin(G.t*6+(e.ofs||0)*3),L=(x0,y0,x1,y1,c0,c1)=>{const g=ctx.createLinearGradient(x0,y0,x1,y1);g.addColorStop(0,c0);g.addColorStop(1,c1);return g};
+   if(K){ctx.save();ctx.globalCompositeOperation='lighter';const rg=ctx.createRadialGradient(0,-50,6,0,-50,62);rg.addColorStop(0,`rgba(255,120,30,${.22*gl})`);rg.addColorStop(1,'rgba(255,60,0,0)');ctx.fillStyle=rg;ctx.fillRect(-70,-120,140,130);ctx.restore()}
+   // 披风
+   ctx.beginPath();ctx.moveTo(-10,-58);ctx.quadraticCurveTo(-30,-30,-26+st*2,-2);ctx.lineTo(-8,-6);ctx.closePath();O(K?'#3a0608':'#2a0a0a',1.5);
+   // 腿（前后迈步）
+   for(const [lx,ph] of [[-9,1],[3,-1]]){ctx.save();ctx.translate(lx+4,-20);ctx.rotate(st*.35*ph);ctx.beginPath();ctx.rect(-5,0,10,20);ctx.fillStyle=L(0,0,0,20,'#3a2a2a','#140c0c');ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle=OUT;ctx.stroke();ctx.fillStyle='#5a3a30';ctx.fillRect(-6,16,13,5);ctx.restore()}
+   // 躯干：胸甲
+   ctx.beginPath();ctx.moveTo(-15,-58);ctx.lineTo(15,-58);ctx.lineTo(11,-22);ctx.lineTo(-11,-22);ctx.closePath();ctx.fillStyle=L(-15,-58,15,-22,K?'#a0181a':'#8a2018','#3a0606');ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=OUT;ctx.stroke();
+   ctx.fillStyle='#2a1612';ctx.fillRect(-12,-26,24,5);ctx.fillStyle='#d8a040';ctx.fillRect(-3,-26,6,5);
+   // 熔岩缝
+   ctx.save();ctx.globalCompositeOperation='lighter';ctx.strokeStyle=`rgba(255,${140+60*gl|0},40,${.55+.4*gl})`;ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(-8,-52);ctx.lineTo(-3,-44);ctx.lineTo(-6,-34);ctx.moveTo(7,-54);ctx.lineTo(3,-42);ctx.lineTo(8,-30);ctx.moveTo(-2,-40);ctx.lineTo(3,-42);ctx.stroke();ctx.restore();
+   // 肩甲（带尖刺）
+   for(const sx2 of [-14,14]){ctx.beginPath();ctx.ellipse(sx2,-56,8,6,0,0,7);ctx.fillStyle=L(0,-62,0,-50,'#5a4038','#1c1210');ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle=OUT;ctx.stroke();ctx.beginPath();ctx.moveTo(sx2-3,-60);ctx.lineTo(sx2+Math.sign(sx2)*4,-70);ctx.lineTo(sx2+3,-60);O('#2a1a16',1)}
+   // 头盔 + 角 + 发光眼
+   ctx.beginPath();ctx.moveTo(-9,-62);ctx.lineTo(-10,-74);ctx.quadraticCurveTo(0,-82,10,-74);ctx.lineTo(9,-62);ctx.closePath();ctx.fillStyle=L(0,-82,0,-62,'#4a3a38','#120a0a');ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=OUT;ctx.stroke();
+   ctx.beginPath();ctx.moveTo(-8,-74);ctx.quadraticCurveTo(-20,-80,-17,-94);ctx.quadraticCurveTo(-14,-82,-4,-78);ctx.moveTo(8,-74);ctx.quadraticCurveTo(20,-80,17,-94);ctx.quadraticCurveTo(14,-82,4,-78);O(K?'#e8d8b0':'#c8b898',1.5);
+   ctx.save();ctx.globalCompositeOperation='lighter';ctx.fillStyle=`rgba(255,${120+80*gl|0},30,1)`;ctx.fillRect(-6,-71,12,2.4);ell(2,-70,7,3,`rgba(255,90,20,${.5*gl})`);ctx.restore();
+   if(K){ctx.save();ctx.globalCompositeOperation='lighter';for(let i=-2;i<=2;i++){const h=8+4*Math.sin(G.t*9+i*1.7);ctx.fillStyle=`rgba(255,${150-i*i*12},40,.75)`;ctx.beginPath();ctx.moveTo(i*4-3,-80);ctx.quadraticCurveTo(i*4,-80-h*1.4,i*4+3,-80);ctx.fill()}ctx.restore()}
+   // 盾
+   if(d.ai==='shield'){ctx.beginPath();ctx.ellipse(16,-38,8,18,0,0,7);ctx.fillStyle=L(8,-56,24,-20,'#7a7a8a','#2a2a36');ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=OUT;ctx.stroke();ctx.fillStyle='#ff8a20';ctx.beginPath();ctx.arc(16,-38,3,0,7);ctx.fill()}
+   // 烈焰大剑（挥砍时旋转）
+   ctx.save();ctx.translate(10,-44);ctx.rotate(-.5+atkP*1.9);const bl=K?78:54;
+   ctx.fillStyle='#3a2a20';ctx.fillRect(-2,-2,4,12);ctx.fillStyle='#c8a040';ctx.fillRect(-8,-4,16,4);
+   ctx.beginPath();ctx.moveTo(-4,-4);ctx.lineTo(-3.5,-bl);ctx.lineTo(0,-bl-8);ctx.lineTo(3.5,-bl);ctx.lineTo(4,-4);ctx.closePath();ctx.fillStyle=L(0,-4,0,-bl,'#ffd080',d.weapon);ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle=OUT;ctx.stroke();
+   ctx.globalCompositeOperation='lighter';ctx.strokeStyle=`rgba(255,${150+60*gl|0},50,${.35+.3*gl+.4*atkP})`;ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(0,-8);ctx.lineTo(0,-bl-4);ctx.stroke();ctx.restore();
+   if(d.flame){ctx.restore();ctx.save();fx('fireball_s',sx+f*r*14,y-r*(K?120:96),(K?.35:.3)*r,.35+.2*Math.sin(G.t*9));}break}
   case 'caster':ctx.beginPath();ctx.moveTo(-16,0);ctx.lineTo(-10,-50);ctx.lineTo(10,-50);ctx.lineTo(16,0);O(d.robe);ctx.beginPath();ctx.arc(0,-58,10,0,7);O(d.col);ctx.beginPath();ctx.moveTo(-12,-62);ctx.lineTo(0,-84);ctx.lineTo(12,-62);O(d.robe);
    ctx.fillStyle='#4a3a2a';ctx.fillRect(14,-70,3,70);ctx.restore();ctx.save();ctx.globalCompositeOperation='lighter';ell(sx+f*r*15,y-r*74,8+atkP*6,8+atkP*6,d.orb);break;
   case 'golem':ctx.beginPath();ctx.ellipse(0,-34,26,30,0,0,7);O(d.col,3);ctx.beginPath();ctx.ellipse(0,-70,14,11,0,0,7);O(d.col,3);ctx.beginPath();ctx.ellipse(22-atkP*4,-30+atkP*10,10,18,0,0,7);O(d.col,3);
@@ -1011,7 +1041,7 @@ function drawHUD(){const p=G.p;
  drawMpBar(108,494,180,11);
  if(p.energy>=100)txt('[L] 怒气必杀·万剑归宗',108,442,13,'#7fe0ff');
  const st=p.st||NOST;if(DBG_ATK!==1||DBG_GOD){ctx.font='bold 12px sans-serif';txt((DBG_GOD?'调试：无敌 ':'')+(DBG_ATK!==1?'调试：全部伤害 ×'+DBG_ATK+'（含法术）':''),W-20,66,12,'#ff6060','right')}
- txt('攻 '+(DBG_ATK!==1?Math.round(atk()*DBG_ATK)+'(×'+DBG_ATK+')':atk())+'  防 '+def()+(st.crit?'  暴击 '+Math.round(st.crit*100)+'%':'')+(st.boss?'  Boss+'+Math.round(st.boss*100)+'%':''),108,522,12,'#ffd34a');
+ txt('攻 '+(DBG_ATK!==1?Math.round(atk()*DBG_ATK)+'(×'+DBG_ATK+')':atk())+'  防 '+def()+(st.crit?'  暴击 '+Math.round(st.crit*100)+'%':'')+(st.boss?'  首领伤害+'+Math.round(st.boss*100)+'%':''),108,522,12,'#ffd34a');
  drawSpellHUD(362,474);
  const pl=p.plv,pf=pl>=5?1:(p.prof-PROF[pl-1])/(PROF[pl]-PROF[pl-1]);txt('砍杀熟练度 Lv'+pl,446,474,12,'#ffd34a');bar(446,484,110,11,pf,'#e8a020');txt(pl>=5?'MAX':p.prof+'/'+PROF[pl],501,490,10,'#fff','center');
  const items=[['#ffd030','金币',p.gold],['#3a7aff','魔力',Math.floor(p.mp)],['#c070ff','经验',p.exp]];
@@ -1109,8 +1139,9 @@ function drawHelp(){ctx.fillStyle='rgba(8,5,18,.82)';ctx.fillRect(0,0,W,H);const
   ['E 女巫','学习/升级法术（经验，最高 Lv3）· 装备商店 · 回满生命'],
   ['魔力','上限 100（饰品可提高），每秒自动回复；魔力瓶 +20'],
   ['装备','武器/护甲/饰品，金币购买：关卡选择界面按 B 或在女巫营地；首领必掉装备'],
+  ['首领伤害+%','装备（如屠魔剑）附带的额外伤害，只对首领生效'+((G&&G.p&&G.p.st&&G.p.st.boss)?'；你现在 +'+Math.round(G.p.st.boss*100)+'%':'')],
   ['M 静音  P/Esc','静音切换 · 打开/关闭本面板（游戏暂停）']];
- rows.forEach((r,i)=>{const y=y0+64+i*24.5;txt(r[0],x0+30,y,14,'#c9a0ff');txt(r[1],x0+178,y,r[1].length>40?12:13,'#eee')});
+ rows.forEach((r,i)=>{const y=y0+64+i*23;txt(r[0],x0+30,y,14,'#c9a0ff');txt(r[1],x0+178,y,r[1].length>40?12:13,'#eee')});
  const sy=y0+h-82;txt('音量',x0+40,sy,16,'#ffd34a');const sx=x0+200,sw=360;
  bar(sx,sy-8,sw,16,AU.vol,'#7fe0ff');ctx.beginPath();ctx.arc(sx+sw*AU.vol,sy,11,0,7);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#000';ctx.lineWidth=2;ctx.stroke();
  txt(Math.round(AU.vol*100)+'%'+(AU.muted?'（已静音）':''),sx+sw+20,sy,14,'#fff');
@@ -1139,7 +1170,7 @@ function drawSelect(dt){selT+=dt;SYNC_T-=dt;if(SYNC_T<=0){SYNC_T=.5;syncSave()}p
   txt(lock?'🔒 未解锁':P.cleared.includes(s.id)?'✔ 已通关 '+fmtT(P.best[s.id]||0):'未通关',x+cw/2,y+204,12,lock?'#777':P.cleared.includes(s.id)?'#8f8':'#ffd34a','center');
   txt('难度 '+'★'.repeat(i+1),x+cw/2,y+228,12,'#ffb040','center');
   RECTS.push({x,y,w:cw,h,fn:()=>{if(lock){SEL=i;sfx('fail')}else startSel(i)}})});
- {const t=totalStats(P);txt('生命 '+t.hp+'  攻击 '+t.atk+'  防御 '+t.def+(t.crit?'  暴击 '+Math.round(t.crit*100)+'%':'')+(t.boss?'  Boss伤害+'+Math.round(t.boss*100)+'%':'')+'  熟练度 Lv'+P.plv+'  经验 '+P.exp+'  金币 '+P.gold+'  魔力 '+P.mp+'  法术 '+P.spells.length+'/16',W/2,380,13,'#ddd','center');
+ {const t=totalStats(P);txt('生命 '+t.hp+'  攻击 '+t.atk+'  防御 '+t.def+(t.crit?'  暴击 '+Math.round(t.crit*100)+'%':'')+(t.boss?'  首领伤害+'+Math.round(t.boss*100)+'%':'')+'  熟练度 Lv'+P.plv+'  经验 '+P.exp+'  金币 '+P.gold+'  魔力 '+P.mp+'  法术 '+P.spells.length+'/16',W/2,380,13,'#ddd','center');
   const eqs=SLOTS.map(sl=>EQ(P.eq[sl.id])).filter(Boolean);txt(eqs.length?'装备：'+eqs.map(q=>q.name).join(' · '):'尚无装备 —— 去装备商店看看',W/2,399,12,eqs.length?'#9fd0ff':'#888','center')}
  btn(W/2-110,416,220,46,'开始 · '+STAGES[SEL].name,()=>startSel(SEL),'#7a3a1a');
  btn(W/2-75,470,150,36,'装备商店 (B)',()=>openShop(),'#2a4a7a');

@@ -7,9 +7,11 @@ const URL=process.env.URL||'http://localhost:8931/index.html',SPD=+process.env.S
 // 正常装备：攻击约等于各关预期攻击 10/26/42/62/80（略高），装备按金币进度
 const HERO={normal:{1:{atkLv:0,eq:{weapon:'w1',armor:'a1'}},2:{atkLv:0,eq:{weapon:'w2',armor:'a1',acc:'r1'}},3:{atkLv:5,eq:{weapon:'w2',armor:'a2',acc:'r2'}},4:{atkLv:8,eq:{weapon:'w3',armor:'a3',acc:'r2'}},5:{atkLv:10,eq:{weapon:'w4',armor:'a3',acc:'r3'}}},
  fresh:{1:{atkLv:0,eq:{}},2:{atkLv:0,eq:{}},3:{atkLv:0,eq:{}},4:{atkLv:0,eq:{}},5:{atkLv:0,eq:{}}}};
+// review：评审的玩法 = 新存档 unlockAll() + start(关) + god(true)，0 级、无装备（跳关追赶系数最大）
+HERO.review=HERO.fresh;
 async function fight(b,stage,hero,blk=1){const pg=await b.newPage({viewport:{width:960,height:540}});const errs=[];pg.on('pageerror',e=>errs.push(e.message));
  await pg.goto(URL);await pg.waitForTimeout(700);const H=HERO[hero][stage];
- await pg.evaluate(([s,H,hero,blk])=>{__dbg.block(!!blk);__dbg.resetSave();__dbg.unlockAll();PROFILE.cleared=hero==='normal'?[1,2,3,4,5].slice(0,s-1).map(i=>STAGES[i-1].id):[];__dbg.start(s);
+ await pg.evaluate(([s,H,hero,blk])=>{__dbg.block(!!blk);__dbg.god(hero==='review');__dbg.resetSave();__dbg.unlockAll();PROFILE.cleared=hero==='normal'?[1,2,3,4,5].slice(0,s-1).map(i=>STAGES[i-1].id):[];__dbg.start(s);
   const G=__G(),p=G.p;p.atkLv=H.atkLv;p.eq=Object.assign({},H.eq);p.owned=Object.values(H.eq);applyGear(p,true);p.hp=p.maxhp;
   const B=G.B;G.enemies=[];G.pickups=[];G.wave=B.waves.length-1;G.lockX=null;const wx=B.waves[G.wave].x;G.camX=wx;p.x=wx+W*.4+10;p.y=(LANE_TOP+LANE_BOT)/2;__dbg.dmgLog('clear');__dbg.speed(1)},[stage,H,hero,blk]);
  await pg.waitForTimeout(400);
@@ -53,7 +55,7 @@ async function fight(b,stage,hero,blk=1){const pg=await b.newPage({viewport:{wid
    idleMax:+R.idleMax.toFixed(2),minTele:(()=>{const v=R.pats.filter(q=>q.tele!=null).map(q=>q.tele);return v.length?Math.min(...v):null})(),teleByPat:R.pats.filter(q=>q.tele!=null).reduce((m,q)=>(m[q.pat]=Math.min(m[q.pat]??9,q.tele),m),{}),away:+R.away.toFixed(2),block:{on:BS.on,streaks:BS.streaks,blocks:BS.blocks,rate:BS.streaks?+(BS.blocks/BS.streaks).toFixed(2):0,blockedHits:BS.blockedHits,meleeHits:mh.length,blockedPct:mh.length?+(100*mh.filter(x=>x.guard==='格挡').length/mh.length).toFixed(1):0,breaks:BS.breaks,counters:BS.counters,guardT:+(BS.guardT||0).toFixed(1),staggerT:+(BS.staggerT||0).toFixed(1),lines:BS.lines,perMin:R.ttk?+(BS.blocks/R.ttk*60).toFixed(1):null},pats:Object.entries(R.pats.reduce((m,q)=>(m[q.pat]=(m[q.pat]||0)+1,m),{})).map(a=>a.join('×')).join(' ')}});
  await pg.close();return {stage,hero,blk,...r,errs:errs.slice(0,3)}}
 (async()=>{const b=await chromium.launch({executablePath:'/usr/bin/google-chrome'});
- const st=(process.env.STAGES||'1,2,3,4,5').split(',').map(Number),hs=(process.env.HERO||'normal,fresh').split(',');
+ const st=(process.env.STAGES||'1,2,3,4,5').split(',').map(Number),hs=(process.env.HERO||'normal,fresh,review').split(',');
  const REPS=+process.env.REPS||2;const BL=(process.env.BLOCK||'1').split(',').map(Number);const jobs=[];for(const bl of BL)for(const h of hs)for(const s of st)for(let k=0;k<REPS;k++)jobs.push([s,h,bl]);const out=[];
  const N=+process.env.PAR||5;for(let i=0;i<jobs.length;i+=N)out.push(...await Promise.all(jobs.slice(i,i+N).map(([s,h,bl])=>fight(b,s,h,bl))));
  for(const r of out){const exp=97+12*(r.stage-1);r.hitsNoGear=r.avgRaw?+(exp/r.avgRaw).toFixed(1):null;

@@ -6,7 +6,7 @@ async function toBoss(pg,s,hp){await pg.evaluate(([s,hp])=>{__dbg.start(s);const
 (async()=>{const b=await chromium.launch({executablePath:'/usr/bin/google-chrome'});const pg=await b.newPage({viewport:{width:960,height:540}});const errs=[];pg.on('pageerror',e=>errs.push(e.message));pg.on('console',m=>{if(m.type()==='error')errs.push(m.text())});
  await pg.goto(URL);await pg.waitForTimeout(800);
  const cu=await pg.evaluate(()=>{__dbg.resetSave();__dbg.unlockAll();const r=[];for(let s=1;s<=5;s++){__dbg.start(s);r.push(+bossCatchUp().toFixed(2))}PROFILE.cleared=STAGES.slice(0,4).map(x=>x.id);__dbg.start(5);r.push(bossCatchUp());return r});
- ok(JSON.stringify(cu)==='[1,1.77,2.37,2.5,2.5,1]','追赶系数（新存档直接打 1–5 关）上限 2.5：'+JSON.stringify(cu.slice(0,5))+'，按进度通关后 = '+cu[5]);
+ ok(JSON.stringify(cu)==='[1,1.99,2.81,3.72,4.47,1]','追赶系数（新存档直接打 1–5 关，第 13 轮上限按落后关数最高 4.5）：'+JSON.stringify(cu.slice(0,5))+'，按进度通关后 = '+cu[5]);
  const ph=await pg.evaluate(()=>['goblin_chief','great_yeti','flame_king','goblin_king','vampire_count'].map(k=>BOSSES[k].phases[1].at));ok(ph.every(a=>a===.5),'5 个首领都在 50% 血量进入二阶段 '+JSON.stringify(ph));
  for(let s=1;s<=5;s++){await pg.evaluate(()=>{__dbg.resetSave();__dbg.unlockAll()});await toBoss(pg,s);
   await pg.evaluate(()=>{const e=__G().boss;e.pat=null;e.hp=e.maxhp*.49});await pg.waitForTimeout(250);
