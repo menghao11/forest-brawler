@@ -42,7 +42,11 @@ const SFX={
  explode:()=>{noise(.5,.5,1200,'lowpass',0,100);tone(90,.4,'sawtooth',.3,30)},
  roar:()=>{tone(110,.8,'sawtooth',.3,55);noise(.7,.3,400,'bandpass',0,150)},
  erupt:()=>{noise(.6,.45,200,'lowpass',0,1500);tone(60,.5,'square',.2,40)},
- block:()=>{tone(1800,.08,'square',.12,900);noise(.05,.2,5000,'highpass')}};
+ block:()=>{tone(1800,.08,'square',.12,900);noise(.05,.2,5000,'highpass')},
+ // 首领格挡：金属「锵」——几个不成谐波的正弦泛音 + 高通噪声瞬态
+ clang:()=>{[[1240,.45,.16],[1873,.35,.1],[2710,.28,.07],[3480,.2,.05]].forEach(([f,d,v])=>tone(f,d,'sine',v,f*.985));tone(620,.12,'triangle',.12,560);noise(.04,.35,6000,'highpass')},
+ guardup:()=>{tone(520,.1,'triangle',.14,880);noise(.08,.15,3000,'bandpass',0,6000)},
+ guardbreak:()=>{noise(.3,.45,2500,'lowpass',0,300);tone(900,.25,'sawtooth',.15,140);[1500,2200].forEach(f=>tone(f,.18,'sine',.06,f*.7))}};
 function sfx(n){if(AU.ctx&&SFX[n])try{SFX[n]()}catch(e){}}
 function startMusic(){const bass=[110,110,131,98],mel=[220,262,247,196,220,330,294,247];const beat=.42;
  AU.musTimer=setInterval(()=>{const c=AU.ctx;if(!c||c.state!=='running')return;const s=AU.step++;
