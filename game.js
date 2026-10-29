@@ -9,7 +9,7 @@ addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 const hit=k=>{if(pressed[k]){pressed[k]=false;return true}return false};
 const rnd=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),pick=a=>a[Math.floor(Math.random()*a.length)];
 // ---------- 资源 ----------
-const ASSET_V='20261028h';const IMG={};function loadImg(k,src){const i=new Image();i.src=src+(/^assets\/[a-z_]+_atlas\.png$/.test(src)?'?v='+ASSET_V:'');IMG[k]=i;return i}
+const ASSET_V='20261028i';const IMG={};function loadImg(k,src){const i=new Image();i.src=src+(/^assets\/[a-z_]+_atlas\.png$/.test(src)?'?v='+ASSET_V:'');IMG[k]=i;return i}
 loadImg('hero',HERO_ATLAS.image);loadImg('gob',GOBLIN_ATLAS.image);loadImg('big',BIGGOBLIN_ATLAS.image);loadImg('bat',BAT_ATLAS.image);loadImg('vamp',VAMPIRE_ATLAS.image);loadImg('fx',FX_ATLAS.image);loadImg('snow',SNOWMAN_ATLAS.image);loadImg('snowboss',SNOWBOSS_ATLAS.image);if(window.PROPS_ATLAS)loadImg('props',PROPS_ATLAS.image);if(window.WITCH_ATLAS)loadImg('witch',WITCH_ATLAS.image);
 STAGES.forEach(s=>{if(s.far)loadImg('far'+s.id,s.far)});
 const ready=k=>IMG[k]&&IMG[k].complete&&IMG[k].naturalWidth>0;
@@ -42,24 +42,24 @@ const EN={
 };
 // ---------- 首领 ----------
 const BOSSES={
- goblin_chief:{name:'哥布林酋长',shape:'big',hp:900,dmg:16,sp:55,exp:150,r:1.9,sc:1.12,col:'#4f8a3a',
-  phases:[{at:1,pats:['combo','charge'],cd:1.9},{at:.5,pats:['combo','smash','summon'],summon:'goblin',cd:1.5,msg:'酋长怒吼，召唤援军！'}]},
- great_yeti:{name:'大雪人',shape:'snowboss',hp:2300,dmg:18,sp:60,exp:260,r:2.3,col:'#f2f7ff',face:'#3a6ac8',horns:1,crystals:1,
-  phases:[{at:1,pats:['hammer','snowballs','slam','iceSummon','frostwave'],cd:1.6},{at:.6,pats:['snowballs','summon','hammer','iceSummon','slam','frostwave'],summon:'yeti_pup',cd:1.35,msg:'大雪人举锤怒吼，小雪人蜂拥而来！'},{at:.25,pats:['blizzard','hammer','slam','iceSummon','frostwave','roll'],cd:1.05,enrage:1,msg:'暴风雪降临！冰石如雨！'}]},
- flame_king:{name:'焰魔王·赤烎',shape:'warrior',hp:2400,dmg:22,sp:60,exp:400,r:2.4,col:'#7a0a08',horn:'#1a0a08',weapon:'#ff6a10',flame:1,king:1,
-  phases:[{at:1,pats:['sweep','fireWave','sweep'],cd:1.6},{at:.6,pats:['geysers','summon','sweep','fireWave'],summon:'lava_imp',cd:1.35,msg:'赤烎召唤熔岩喷泉！'},
+ goblin_chief:{name:'哥布林酋长',shape:'big',hp:1620,dmg:8.5,sp:55,exp:150,r:1.9,sc:1.12,col:'#4f8a3a',
+  phases:[{at:1,pats:['combo','charge','combo','smash'],cd:1.9},{at:.5,pats:['combo','smash','summon'],summon:'goblin',cd:1.5,msg:'酋长怒吼，召唤援军！'}]},
+ great_yeti:{name:'大雪人',shape:'snowboss',hp:4600,dmg:14.7,sp:60,exp:260,r:2.3,col:'#f2f7ff',face:'#3a6ac8',horns:1,crystals:1,
+  phases:[{at:1,pats:['hammer','snowballs','slam','snowballs','iceSummon','frostwave'],cd:1.6},{at:.5,pats:['snowballs','summon','hammer','snowballs','iceSummon','slam','frostwave'],summon:'yeti_pup',cd:1.35,msg:'大雪人举锤怒吼，小雪人蜂拥而来！'},{at:.25,pats:['blizzard','hammer','slam','iceSummon','frostwave','roll'],cd:1.05,enrage:1,msg:'暴风雪降临！冰石如雨！'}]},
+ flame_king:{name:'焰魔王·赤烎',shape:'warrior',hp:7700,dmg:17.4,sp:60,exp:400,r:2.4,col:'#7a0a08',horn:'#1a0a08',weapon:'#ff6a10',flame:1,king:1,
+  phases:[{at:1,pats:['sweep','fireWave','sweep'],cd:1.6},{at:.5,pats:['geysers','fireWave','sweep','summon','fireWave','sweep'],summon:'lava_imp',cd:1.35,msg:'赤烎召唤熔岩喷泉！'},
    {at:.25,pats:['meteors','fireWave','sweep','geysers'],cd:1.0,enrage:1,shrink:1,msg:'火山爆发！熔岩吞噬战场边缘！'}],
   drop:{gear:'w_flame',exp:300,msg:'掉落【烈炎剑】！火系秘典：经验 +300'}},
- goblin_king:{name:'哥布林大王',shape:'big',hp:3200,dmg:26,sp:58,exp:550,r:2.3,sc:1.45,col:'#4f6a2a',
-  phases:[{at:1,pats:['combo','smash','combo'],cd:1.5},{at:.6,pats:['leap','banner','combo','smash'],summon:'goblin_spear',cd:1.3,msg:'大王插下战旗，哥布林士气大振！'},
+ goblin_king:{name:'哥布林大王',shape:'big',hp:12800,dmg:16,sp:58,exp:550,r:2.3,sc:1.45,col:'#4f6a2a',
+  phases:[{at:1,pats:['combo','smash','combo'],cd:1.5},{at:.5,pats:['leap','banner','combo','volley','smash','combo'],summon:'goblin_spear',cd:1.3,msg:'大王插下战旗，哥布林士气大振！'},
    {at:.25,pats:['volley','leap','smash','combo'],cd:.95,enrage:1,msg:'大王暴怒！树林中箭雨齐发！'}],
   drop:{gear:'a_king',exp:250,msg:'大王的战利品【大王战甲】：经验 +250'}},
  goblin_king_shade:{name:'哥布林大王·残影',shape:'big',hp:2200,dmg:26,sp:62,exp:400,r:2.1,sc:1.3,col:'#4f6a2a',mini:1,tint:'rgba(140,0,40,.35)',
   phases:[{at:1,pats:['combo','smash','leap'],cd:1.4},{at:.5,pats:['leap','volley','smash'],cd:1.1,enrage:1,msg:'残影狂暴！'}]},
- vampire_count:{name:'吸血伯爵',shape:'vamp',hp:5200,dmg:30,sp:85,exp:1000,r:1.8,sc:1.0,col:'#7a0a14',resist:{thunder:1.3,fire:1.3},
+ vampire_count:{name:'吸血伯爵',shape:'vamp',hp:12000,dmg:23,sp:85,exp:1000,r:1.8,sc:1.0,col:'#7a0a14',resist:{thunder:1.3,fire:1.3},
   drop:{gear:'r_blood'},
   phases:[{at:1,pats:['rapier','lunge','batTeleport','rapier'],cd:1.3},
-   {at:.6,pats:['bloodPillars','bloodOrbs','rapier','lunge'],cd:1.15,lifesteal:1,msg:'伯爵释放血魔法！命中会吸血回复！'},
+   {at:.5,pats:['bloodPillars','bloodOrbs','rapier','lunge','bloodOrbs','rapier'],cd:1.15,lifesteal:1,msg:'伯爵释放血魔法！命中会吸血回复！'},
    {at:.25,pats:['batSwarm','bloodBurst','bloodPillars','lunge','batTeleport'],cd:.9,lifesteal:1,enrage:1,bloodmoon:1,msg:'血月升起！'}]},
 };
 // ---------- 魔法树 ----------
@@ -182,9 +182,9 @@ function resistOf(e,elem){const r=(e.def.resist)||(G.S.resist)||{};const v=elem&
 // 首领追赶系数（第 7 轮）：只看「关卡进度」，与当前攻击力无关——
 // 跳关（本关之前有未通关的关卡）时，按「本关预期基础攻击 / 最后通关处的预期基础攻击」放大近战对首领的伤害（最多 ×5）；
 // 正常顺序通关或重玩已通关卡 = ×1。系数乘在总攻击上，所以装备攻击、Boss伤害% 都按比例清楚地叠加；法术不吃这个系数。
-const BOSS_EXP_ATK=[10,26,42,62,80];
+const BOSS_EXP_ATK=[10,26,42,62,80],CATCHUP_MAX=2.5,BOSS_CD=.65,BOSS_P2_SPD=1.15;
 function bossCatchUp(){const i=G.idx|0;let k=0;for(let j=0;j<i;j++)if(PROFILE.cleared.includes(STAGES[j].id))k=j+1;
- if(k>=i)return 1;return Math.min(5,Math.pow(BOSS_EXP_ATK[i]/BOSS_EXP_ATK[k],.85))}
+ if(k>=i)return 1;return Math.min(CATCHUP_MAX,Math.pow(BOSS_EXP_ATK[i]/BOSS_EXP_ATK[k],.6))}
 const NOST={atk:0,hp:0,def:0,crit:0,boss:0,spell:0,mp:0,regen:0};
 function damage(e,d,kb,fromX,elem,opts={}){if(e.dead||e.inv>0||e.hidden)return 0;
  const st=G.p.st||NOST;let m=resistOf(e,elem);const LM={res:m,other:1};
@@ -226,7 +226,7 @@ const COIN_V=[1,2,4,6,7],CLEAR_GOLD=[200,300,400,500,600];
 let DBG_GOD=false,DBG_ATK=1,DSRC='';const DLOG=[],DLOG_MAX=200,GOLDLOG=[];// 伤害日志（环形缓冲，最近 200 条）/ 每关金币
 function dlogPush(r){DLOG.push(r);if(DLOG.length>DLOG_MAX)DLOG.splice(0,DLOG.length-DLOG_MAX)}
 const HZ_NAME={puddle:'爆炸残火',spike:'冰刺',shock:'冲击波',burst:'爆炸',crack:'地裂',bolt:'落雷',icicle:'落冰锥',meteor:'陨石',mark:'标记',snowball:'雪球'};
-function hitSrcName(s){if(!s)return '未知';if(s.def)return (s.def.name||s.type||'敌人')+(s.boss?'（首领）':'');if(s.own&&s.own.def)return (s.own.def.name||'敌人')+' · '+(s.k||'投射物');if(s.k&&(s.warn!=null||s.act!=null||s.rx!=null||s.cyc))return (s.cyc||s.stage?'地形 · ':'危害 · ')+(HZ_NAME[s.k]||s.k);if(s.k)return '投射物 · '+s.k;return String(s.name||'未知')}
+function hitSrcName(s){if(!s)return '未知';if(s.def)return (s.def.name||s.type||'敌人')+(s.boss?'（首领）':'');if(s.own&&s.own.def)return (s.own.def.name||'敌人')+' · '+(HZ_NAME[s.k]||s.k||'投射物');if(s.k&&(s.warn!=null||s.act!=null||s.rx!=null||s.cyc))return (s.cyc||s.stage?'地形 · ':'危害 · ')+(HZ_NAME[s.k]||s.k);if(s.k)return '投射物 · '+s.k;return String(s.name||'未知')}
 // 调试：无敌 / 伤害倍率（整页有效，跨关卡保留）
 function hurtPlayer(d,src){const p=G.p;if(!(d>0))return 0;const raw=d,blk=DBG_GOD?'无敌':p.inv>0?'无敌帧':p.dead?'已倒地':G.clearT>0?'过关':'';
  if(blk){dlogPush({t:+(G.time||0).toFixed(2),stage:G.S?G.S.id:0,src:hitSrcName(src),target:'玩家（'+blk+'）',isBoss:false,raw:+raw.toFixed(2),def:def(),final:0});return 0}
@@ -399,28 +399,32 @@ function updateEnemy(e,dt){const p=G.p,d=e.def;
 function lobSnow(e,tx,ty,dmg,rx=46,sc=1,fl=1.05){const b=laneAt(tx);G.hz.push({k:'snowball',x:clamp(tx,G.camX+20,G.camX+W-20),y:clamp(ty,b[0],b[1]),ox:e.x+e.face*20*e.r,oy:e.y,oz:(e.boss?150:70)*e.r/ (e.boss?2.3:1),rx,ry:rx*.4,t:0,warn:fl,act:.15,dmg,once:1,sc})}
 // ---------- 首领AI ----------
 function curPhase(e){return e.def.phases[e.phase]}
-function updateBoss(e,dt,sl){const p=G.p,d=e.def;const ph=curPhase(e);
- const nx=d.phases[e.phase+1];if(nx&&e.hp/e.maxhp<nx.at&&!e.pat){e.phase++;e.inv=1.2;G.shake=14;sfx('roar');msg(nx.msg||'首领进入新阶段！','#ff6060');
+// 首领生成的危害 / 投射物记上 own，伤害日志里归到首领名下
+function updateBoss(e,dt,sl){const h0=G.hz.length,q0=G.ep.length;updateBoss0(e,dt,sl);for(let i=h0;i<G.hz.length;i++)if(!G.hz[i].own)G.hz[i].own=e;for(let i=q0;i<G.ep.length;i++)if(!G.ep[i].own)G.ep[i].own=e}
+function updateBoss0(e,dt,sl){const p=G.p,d=e.def;const ph=curPhase(e);
+ const nx=d.phases[e.phase+1];if(nx&&e.hp/e.maxhp<nx.at&&!e.pat){e.phase++;e.inv=1.2;e.chain=0;e.cd=.9;G.shake=18;sfx('roar');msg(nx.msg||'首领进入新阶段！','#ff6060');G.bossCue={t:0,dur:1.8,ph:e.phase,name:d.name,x:e.x,y:e.y};G.flash=Math.max(G.flash,.35);particles(e.x,e.y-60,30,'#ff3030',30,320);
   if(nx.shrink){G.shrinkT=36}if(nx.bloodmoon)G.bloodmoon=1;return}
- const en=ph.enrage?1.3:1;const dx=p.x-e.x,dy=p.y-e.y,ad=Math.abs(dx);
- if(!e.pat){if(!e.hidden)e.face=dx>0?1:-1;e.cd-=dt*en;
-  const reach=60+30*e.r;
-  if(ad>reach-10||Math.abs(dy)>14){e.x+=Math.sign(dx)*e.sp*sl*en*dt*(ad>reach-10?1:0);e.y+=clamp(dy,-1,1)*e.sp*.6*sl*dt;e.moving=1}else e.moving=0;
+ const en=ph.enrage?1.3:e.phase>=1?BOSS_P2_SPD:1,mv=e.phase>=1?1.25:1.1;const dx=p.x-e.x,dy=p.y-e.y,ad=Math.abs(dx);
+ if(!e.pat){if(!e.hidden)e.face=dx>0?1:-1;const reach=60+30*e.r,inR=ad<reach+40&&Math.abs(dy)<40;e.cd-=dt*en*(inR?2:1);if(inR)e.cd=Math.min(e.cd,.7);// 玩家在身边时不发呆
+  if(ad>reach-10||Math.abs(dy)>14){e.x+=Math.sign(dx)*e.sp*sl*en*mv*dt*(ad>reach-10?1:0);e.y+=clamp(dy,-1,1)*e.sp*.6*sl*dt;e.moving=1}else e.moving=0;
   if(e.cd<=0){e.patI=(e.patI||0)+1;let pt=ph.pats[(e.patI+Math.floor(rnd(0,2)))%ph.pats.length];
    if(['combo','sweep','rapier','smash','hammer'].includes(pt)&&ad>220)pt=ph.pats.find(q=>!['combo','sweep','rapier','smash','hammer'].includes(q))||pt;
-   e.pat=pt;e.patT=0;e.step=0}
+   e.pat=pt;e.patT=0;e.step=0;e.patAt=G.time}
   const b=laneAt(e.x);e.y=clamp(e.y,b[0],b[1]);return}
- e.patT+=dt*en;const T=e.patT;const done=()=>{e.pat=null;e.cd=ph.cd*rnd(.8,1.2)};const reach=70+30*e.r;
+ e.patT+=dt*en;const T=e.patT;const done=()=>{e.pat=null;e.chain=(e.chain||0)+1;
+  // 连招：一招结束后有几率立刻接下一招（一阶段最多 2 连，二阶段起最多 3 连），每招仍有完整前摇
+  if(e.chain<(e.phase>=1?3:2)&&Math.random()<(e.phase>=1?.8:.55))e.cd=rnd(.25,.4);else{e.chain=0;e.cd=ph.cd*BOSS_CD*rnd(.8,1.2)}};const reach=70+30*e.r;
+ if(['combo','sweep','rapier','smash','hammer'].includes(e.pat)&&T<.45&&ad>reach-20){e.x+=Math.sign(dx)*e.sp*1.8*dt;e.face=dx>0?1:-1}// 近战前摇时逼近
  switch(e.pat){
-  case 'combo':case 'sweep':case 'rapier':{const n=e.pat==='sweep'?1:e.pat==='rapier'?3:2;const per=e.pat==='rapier'?.38:.55;
+  case 'combo':case 'sweep':case 'rapier':{const P2=e.phase>=1?1:0;const n=e.pat==='sweep'?1+P2:e.pat==='rapier'?3+P2:2+P2;const per=e.pat==='rapier'?.72:e.pat==='sweep'?.8:.75;// 连击间隔 ≥0.72 秒（玩家受击无敌 0.7 秒），每一下都能命中也都能躲
    if(T>.5+e.step*per&&e.step<n){e.step++;e.x+=e.face*(e.pat==='rapier'?30:15);sfx('swing');strike(e,reach+(e.pat==='sweep'?50:20),e.pat==='sweep'?1.3:1,e.pat==='sweep'?60:38);
     if(e.pat==='sweep'&&d.flame)particles(e.x+e.face*80,e.y,30,'#ff7a1a',20)}
-   if(T>.6+n*per)done();break}
+   if(T>.45+n*per)done();break}
   case 'smash':if(T>.9&&!e.step){e.step=1;G.shake=12;sfx('erupt');const hx=e.x+e.face*80;G.hz.push({k:'shock',x:hx,y:e.y,r0:20,r1:200,t:0,act:.6,dmg:e.dmg*1.2});if(Math.hypot(p.x-hx,(p.y-e.y)*1.6)<110&&p.z<20)hurtPlayer(e.dmg*1.5,e)}
    if(T>1.5)done();break;
   case 'charge':case 'lunge':if(T<.5){e.face=dx>0?1:-1}else if(T<1.15){e.x+=e.face*(e.pat==='lunge'?720:600)*dt;if(!e.step&&strike(e,70,1.2,36))e.step=1;particles(e.x,e.y,10,'#888',1)}else done();
    if(e.x<G.camX+30||e.x>G.camX+W-30){e.x=clamp(e.x,G.camX+30,G.camX+W-30)}break;
-  case 'fireWave':if(T>.6&&!e.step){e.step=1;G.ep.push({k:'firewave',own:e,x:e.x+e.face*60,y:e.y,z:10,vx:e.face*330,vy:0,dmg:e.dmg,life:3,ground:1});sfx('fire')}if(T>1.2)done();break;
+  case 'fireWave':if(T>.6&&e.step<(e.phase>=1?2:1)&&T>.6+e.step*.55){e.step++;G.ep.push({k:'firewave',own:e,x:e.x+e.face*60,y:e.y,z:10,vx:e.face*330,vy:0,dmg:e.dmg,life:3,ground:1});sfx('fire')}if(T>(e.phase>=1?1.75:1.2))done();break;
   case 'geysers':case 'bloodPillars':if(!e.step){e.step=1;const b=laneAt(e.x);const rows=[b[0]+20,(b[0]+b[1])/2,b[1]-20];const safe=Math.floor(rnd(0,3));
     rows.forEach((y,ri)=>{if(ri===safe)return;for(let x=G.camX+70;x<G.camX+W;x+=130)G.hz.push({k:e.pat==='geysers'?'geyser':'bloodpillar',x:x+rnd(-15,15),y,rx:50,ry:20,t:0,warn:1+ri*.15,act:.7,dmg:e.dmg*1.1,once:1})});sfx('erupt')}
    if(T>1.6)done();break;
@@ -440,12 +444,12 @@ function updateBoss(e,dt,sl){const p=G.p,d=e.def;const ph=curPhase(e);
   case 'batTeleport':if(!e.step){e.step=1;e.hidden=1;particles(e.x,e.y,60,'#300010',30,260);sfx('witch')}
    if(e.step===1&&T>.8){e.step=2;e.hidden=0;e.x=clamp(p.x-p.face*110,G.camX+40,G.camX+W-40);e.y=p.y;e.face=p.x>e.x?1:-1;particles(e.x,e.y,60,'#600018',30,260)}
    if(e.step===2&&T>1.15){e.step=3;sfx('swing');strike(e,reach+20,1.1,40)}if(T>1.5)done();break;
-  case 'bloodOrbs':if(T>.5&&e.step<3&&T>.5+e.step*.3){e.step++;const a0=Math.atan2(p.y-e.y,p.x-e.x);for(let i=-2;i<=2;i++){const a=a0+i*.22;G.ep.push({k:'bloodorb',x:e.x+e.face*30,y:e.y,z:60,vx:Math.cos(a)*260,vy:Math.sin(a)*130,dmg:e.dmg*.6,life:3,own:e})}sfx('fire')}
-   if(T>1.6)done();break;
+  case 'bloodOrbs':if(T>.5&&e.step<(e.phase>=1?4:3)&&T>.5+e.step*.3){e.step++;const a0=Math.atan2(p.y-e.y,p.x-e.x);for(let i=-2;i<=2;i++){const a=a0+i*.22;G.ep.push({k:'bloodorb',x:e.x+e.face*30,y:e.y,z:60,vx:Math.cos(a)*260,vy:Math.sin(a)*130,dmg:e.dmg*.6,life:3,own:e})}sfx('fire')}
+   if(T>(e.phase>=1?1.9:1.6))done();break;
   case 'bloodBurst':if(!e.step){e.step=1;G.hz.push({k:'burst',x:e.x,y:e.y,rx:280,ry:110,t:0,warn:1.7,act:.4,dmg:e.dmg*1.8,once:1,noz:1});msg('血爆！远离伯爵！','#ff3040')}if(T>2.3)done();break;
   case 'hammer':if(T<.6){e.face=dx>0?1:-1;if(ad>reach)e.x+=e.face*e.sp*1.2*dt}else if(!e.step){e.step=1;sfx('swing');G.shake=10;strike(e,reach+60,1.4,60);const hx=e.x+e.face*90;particles(hx,e.y,18,'#dff4ff',18,200);G.hz.push({k:'shock',x:hx,y:e.y,r0:10,r1:120,t:0,act:.35,dmg:0,ice:1,sb:e.def.shape==='snowboss'?1:0})}if(T>1.15)done();break;
-  case 'snowballs':case 'blizzard':{const n=e.pat==='blizzard'?10:(e.def.shape==='snowboss'?2:3);const per=e.pat==='blizzard'?.14:.6;
-   if(T>.55+e.step*per&&e.step<n){e.step++;sfx('swing');const near=e.pat==='snowballs'&&e.step===1;const ice=e.pat==='snowballs'||e.step%3===0;const giant=e.pat==='snowballs'&&e.def.shape==='snowboss';lobSnow(e,p.x+(near?0:rnd(-220,220)),p.y+rnd(-40,40),e.dmg*(giant?1.3:ice?1.1:.8),giant?90:ice?70:48,giant?2.6:ice?2:1.2,(giant?1.25:1.0)+rnd(0,.35));if(giant)G.hz[G.hz.length-1].giant=1;else if(ice)G.hz[G.hz.length-1].ice=1}
+  case 'snowballs':case 'blizzard':{const n=e.pat==='blizzard'?10:(e.def.shape==='snowboss'?(e.phase>=1?3:2):3);const per=e.pat==='blizzard'?.14:.6;
+   if(T>.55+e.step*per&&e.step<n){e.step++;sfx('swing');const near=e.pat==='snowballs'&&(e.step===1||e.phase>=1&&e.step===3);const ice=e.pat==='snowballs'||e.step%3===0;const giant=e.pat==='snowballs'&&e.def.shape==='snowboss';lobSnow(e,p.x+(near?0:rnd(-220,220)),p.y+rnd(-40,40),e.dmg*(giant?1.3:ice?1.1:.8),giant?90:ice?70:48,giant?2.6:ice?2:1.2,(giant?1.25:1.0)+rnd(0,.35));if(giant)G.hz[G.hz.length-1].giant=1;else if(ice)G.hz[G.hz.length-1].ice=1}
    if(T>.9+n*per)done();break}
   case 'slam':if(T>.95&&!e.step){e.step=1;G.shake=16;sfx('erupt');G.hz.push({k:'shock',x:e.x+e.face*60,y:e.y,r0:20,r1:150,t:0,act:.5,dmg:0,ice:1});for(let i=0;i<9;i++)G.hz.push({k:'spike',sb:1,x:e.x+e.face*(110+i*62),y:e.y+rnd(-8,8),rx:30,ry:13,t:0,warn:.08+i*.07,act:.45,dmg:e.dmg*.9,once:1,v:i%2});
     if(Math.hypot(p.x-e.x-e.face*40,(p.y-e.y)*1.6)<110&&p.z<20)hurtPlayer(e.dmg*1.5,e);particles(e.x+e.face*40,e.y,10,'#ffffff',30,240)}
@@ -698,7 +702,11 @@ function bossPose(e){const P=e.pat,T=e.patT||0,o={fr:'idle',dx:0,dy:0,qx:1,qy:1,
  else if(e.moving){const i=Math.floor(e.at*5)%4;o.fr=['walk_0','walk_1','walk_2','walk_1'][i];const w=Math.sin(e.at*5*Math.PI/2);o.dy=-Math.abs(w)*4;o.rot=.02*w}
  else{o.fr='idle';o.qy=1+.025*br;o.qx=1-.012*br}
  if(e.hurtT>0){o.rot-=.05;o.dx-=e.face*4}
- if(curPhase(e)&&curPhase(e).enrage&&!o.glow)o.glow=.08+.05*Math.sin(G.t*6);return o}
+ if(e.boss&&e.phase>=1&&!o.glow)o.glow=(curPhase(e).enrage?.08:.05)+.05*Math.sin(G.t*6);return o}
+// 首领转阶段提示：红色闪屏 + 大字吼叫
+function drawBossCue(){const c=G.bossCue;if(!c)return;c.t+=1/60*(SPEED||1);if(c.t>c.dur){G.bossCue=null;return}const k=c.t/c.dur,a=k<.15?k/.15:Math.max(0,1-(k-.6)/.4);
+ ctx.save();ctx.fillStyle=`rgba(200,0,20,${.28*a*(.6+.4*Math.sin(c.t*24))})`;ctx.fillRect(0,0,W,H);ctx.globalAlpha=a;const s=1+.25*Math.max(0,.2-k)/.2;
+ ctx.translate(W/2,250);ctx.scale(s,s);txt('吼——！',0,-28,48,'#ff4040','center');txt(c.name+(c.ph>=2?' 彻底暴怒！':' 进入狂暴阶段！'),0,18,24,'#ffd0d0','center');txt('攻击更快、更凶',0,48,15,'#ffb0b0','center');ctx.restore()}
 function drawEnemy(e,sx){const d=e.def,sh=d.shape;const y=e.y-e.z;if(e.hidden){return}
  const alpha=e.dead?clamp((sh==='snowboss'?2.4:1.2)-e.deadT,0,1):1;ctx.save();ctx.globalAlpha=alpha;
  shadow(sx,e.y,22*e.r*(d.fly?.7:1),d.fly?.25:.35);
@@ -1000,7 +1008,7 @@ function drawPlay(){ctx.save();if(G.shake>0)ctx.translate(rnd(-G.shake,G.shake),
  const hs=G.B.segs.filter(s=>s.type==='hall');let cov=0;for(const s of hs)cov+=Math.max(0,Math.min(s.x1,cx+W)-Math.max(s.x0,cx));if(cov>0&&G.S.hall){ctx.globalAlpha=cov/W;ctx.fillStyle=G.S.hall.tint;ctx.fillRect(0,0,W,H);ctx.globalAlpha=1}
  if(G.bloodmoon){ctx.fillStyle='rgba(120,0,10,.18)';ctx.fillRect(0,0,W,H)}
  if(G.flash>0){ctx.fillStyle=`rgba(255,255,255,${G.flash})`;ctx.fillRect(0,0,W,H)}
- ctx.restore();drawDanger();drawHUD();if(G.menu)drawWitchMenu();else if(gearOpen())drawGearPrompt();
+ ctx.restore();drawBossCue();drawDanger();drawHUD();if(G.menu)drawWitchMenu();else if(gearOpen())drawGearPrompt();
  if(G.clearT>0)txt(G.S.final?'吸血伯爵已被击败！':'关卡完成！',W/2,200,40,'#ffd34a','center')}
 // 受击红闪 + 低血量（<25%）脉动红色暗角
 function drawDanger(){const p=G.p;

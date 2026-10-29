@@ -35,8 +35,8 @@ const fails=[];const ok=(c,m)=>{if(!c){console.log('FAIL',m);fails.push(m)}else 
  r=await ev(()=>{const G=__G(),p=G.p;__dbg.dmgLog('clear');const e=G.enemies.find(x=>x.boss);meleeHit(400,1,0,{src:'普攻 第2段'});damage(e,10,0,e.x+50,'fire',{src:'火球术 Lv1'});
   for(const x of G.enemies)if(!x.boss)x.dead=0;chainBolt(p.x,p.y,3,10,.1);p.inv=0;hurtPlayer(12,G.enemies.find(x=>!x.boss&&x.def));p.inv=0;hurtPlayer(9,{k:'crack',rx:50,cyc:{}});p.hp=p.maxhp;return __dbg.dmgLog(50)});
  const bm=r.find(x=>x.src==='普攻 第2段'&&x.isBoss),bs=r.find(x=>x.src==='火球术 Lv1'&&x.isBoss),ch=r.filter(x=>/连锁弹跳/.test(x.src)),ph=r.filter(x=>x.target==='玩家');
- ok(bm&&Math.abs(bm.catchUp-2.25)<.01&&bm.bossPct===1.3&&bm.spellBoss===1,'日志：首领近战记录追赶 ×2.25、Boss% ×1.3 '+JSON.stringify(bm));
- ok(bs&&Math.abs(bs.catchUp-2.25)<.01&&bs.spellBoss===.75&&bs.resist===STAGE2_FIRE(bs),'日志：法术打首领记录 ×0.75、同样的追赶系数、抗性 '+JSON.stringify(bs));
+ ok(bm&&Math.abs(bm.catchUp-1.77)<.01&&bm.bossPct===1.3&&bm.spellBoss===1,'日志：首领近战记录追赶 ×1.77、Boss% ×1.3 '+JSON.stringify(bm));
+ ok(bs&&Math.abs(bs.catchUp-1.77)<.01&&bs.spellBoss===.75&&bs.resist===STAGE2_FIRE(bs),'日志：法术打首领记录 ×0.75、同样的追赶系数、抗性 '+JSON.stringify(bs));
  ok(ch.length>=2,'日志：连锁弹跳逐跳记录 '+ch.map(x=>x.src).join(' / '));
  ok(ph.length===2&&ph.some(x=>!/^地形/.test(x.src))&&ph.some(x=>x.src==='地形 · 地裂'),'日志：玩家受击记录敌人名 / 地形 '+JSON.stringify(ph.map(x=>[x.src,x.raw,x.final])));
  const bad=r.filter(x=>x.target!=='玩家').filter(x=>Math.abs(x.raw*x.atkDbg*x.catchUp*x.bossPct*x.spellBoss*x.spellPct*x.resist*x.crit*x.other-x.final)>.02*Math.max(1,x.final));

@@ -25,7 +25,7 @@ const ok=(c,m)=>{if(!c){console.log('FAIL',m);fails.push(m)}else console.log('ok
  let r=await ev(()=>{const p=__G().p;return {atk:atk(),def:def(),maxhp:p.maxhp,mpMax:p.mpMax,crit:p.st.crit,spell:p.st.spell}});
  ok(r.atk===22&&r.def===1&&r.maxhp===117&&r.mpMax===190,'关内装备属性 '+JSON.stringify(r));
  r=await ev(()=>{const G=__G();G.idx=2;const a=bossCatchUp();G.p.eq={};applyGear(G.p);const b=bossCatchUp();G.idx=0;return {withGear:+(a*(10+12)).toFixed(1),noGear:+(b*10).toFixed(1)}});
- ok(r.withGear>r.noGear&&r.noGear>=30,'首领追赶（按关卡进度）：有装备对首领有效攻击更高 '+JSON.stringify(r));
+ ok(r.withGear>r.noGear&&r.noGear>=20,'首领追赶（按关卡进度）：有装备对首领有效攻击更高 '+JSON.stringify(r));
  await ev(()=>{const p=__G().p;p.eq={weapon:'w2',armor:'a1',acc:'r3'};applyGear(p)});
  // 4. 女巫：学习、升级、商店页、施法帧
  await ev(()=>{const G=__G();G.enemies=[];G.lockX=null;G.wave=3;G.p.exp=1000;const w=G.B.witches[0];G.p.x=w.x-40;G.p.y=w.y+10;G.camX=w.x-400});await W(300);
