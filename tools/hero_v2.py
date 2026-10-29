@@ -108,7 +108,7 @@ por=im0.crop((px,py,px+P,py+P)).resize((128,128),Image.LANCZOS)
 bgc=Image.new('RGBA',(128,128),(30,40,46,255));bgc.alpha_composite(por);OUT['portrait']=(bgc,64,64,.78)
 # 旧帧：从现有图集取出（保留的动作），蓝色衣袍色相偏移到青绿
 J=json.load(open(f'{ROOT}/assets/hero_atlas_v1.json'));A=Image.open(f'{ROOT}/assets/hero_atlas_v1.png').convert('RGBA')
-KEEP=['turn','hslash','upslash','downslash','wavecast','dodge','block','charge','ult','down']
+KEEP=['hslash','upslash','downslash','wavecast','dodge','block','charge','ult','down']
 NEW={'jump':'jump','thrust':'thrust','spin':'whirlwind'}   # 动画名 → ref 文件前缀
 def teal(im):
   a=np.array(im);hsv=np.array(im.convert('RGB').convert('HSV')).astype(int)
@@ -132,6 +132,16 @@ for an,pre in NEW.items():
     m=NA['frames'].get(os.path.basename(f)[:-4],{});ax,ay=m.get('ax',NA['anchor_x']),m.get('ay',NA['baseline_y'])
     bb=im.getbbox();k=f'{an}_{i}';OUT[k]=(im.crop(bb),ax-bb[0],ay-bb[1],1/RES);anims[an].append(k)
 anims['idle']=[f'idle_{i}' for i in range(6)];anims['walk']=[f'walk_{i}' for i in range(8)];anims['run']=anims['walk']
+# 5) 移动帧（ref/walk_01~08、run_01~06、walk_start_01~02、walk_stop_01~02、turn_01~03，288x192，锚点 ref/move_anchors.json：ax=128 ay=185 s=.625）
+#    打包时读取 ref/ 里当前的文件（美术重绘后直接重跑本脚本）。跑步帧把 lift_px_removed 加回去（腾空），其余帧脚底都在 185 基线
+MOVE_DIR=os.environ.get('MOVE_DIR','ref');MA=json.load(open(f'{ROOT}/{MOVE_DIR}/move_anchors.json'))
+for an,pre in {'walk':'walk','run':'run','walk_start':'walk_start','walk_stop':'walk_stop','turn':'turn'}.items():
+  fs=sorted(glob.glob(f'{ROOT}/{MOVE_DIR}/{pre}_[0-9][0-9].png'));assert fs,pre;anims[an]=[]
+  for i,f in enumerate(fs):
+    im=Image.open(f).convert('RGBA');a=np.array(im);a[...,3][a[...,3]<10]=0;a[...,:3][a[...,3]==0]=0;im=Image.fromarray(a)
+    m=MA['frames'].get(os.path.basename(f)[:-4],{});ax,ay=m.get('ax',MA['anchor_x']),m.get('ay',MA['baseline_y'])
+    if an=='run':ay+=int(round(max(0,m.get('lift_px_removed',0))))
+    bb=im.getbbox();k=f'{an}_{i}';OUT[k]=(im.crop(bb),ax-bb[0],ay-bb[1],MA.get('draw_scale',1/RES));anims[an].append(k)
 for i in range(1,5):anims[f'atk{i}']=[f'attack{i}_{j}' for j in range(6)]
 anims['hurt']=[f'hit_{i}' for i in range(3)]
 W=2048;x=y=rowh=0;pos={}

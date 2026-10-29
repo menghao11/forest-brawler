@@ -9,7 +9,7 @@ addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 const hit=k=>{if(pressed[k]){pressed[k]=false;return true}return false};
 const rnd=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),pick=a=>a[Math.floor(Math.random()*a.length)];
 // ---------- 资源 ----------
-const ASSET_V='20261028j';const IMG={};function loadImg(k,src){const i=new Image();i.src=src+(/^assets\/[a-z_]+_atlas\.png$/.test(src)?'?v='+ASSET_V:'');IMG[k]=i;return i}
+const ASSET_V='20261028k';const IMG={};function loadImg(k,src){const i=new Image();i.src=src+(/^assets\/[a-z_]+_atlas\.png$/.test(src)?'?v='+ASSET_V:'');IMG[k]=i;return i}
 loadImg('hero',HERO_ATLAS.image);loadImg('gob',GOBLIN_ATLAS.image);loadImg('big',BIGGOBLIN_ATLAS.image);loadImg('bat',BAT_ATLAS.image);loadImg('vamp',VAMPIRE_ATLAS.image);loadImg('fx',FX_ATLAS.image);loadImg('snow',SNOWMAN_ATLAS.image);loadImg('snowboss',SNOWBOSS_ATLAS.image);if(window.PROPS_ATLAS)loadImg('props',PROPS_ATLAS.image);if(window.WITCH_ATLAS)loadImg('witch',WITCH_ATLAS.image);
 STAGES.forEach(s=>{if(s.far)loadImg('far'+s.id,s.far)});
 const ready=k=>IMG[k]&&IMG[k].complete&&IMG[k].naturalWidth>0;
@@ -169,9 +169,13 @@ function spawn(type,x,y,opts={}){
  const e={type,def:d,x,y,z:d.fly?70:0,vz:0,hp:d.hp*df*(d.elite?1.5:1)*(G.S.hpMul||1),maxhp:d.hp*df*(d.elite?1.5:1)*(G.S.hpMul||1),dmg:d.dmg*(1+.6*(df-1))*earlyDmgMul(),sp:d.sp*(1+.1*(df-1)),r:d.r,sc:d.sc||1,exp:Math.round(d.exp*(1+.5*(G.idx))),
   face:-1,state:'walk',t:0,at:rnd(0,1),hurtT:0,frozen:0,stun:0,slow:0,kx:0,cd:rnd(.6,1.6),dead:0,deadT:0,cool:0,hoverZ:rnd(60,90),ofs:rnd(-1,1),...opts};
  G.enemies.push(e);return e}
+// 首领登场（docs/boss_intro_lines_full.csv：标题横幅 + 最多 2 句；再次挑战同一首领只说第 1 句）
+const BOSS_INTRO={goblin_chief:{title:'森林霸主',lines:['又来个穿青衣的？','这回别想活着走！']},great_yeti:{title:'冰封巨兽',lines:['青衣……又是青衣！','滚出我的雪山！']},flame_king:{title:'熔岩之主',lines:['火山也是青衣人点的。','看看你的剑够不够烫！']},goblin_king:{title:'山谷之王',lines:['老爷有令，青衣人不许过！']},goblin_king_shade:{title:'山谷之王',lines:['本王……还没倒下！']},vampire_count:{title:'血月之主',lines:['那根青绳，是师父给的吧？','让我看看她挑中的人！']}};
+function bossIntro(e,id){const I=BOSS_INTRO[id];if(!I)return;const seen=PROFILE.introSeen||(PROFILE.introSeen={});const L=seen[id]?I.lines.slice(0,1):I.lines.slice();seen[id]=1;writeSave();
+ G.bossIntro={name:e.def.name,title:I.title,t:0,dur:2.8};G.sayQ=L.slice(1);G.say={e,text:L[0],t:0,dur:2.4,intro:1}}
 function spawnBoss(id,x,y,mini=false){const d=BOSSES[id];const df=G.diff/STAGES[G.idx].diff*(1+.15*(G.diff-1));
  const hm=G.S.hpMul||1;const e={type:id,def:d,boss:1,mini,x,y,z:0,vz:0,hp:d.hp*df*hm,maxhp:d.hp*df*hm,dmg:d.dmg*(G.diff>STAGES[G.idx].diff?1.3:1),sp:d.sp,r:d.r,sc:d.sc||1,exp:d.exp,face:-1,state:'walk',t:0,at:0,hurtT:0,frozen:0,stun:0,slow:0,kx:0,cd:1.5,dead:0,deadT:0,phase:0,pat:null,patT:0,inv:0,hidden:0};
- G.enemies.push(e);if(!mini)G.boss=e;else G.mini=e;msg((mini?'强敌 · ':'首领 · ')+d.name+' 出现！','#ff6060');sfx('roar');G.shake=10;return e}
+ G.enemies.push(e);if(!mini)G.boss=e;else G.mini=e;bossIntro(e,id);msg((mini?'强敌 · ':'首领 · ')+d.name+' 出现！','#ff6060');sfx('roar');G.shake=10;return e}
 function earlyDmgMul(){return G.idx===0&&!PROFILE.ngplus?.6+.4*Math.min(1,G.wave/8):1}
 // 近战攻击名额：同时只允许 2–3 个近战敌人进攻，其余在外圈游走等待
 function maxAttackers(){return G.idx===0?2:3}
@@ -248,6 +252,17 @@ function special(){const p=G.p;p.energy=0;p.specialT=1.6;p.inv=1.8;G.flash=.4;G.
  const tg=G.enemies.filter(e=>!e.dead&&e.x>G.camX-20&&e.x<G.camX+W+20);let i=0;
  for(const e of tg)for(let k=0;k<(lv5?3:2);k++)G.swords.push({x:e.x+rnd(-20,20),y:e.y+1,t:-.25-(i++)*.06,e,dmg:(34+atk()*1.6)*(lv5?1.5:1),gold:lv5});
  for(let k=0;k<14;k++)G.swords.push({x:G.camX+rnd(30,W-30),y:rnd(LANE_TOP,LANE_BOT),t:-.2-k*.07,deco:1,gold:lv5})}
+// ---------- 主角移动动画状态（第 12 轮）----------
+// idle →（起步 walk_start 2 帧）→ walk（12fps）/ run（持续按住方向 0.55 秒后，速度 ×1.3，12fps）→ 松开方向：刹车 walk_stop 2 帧 → idle
+// 转身：turn_01~03（右 → 正面 → 左），播完才翻转朝向；转到一半再反向则倒放回去（快速左右点按不会跳帧）
+// 攻击 / 跳跃 / 突刺 / 施法 / 受击会立刻打断起步、刹车、转身；新的方向键会打断刹车直接走
+const RUN_AFTER=.55,RUN_MUL=1.3,LOCO_FPS=12,TURN_RATE=LOCO_FPS/3;
+function heroLoco(p,dt,free){if(p.tb==null)p.tb=p.face;
+ if(!free){p.lc='none';p.lcT=0;p.tb=p.face;p.tq=0;return}
+ const mv=!!p.moving,run=p.runT>RUN_AFTER;p.lcT=(p.lcT||0)+dt;const s=p.lc||'idle';
+ if(mv){if(s==='idle'){p.lc='start';p.lcT=0}else if(s==='start'){if(p.lcT>=2/LOCO_FPS){p.lc=run?'run':'walk';p.lcT=0;p.walk=0}}else if(s==='stop'||s==='none'){p.lc=run?'run':'walk';p.lcT=0}else p.lc=run?'run':'walk'}
+ else{if(s==='walk'||s==='run'||s==='start'){p.lc='stop';p.lcT=0}else if(s==='stop'){if(p.lcT>=2/LOCO_FPS){p.lc='idle';p.lcT=0}}else if(s==='none')p.lc='idle'}
+ if(p.face!==p.tb){p.tq=(p.tq||0)+dt*TURN_RATE;if(p.tq>=1){p.tb=p.face;p.tq=0}}else if(p.tq>0)p.tq=Math.max(0,p.tq-dt*TURN_RATE)}
 function updatePlayer(dt){const p=G.p;
  if(p.dead&&(p.hp>0||DBG_GOD)){p.dead=0;p.deadT=0;if(p.hp<=0)p.hp=p.maxhp}
  if(p.dead){p.deadT+=dt;if(p.deadT>1.6&&MODE==='play'&&p.hp<=0){MODE='over';OVER_T=0;sfx('fail')}return}
@@ -259,13 +274,14 @@ function updatePlayer(dt){const p=G.p;
  let mx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),my=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
  if(p.specialT>0){p.specialT-=dt;mx=my=0}
  if(p.castT>0){p.castT-=dt;mx=my=0}
- if(hit('j'))p.bufJ=.3;
+ if(hit('j'))p.bufJ=.3;let freeMv=0;
  // 突刺
  if(p.dashT>0){const dpr=1-p.dashT/p.dashDur;p.dashT-=dt;if(dpr>.16&&dpr<.74)p.x+=p.face*1000*dt;for(const e of G.enemies)if(!p.dashHits.includes(e)&&inReach(e,p.x-40,p.x+40,36)){p.dashHits.push(e);damage(e,p.dashDmg||atk()*2,180,p.x-p.face*50,p.dashElem,{src:p.dashSrc||'突刺冲锋'});G.hitstop=.05;gainProf(1)}
  }else if(p.spinT>0){p.spinT-=dt;p.x+=mx*80*dt}
  else if(p.landT>0&&p.atkT<=0){p.landT-=dt;p.x+=mx*sp*.4*dt}
  else if(p.atkT>0){p.atkT-=dt;p.x+=p.face*30*dt;if(p.bufJ>0&&p.combo!==9&&p.atkT<p.atkDur*.34)p.atkT=0}
- else if(p.specialT<=0&&p.castT<=0&&p.hurtT<=0){
+ else if(p.specialT<=0&&p.castT<=0&&p.hurtT<=0){freeMv=1;
+  if(mx&&mx!==p.runDir)p.runT=0;p.runDir=mx;p.runT=mx?(p.runT||0)+dt:0;if(p.runT>RUN_AFTER&&p.z<=0&&!segAt(p.x,'river'))sp*=RUN_MUL;
   if(mx)p.face=mx;p.x+=mx*sp*dt;p.y+=my*sp*.6*dt;p.walk+=(mx||my)?dt:0;p.moving=!!(mx||my);
   if(p.bufJ>0&&p.z<=0){
    if(p.plv>=3&&mx&&p.dashCd<=0&&(keys.d||keys.arrowright||keys.a||keys.arrowleft)&&p.tdash>.18){p.bufJ=0;startDash()}
@@ -283,6 +299,7 @@ function updatePlayer(dt){const p=G.p;
   if(hit('i')&&p.spells.length){p.sel=(p.sel+1)%p.spells.length;p.selFlash=.4;sfx('coin')}
  }
  if(mx)p.tdash+=dt;else p.tdash=0;
+ heroLoco(p,dt,freeMv&&p.z<=0&&p.vz<=0&&p.landT<=0&&p.atkT<=0&&p.dashT<=0&&p.spinT<=0&&p.castT<=0&&p.specialT<=0);
  // 剑气波蓄力
  if(keys.j&&p.plv>=4&&p.atkT<=0&&p.dashT<=0){p.jHold+=dt}else{if(p.jHold>.55&&p.plv>=4&&!keys.j){p.castAnim='wavecast';p.castT=.3;swordWave()}p.jHold=0}
  if(p.z>0||p.vz>0){p.jt+=dt;p.vz-=1500*dt;p.z+=p.vz*dt;if(p.z<=0){p.z=0;p.vz=0;if(p.atkT<=0&&!p.dead)p.landT=.09}}
@@ -425,7 +442,7 @@ function startGuard(e){const bs=guardStats(e),p=G.p;e.gRaise=GUARD_RAISE;e.block
 // 台词：每种触发第一次必说，之后 12 秒以上间隔、30% 几率重复本首领的一句格挡台词
 function bossSay(e,key){const L=BLOCK_LINES[e.type];if(!L)return;const seen=e.said||(e.said={});let ln=L[key];
  if(ln&&!seen[key]){seen[key]=1}else{if(key==='brk'&&!ln)return;if(G.time-(e.sayAt||-99)<12||Math.random()>=.3)return;const opts=[L.first,L.p2].filter(Boolean);ln=opts[Math.floor(Math.random()*opts.length)]}
- if(!ln)return;guardStats(e).lines++;e.sayAt=G.time;G.say={e,text:ln,t:0,dur:2.6}}
+ if(!ln)return;G.sayQ=[];guardStats(e).lines++;e.sayAt=G.time;G.say={e,text:ln,t:0,dur:2.6}}
 function guardTick(e,dt){if(e.blockCd>0)e.blockCd-=dt;const bs=guardStats(e);
  if(e.stagT>0){e.stagT-=dt;bs.staggerT+=dt;e.moving=0;if(e.stagT<=0){e.stagT=0;e.cd=Math.min(e.cd,.35)}return 1}
  if(e.gRaise>0){e.gRaise-=dt;e.moving=0;if(e.gRaise<=0){e.gRaise=0;e.guard=GUARD_DUR}return 1}
@@ -681,22 +698,25 @@ function heroAnim(p){
  if(p.jHold>.3)return ['charge',0];
  // 跳跃 6 帧：起跳下蹲 → 上升 → 顶点收腿 → 下落 → 伸腿 → 落地缓冲（脚底基线在帧内，高度由 p.z 提供）
  if(p.z>0)return ['jump',(p.jt<.07?0:p.vz>180?1:p.vz>-120?2:p.vz>-380?3:4)/6+.01];if(p.landT>0)return ['jump',.99];
+ if(p.tq>0||(p.tb!=null&&p.tb!==p.face&&p.lc&&p.lc!=='none'))return ['turn',Math.min(.99,(p.tq||0)),p.tb];// 转身帧按原朝向绘制
+ if(p.lc==='start')return ['walk_start',Math.min(.99,p.lcT*LOCO_FPS/2)];if(p.lc==='stop')return ['walk_stop',Math.min(.99,p.lcT*LOCO_FPS/2)];
+ if(p.lc==='run'&&p.moving)return ['run',(p.walk*2)%1];
  if(p.moving)return ['walk',(p.walk*1.5)%1];return ['idle',(G.t*8/6)%1]}// 走 12fps（8 帧/0.67s，配合 200px/s），待机 8fps
 // 补间：给帧数少的动作加挤压/位移，避免单帧停顿
 function heroTween(p,a,pr){const e=Math.sin(Math.min(1,pr)*Math.PI);let ox=0,oy=0,qx=1,qy=1,rot=0;
- if(a==='idle'||a==='walk'||/^atk[1-4]$/.test(a)){}// 新逐帧动画自带动作，不再补间
+ if(a==='idle'||a==='walk'||a==='run'||a==='walk_start'||a==='walk_stop'||a==='turn'||/^atk[1-4]$/.test(a)){}// 新逐帧动画自带动作，不再补间
  else if(/^atk|upslash|downslash/.test(a)){const k=pr<.18?pr/.18:1;ox=(k*10-(pr>.6?(pr-.6)*14:0));qx=1+.05*e;qy=1-.04*e;if(a==='downslash'){rot=.12*e;oy=6*e}if(a==='upslash')oy=-6*e}
  else if(a==='thrust'||a==='spin'||a==='jump'){}// 新逐帧动画（ref/jump、thrust、whirlwind），不补间
  else if(a==='charge'||a==='wavecast'){qy=1+.03*Math.sin(G.t*18);qx=1-.02*Math.sin(G.t*18);if(a==='wavecast')ox=10*e}
  else if(a==='ult'){qy=1+.05*e;qx=1-.03*e;oy=-6*e}
  else if(a==='hurt'){ox=-5*e}
  return {ox,oy,qx,qy,rot}}
-function drawHero(p,sx){const [a,pr]=heroAnim(p);const fr=HERO_ATLAS.anims[a];const name=fr[Math.min(fr.length-1,Math.floor(pr*fr.length))];const tw=heroTween(p,a,pr);
+function drawHero(p,sx){const [a,pr,fc]=heroAnim(p);const face=fc||p.face;const fr=HERO_ATLAS.anims[a];const name=fr[Math.min(fr.length-1,Math.floor(pr*fr.length))];const tw=heroTween(p,a,pr);
  shadow(sx,p.y,26-Math.min(12,p.z/10));const y=p.y-p.z;
  if(p.specialT>0){ctx.save();ctx.globalCompositeOperation='lighter';const g=ctx.createRadialGradient(sx,y-60,5,sx,y-60,120);g.addColorStop(0,p.plv>=5?'rgba(255,220,100,.6)':'rgba(140,220,255,.55)');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(sx-130,y-190,260,260);ctx.restore()}
  if(p.jHold>.3&&p.plv>=4){ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.4+.3*Math.sin(G.t*20);ell(sx,y-50,40,56,'rgba(120,200,255,.35)');ctx.restore()}
  if(p.dashT>0&&p.dashT<p.dashDur*.86){ctx.save();ctx.globalCompositeOperation='lighter';const g=ctx.createLinearGradient(sx-p.face*110,0,sx,0);g.addColorStop(0,'rgba(120,200,255,0)');g.addColorStop(1,'rgba(150,220,255,.35)');ctx.fillStyle=g;ctx.fillRect(Math.min(sx,sx-p.face*110),y-70,110,40);ctx.restore()}
- const blink=p.inv>0&&!p.specialT&&!p.dashT&&Math.floor(G.t*16)%2;drawHeroFrame(name,sx+p.face*tw.ox,y+tw.oy,p.face,HS,blink?.6:1,tw.qx,tw.qy,tw.rot);
+ const blink=p.inv>0&&!p.specialT&&!p.dashT&&Math.floor(G.t*16)%2;drawHeroFrame(name,sx+face*tw.ox,y+tw.oy,face,HS,blink?.6:1,tw.qx,tw.qy,tw.rot);
  // 剑光（装备升级=更亮更大，烈炎剑=火焰）
  if(p.atkT>0||p.spinT>0){const pr2=p.spinT>0?1-p.spinT/p.spinDur:1-p.atkT/p.atkDur;const sc=.7+.07*Math.min(5,p.atkLv);const al=Math.sin(pr2*Math.PI)*(.55+.08*Math.min(5,p.atkLv));
   if(p.spinT>0){fx('sword_slash',sx+40,y-45,sc*1.2,al,1,pr2*6);fx('sword_slash',sx-40,y-45,sc*1.2,al,-1,-pr2*6)}
@@ -746,7 +766,10 @@ function drawGuardFx(e,sx,y){const r=e.r||1,hy=y-(e.def.shape==='snowboss'?190:1
  else if(e.stagT>0){for(let i=0;i<3;i++){const a=G.t*6+i*2.09;txt('★',sx+Math.cos(a)*26*r,hy+8+Math.sin(a)*7,16,'#ffd34a','center')}}
  ctx.restore()}
 // 首领台词气泡（第一次格挡时 + 之后偶尔）
-function drawBossSay(){const s=G.say;if(!s)return;s.t+=1/60*(SPEED||1);if(s.t>s.dur||!s.e||s.e.dead){G.say=null;return}const e=s.e,a=Math.min(1,s.t/.15,(s.dur-s.t)/.3);
+function drawBossIntro(){const b=G.bossIntro;if(!b)return;b.t+=1/60*(SPEED||1);if(b.t>b.dur){G.bossIntro=null;return}const a=Math.min(1,b.t/.25,(b.dur-b.t)/.4),k=Math.min(1,b.t/.3);
+ ctx.save();ctx.globalAlpha=a;const y=200,w=420*k;const g=ctx.createLinearGradient(W/2-w/2,0,W/2+w/2,0);g.addColorStop(0,'rgba(40,0,0,0)');g.addColorStop(.5,'rgba(40,6,10,.82)');g.addColorStop(1,'rgba(40,0,0,0)');ctx.fillStyle=g;ctx.fillRect(W/2-w/2,y-34,w,68);
+ ctx.fillStyle='rgba(255,190,90,.8)';ctx.fillRect(W/2-w*.35,y-34,w*.7,2);ctx.fillRect(W/2-w*.35,y+32,w*.7,2);txt('— '+b.title+' —',W/2,y-14,15,'#ffcf7a','center');txt(b.name,W/2,y+12,28,'#fff0e0','center','#3a0008');ctx.restore()}
+function drawBossSay(){const s=G.say;if(!s){if(G.sayQ&&G.sayQ.length&&G.boss)G.say={e:G.boss,text:G.sayQ.shift(),t:0,dur:2.4,intro:1};return}s.t+=1/60*(SPEED||1);if(s.t>s.dur||!s.e||s.e.dead){G.say=null;if(s.e&&s.e.dead)G.sayQ=[];return}const e=s.e,a=Math.min(1,s.t/.15,(s.dur-s.t)/.3);
  const sx=clamp(e.x-G.camX,140,W-140),top=clamp(e.y-e.z-(e.def.shape==='snowboss'?235:160*(e.r||1)),150,H-160);ctx.save();ctx.globalAlpha=a;
  txt('',0,0,16);const w=Math.min(W-40,ctx.measureText(s.text).width+28);ctx.fillStyle='rgba(20,12,30,.86)';rr(sx-w/2,top-17,w,34,10);ctx.fill();ctx.strokeStyle='rgba(255,220,160,.85)';ctx.lineWidth=2;rr(sx-w/2,top-17,w,34,10);ctx.stroke();
  ctx.fillStyle='rgba(20,12,30,.86)';ctx.beginPath();const tx=clamp(e.x-G.camX,sx-w/2+16,sx+w/2-16);ctx.moveTo(tx-8,top+16);ctx.lineTo(tx+8,top+16);ctx.lineTo(tx,top+28);ctx.fill();
@@ -1057,7 +1080,7 @@ function drawPlay(){ctx.save();if(G.shake>0)ctx.translate(rnd(-G.shake,G.shake),
  const hs=G.B.segs.filter(s=>s.type==='hall');let cov=0;for(const s of hs)cov+=Math.max(0,Math.min(s.x1,cx+W)-Math.max(s.x0,cx));if(cov>0&&G.S.hall){ctx.globalAlpha=cov/W;ctx.fillStyle=G.S.hall.tint;ctx.fillRect(0,0,W,H);ctx.globalAlpha=1}
  if(G.bloodmoon){ctx.fillStyle='rgba(120,0,10,.18)';ctx.fillRect(0,0,W,H)}
  if(G.flash>0){ctx.fillStyle=`rgba(255,255,255,${G.flash})`;ctx.fillRect(0,0,W,H)}
- ctx.restore();drawBossSay();drawBossCue();drawDanger();drawHUD();if(G.menu)drawWitchMenu();else if(gearOpen())drawGearPrompt();
+ ctx.restore();drawBossIntro();drawBossSay();drawBossCue();drawDanger();drawHUD();if(G.menu)drawWitchMenu();else if(gearOpen())drawGearPrompt();
  if(G.clearT>0)txt(G.S.final?'吸血伯爵已被击败！':'关卡完成！',W/2,200,40,'#ffd34a','center')}
 // 受击红闪 + 低血量（<25%）脉动红色暗角
 function drawDanger(){const p=G.p;

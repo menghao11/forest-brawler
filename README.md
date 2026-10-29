@@ -155,3 +155,11 @@ __dbg.goldLog()                             // 打完几关后看每关金币
 - 台词来自 `docs/boss_block_lines.csv`（首次格挡 / 二阶段格挡 / 破防 / 残影），每种第一次必说，之后偶尔重复，以对话气泡显示在首领旁。
 - 调试：`__dbg.block()` 切换、`block(false)` 关闭、`block('always')` 每次连击都格挡、`block('stats')` 本场统计（连击次数、格挡、被挡下的次数、破防、反击、格挡 / 硬直时长、台词）。伤害日志里被挡 / 破防的命中带 `guard` 字段。
 - `tools_bossfight.js` 新增 `BLOCK=1,0`：同时跑格挡开 / 关，输出格挡率、每分钟格挡次数、被挡普攻占比、破防、反击，以及战斗时长对比（`BLOCK_CMP`）。
+
+## 主角移动动画 + 首领登场（第 12 轮，v20261028k）
+- 新帧（ref/ 打包，`python3 tools/hero_v2.py`）：walk 8 帧、run 6 帧、walk_start 2、walk_stop 2、turn 3，比例 0.625，脚底与 idle 同一地面线（跑步腾空帧离地 2–3px）。
+- 起步 walk_start_01→02 → 走路（12 fps）；按住方向 0.55 秒后自动跑步（速度 ×1.3，12 fps）；松开立刻刹车 walk_stop_01→02 → idle（12 fps）。
+- 转身：turn_01→02→03（右→正面→左），播完才翻转画面朝向；逻辑朝向立即翻转（出拳方向正确）；转到一半再反向则倒放，快速左右点按不抖。
+- 攻击 / 跳 / 突刺 / 施法 / 受击立刻打断起步、刹车、转身；刹车中按方向直接走；走/跑接出拳或跳不闪站立帧。
+- 首领登场：横幅（docs/boss_intro_lines_full.csv 的标题 + 名字）+ 最多 2 句台词气泡；同一首领再次挑战只说第 1 句（存档 introSeen）。
+- 测试：`OUT=/tmp node test_round12.js` → ROUND12_PASS。对比 GIF：ref/move/ingame_before.gif、ingame_after.gif、ingame_compare.gif（不提交）。
