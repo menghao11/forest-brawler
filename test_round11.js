@@ -19,7 +19,7 @@ async function toBoss(pg,s){await pg.evaluate(s=>{__dbg.speed(1);__dbg.resetSave
  const KEY={'首次格挡':'first','二阶段格挡':'p2','破防':'brk','格挡':'first'};let miss=csv.filter(r=>{const id=Object.keys(BL.names).find(k=>BL.names[k]===r.boss);return !id||BL.L[id][KEY[r.trig]]!==r.line});
  ok(csv.length===12&&!miss.length,'docs/boss_block_lines.csv 的 '+csv.length+' 句台词全部接入（含第 4 关残影）'+(miss.length?' 缺：'+JSON.stringify(miss):''));
  const C=await pg.evaluate(()=>({mul:GUARD_MUL,raise:GUARD_RAISE,dur:GUARD_DUR,stag:GUARD_STAG,cd:GUARD_CD,p:GUARD_P,win:GUARD_WIN,hits:GUARD_HITS}));
- ok(C.mul===.15&&C.dur+C.raise<=1.5&&C.stag===1&&C.cd[0]>=3&&C.cd[1]<=4&&C.p[0]===.35&&C.p[1]===.55&&C.hits===3&&C.win===1.5,'参数：1.5 秒内 3 下触发，几率 35%/55%，举盾 '+C.raise+' + 格挡 '+C.dur+' 秒，冷却 3–4 秒，格挡伤害 15%，破防硬直 1 秒');
+ ok(C.mul===.15&&C.dur+C.raise<=1.5&&C.stag===1&&C.cd[0]>=3&&C.cd[1]<=4&&C.p[0]===.25&&C.p[1]===.4&&C.hits===3&&C.win===1.5,'参数：1.5 秒内 3 下触发，几率 25%/40%，举盾 '+C.raise+' + 格挡 '+C.dur+' 秒，冷却 3–4 秒，格挡伤害 15%，破防硬直 1 秒');
  for(let s=1;s<=5;s++){await toBoss(pg,s);const id=IDS[s-1];
   const r=await pg.evaluate(()=>{const G=__G(),e=G.boss,T=__T,o={};__dbg.block('always');T.reset();
    T.front();T.front();o.before=!!e.gRaise;T.front();o.raise=e.gRaise>0;o.say=G.say&&G.say.text;o.flash=e.gRaise;
@@ -59,7 +59,7 @@ async function toBoss(pg,s){await pg.evaluate(s=>{__dbg.speed(1);__dbg.resetSave
   // god / atk 调试命令：格挡仍生效，倍率照常
   __dbg.atk(2);__dbg.block('always');T.front();T.front();T.front();T.step(.3);T.front();const L=T.last();o.atk={dbg:L.atkDbg,other:L.other,g:L.guard};__dbg.atk(1);o.god=__dbg.god(true)===true;o.stats=__dbg.block('stats');__dbg.block(true);T.reset();return o});
  ok(v.brkSay==='好剑……她选对人了。','吸血伯爵破防台词「'+v.brkSay+'」');
- ok(Math.abs(v.p0-.35)<.04&&Math.abs(v.p1-.55)<.04,'实测触发几率：一阶段 '+v.p0+'、二阶段 '+v.p1+'（3000 次连击）');
+ ok(Math.abs(v.p0-.25)<.04&&Math.abs(v.p1-.4)<.04,'实测触发几率：一阶段 '+v.p0+'、二阶段 '+v.p1+'（3000 次连击）');
  ok(v.atk.dbg===2&&Math.abs(v.atk.other-.15)<1e-6&&v.atk.g==='格挡'&&v.god&&v.stats&&v.stats.blocks>0,'调试：atk(2) 下格挡照常（×2 记录 + 15%），god() 正常，block(\'stats\') '+JSON.stringify(v.stats));
  // 残影小首领
  await toBoss(pg,4);

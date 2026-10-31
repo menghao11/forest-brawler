@@ -14,7 +14,7 @@ const fails=[];const ok=(c,m)=>{if(!c){console.log('FAIL',m);fails.push(m)}else 
  ok(!badFeet.length&&feet.knockdown_2<-4,'脚底贴地（帧底 − 锚点，px）：'+JSON.stringify(feet)+(badFeet.length?' 不贴地 '+JSON.stringify(badFeet):''));
  // 动画状态机（逐帧推进，暂停主循环）
  const r=await pg.evaluate(()=>{__dbg.speed(1);__dbg.resetSave();__dbg.start(1);__dbg.speed(0);const G=__G(),p=G.p,o={};p.inv=999;__dbg.god(true);
-  const mk=(type)=>{G.enemies=[];spawn(type,p.x+260,p.y,{});const e=G.enemies[G.enemies.length-1];e.hp=e.maxhp=1e6;return e};
+  const mk=(type)=>{G.enemies=[];spawn(type,p.x+260,p.y,{spawnT:0});const e=G.enemies[G.enemies.length-1];e.hp=e.maxhp=1e6;return e};
   const step=(e,t,f)=>{for(let k=0;k<Math.round(t*60);k++){G.time+=1/60;updateEnemy(e,1/60);f&&f()}};
   const A=e=>enemyAnim(e);
   let e=mk('goblin');e.cd=99;step(e,.3);o.walk=A(e).slice(0,4);

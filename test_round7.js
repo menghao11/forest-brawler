@@ -13,14 +13,14 @@ const fails=[];const ok=(c,m)=>{if(!c){console.log('FAIL',m);fails.push(m)}else 
  // 首领追赶按关卡进度；固定攻击下首领伤害% 生效
  await ev(()=>{__dbg.resetSave();__dbg.unlockAll();__dbg.start(2)});await W(300);
  r=await ev(()=>{const G=__G();const out={};
-  out.cu=[0,1,2,3,4].map(i=>{G.idx=i;return +bossCatchUp().toFixed(2)});G.idx=1;
+  out.cu=[0,1,2,3,4].map(i=>{G.idx=i;return +progCatchUp().toFixed(2)});G.idx=1;
   const p=G.p;const id=STAGES[1].boss;spawnBoss(id,p.x+300,p.y);const e=G.enemies[G.enemies.length-1];
   const hit=(d,elem)=>{e.inv=0;e.hp=e.maxhp=1e6;e.stun=0;e.frozen=0;damage(e,d,0,e.x+50,elem,{});return +(1e6-e.hp).toFixed(2)};
   p.st=Object.assign({},p.st,{crit:0,spell:0,boss:0});out.b0=hit(10);p.st.boss=.3;out.b30=hit(10);p.st.boss=0;out.atk16=hit(16);
-  out.ice=hit(10,'ice');out.iceRes=resistOf(e,'ice');PROFILE.cleared.push(STAGES[0].id);out.afterClear=hit(10);return out});
+  out.ice=hit(10,'ice');out.iceRes=resistOf(e,'ice');PROFILE.cleared.push(STAGES[0].id);out.afterClear=hit(10);out.prog=progCatchUp();out.gcu=gearCatchUp();return out});
  ok(Math.abs(r.b30/r.b0-1.3)<.01&&Math.abs(r.atk16/r.b0-1.6)<.01,'固定攻击 10：首领伤害+30% → ×'+(r.b30/r.b0).toFixed(2)+'；攻击 16 → ×'+(r.atk16/r.b0).toFixed(2)+' '+JSON.stringify(r));
  ok(Math.abs(r.ice-10*r.iceRes*.75*r.cu[1])<.05,'法术打首领 ×0.75，与近战同样吃追赶系数，首领抗性 ≥0.75 '+r.ice);
- ok(r.cu[0]===1&&r.cu[1]>1&&Math.abs(r.afterClear-10)<.05,'追赶系数只看关卡进度（通关上一关后 =1）'+JSON.stringify(r.cu));
+ ok(r.cu[0]===1&&r.cu[1]>1&&r.prog===1&&Math.abs(r.afterClear-10*Math.max(1,r.gcu))<.05,'关卡进度追赶系数（通关上一关后 =1，剩下只有装备追赶 ×'+(+r.gcu).toFixed(2)+'）'+JSON.stringify(r.cu));
  // 无敌
  await ev(()=>__dbg.start(1));await W(300);r=await ev(()=>{__dbg.god();const G=__G(),p=G.p;const d=hurtPlayer(9999);for(let i=0;i<6;i++)spawn('goblin',p.x+30+i*8,p.y,{});return {d,max:p.maxhp}});await W(3500);
  const g2=await ev(()=>({mode:__dbg.mode(),dead:__G().p.dead,hp:__G().p.hp,foes:__G().enemies.filter(e=>!e.dead).length}));

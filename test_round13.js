@@ -22,7 +22,7 @@ async function toBoss(pg,s,cleared){await pg.evaluate(([s,cl])=>{__dbg.speed(1);
    return {n:L.length,min:Math.min(...gaps),gapBlk:__dbg.dmgLog(200).filter(x=>x.target==='玩家（受击间隔）').length,ph:e.phase}});
   ok(r.n>=5&&r.min>=.72-.02,`第 ${s} 关二阶段实战约 40 游戏秒（无敌）：玩家受伤 ${r.n} 次，最短间隔 ${r.min} 秒（≥0.72），被间隔规则挡掉 ${r.gapBlk} 次`)}
  // 3) 追赶系数
- const cu=await pg.evaluate(()=>{const o={};for(let s=1;s<=5;s++)for(const cl of [0,1]){__dbg.resetSave();__dbg.unlockAll();PROFILE.cleared=cl?STAGES.slice(0,s-1).map(x=>x.id):[];__dbg.start(s);o[s+(cl?'n':'f')]=+bossCatchUp().toFixed(2)}return o});
+ const cu=await pg.evaluate(()=>{const o={};for(let s=1;s<=5;s++)for(const cl of [0,1]){__dbg.resetSave();__dbg.unlockAll();PROFILE.cleared=cl?STAGES.slice(0,s-1).map(x=>x.id):[];__dbg.start(s);o[s+(cl?'n':'f')]=+progCatchUp().toFixed(2)}return o});
  ok(cu['5f']>=4.4&&cu['5f']<=4.5&&cu['4f']>=3.6&&cu['3f']>=2.6&&cu['2f']>=1.9&&[1,2,3,4,5].every(s=>cu[s+'n']===1)&&cu['1f']===1,'跳关追赶系数（新存档 unlockAll + start）：'+JSON.stringify(cu)+'（正常通关进度 = 1）');
  // 4) 焰魔王重画 + 贴图替身
  await toBoss(pg,3,1);await pg.waitForTimeout(2500);const n0=errs.length;await pg.screenshot({path:OUT+'/screenshot_r13_flameking.png'});

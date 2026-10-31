@@ -69,14 +69,14 @@ function shopWho(){return MODE==='play'&&G?G.p:PROFILE}
 function shopSelDesc(){const c=shopCols()[SHOP.col],it=c&&c[SHOP.row];if(!it)return '';return (it.desc||'')+(it.lore&&SHOP.view!==1?'   ·  点「说明」或按 V 看背景故事':'')}
 function shopCols(){return SLOTS.map(s=>EQUIP.filter(q=>q.slot===s.id))}
 function itemState(who,it){if(who.eq&&who.eq[it.slot]===it.id)return 'eq';if((who.owned||[]).includes(it.id))return 'own';if(!it.price)return 'drop';return who.gold>=it.price?'ok':'poor'}
-function shopInput(){const cols=shopCols();if(hit('v')){SHOP.view=SHOP.view?0:1;sfx('coin')}if(SHOP.view===1){if(hit('pageup'))scrollLore(-60);if(hit('pagedown'))scrollLore(60)}if(hit('arrowleft')||hit('a'))SHOP.col=(SHOP.col+2)%3;if(hit('arrowright')||hit('d'))SHOP.col=(SHOP.col+1)%3;
+function shopInput(){const cols=shopCols();if(hit('v')){SHOP.view=SHOP.view?0:1;sfx('ui_click')}if(SHOP.view===1){if(hit('pageup'))scrollLore(-60);if(hit('pagedown'))scrollLore(60)}if(hit('arrowleft')||hit('a'))SHOP.col=(SHOP.col+2)%3;if(hit('arrowright')||hit('d'))SHOP.col=(SHOP.col+1)%3;
  if(hit('arrowup')||hit('w'))SHOP.row=Math.max(0,SHOP.row-1);if(hit('arrowdown')||hit('s'))SHOP.row++;SHOP.row=Math.min(SHOP.row,cols[SHOP.col].length-1);
  if(hit('j')||hit('enter'))shopAct(cols[SHOP.col][SHOP.row])}
 function shopAct(it){const who=shopWho(),inPlay=who!==PROFILE,st=itemState(who,it);
  if(st==='eq'){shopNote('【'+it.name+'】已经装备着','#aaa');return}
  if(st==='drop'){shopNote('【'+it.name+'】无法购买，只能由首领掉落（'+it.drop+'）','#e0b0ff');sfx('fail');return}
  if(st==='poor'){shopNote('金币不足：需要 '+it.price+'，现有 '+who.gold,'#ff8080');sfx('fail');return}
- if(st==='ok'){who.gold-=it.price;who.owned.push(it.id);if(inPlay)PROFILE.gold=Math.max(0,PROFILE.gold-it.price);sfx('coin');shopNote('购买并装备【'+it.name+'】  -'+it.price+' 金币','#ffd34a')}
+ if(st==='ok'){who.gold-=it.price;who.owned.push(it.id);if(inPlay)PROFILE.gold=Math.max(0,PROFILE.gold-it.price);sfx('shop_buy');shopNote('购买并装备【'+it.name+'】  -'+it.price+' 金币','#ffd34a')}
  else shopNote('已装备【'+it.name+'】','#8f8');
  who.eq[it.slot]=it.id;sfx('equip');
  if(inPlay){applyGear(who);PROFILE.owned=who.owned.slice();PROFILE.eq=Object.assign({},who.eq);witchCast()}
@@ -99,7 +99,7 @@ function drawShopGrid(x0,y0){const who=shopWho(),cols=shopCols();
    txt(ss.slice(0,2).join('  '),x+38,y+31,10.5,'#ddd','left','#000',false);if(ss.length>2)txt(ss.slice(2).join('  '),x+38,y+44,10.5,'#ddd','left','#000',false);
    const lab=st==='eq'?'装备中':st==='own'?'已拥有':st==='drop'?'首领掉落':it.price+'金';
    txt(lab,x+SHOP_CW-7,y+14,12,st==='eq'?'#8f8':st==='own'?'#9fd0ff':st==='ok'?'#ffd34a':st==='drop'?'#c9a0ff':'#ff8080','right');ctx.globalAlpha=1;
-   RECTS.push({x,y,w:SHOP_CW,h:SHOP_CH,fn:()=>{if(SHOP.col===ci&&SHOP.row===ri)shopAct(it);else{SHOP.col=ci;SHOP.row=ri;sfx('coin')}}})})})}
+   RECTS.push({x,y,w:SHOP_CW,h:SHOP_CH,fn:()=>{if(SHOP.col===ci&&SHOP.row===ri)shopAct(it);else{SHOP.col=ci;SHOP.row=ri;sfx('ui_click')}}})})})}
 // 右侧：当前装备 + 总属性（选中物品时显示装备后的变化）
 // 自动换行（中文逐字；行首不放标点，行尾不放开引号/开括号）
 const NO_HEAD='，。、；：？！…）」』”’》〉】,.;:?!)%',NO_TAIL='（「『“‘《〈【(';

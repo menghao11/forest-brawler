@@ -4,8 +4,8 @@
  const isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0;
  function fit(){const w=innerWidth,h=innerHeight,s=Math.min(w/960,h/540);cv.style.width=960*s+'px';cv.style.height=540*s+'px'}
  addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,200));fit();
- // iOS: 在 touchend 中恢复 AudioContext
- const unlock=()=>{auInit();if(AU.ctx&&AU.ctx.state!=='running')AU.ctx.resume()};
+ // iOS：第一次触摸（touchstart/touchend）里创建 / 恢复 AudioContext 并播无声缓冲解锁（auUnlock）
+ const unlock=()=>auUnlock();
  document.addEventListener('touchend',unlock,{passive:true});document.addEventListener('touchstart',unlock,{passive:true});
  document.addEventListener('gesturestart',e=>e.preventDefault());
  document.addEventListener('contextmenu',e=>e.preventDefault());

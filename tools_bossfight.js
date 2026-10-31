@@ -9,9 +9,11 @@ const HERO={normal:{1:{atkLv:0,eq:{weapon:'w1',armor:'a1'}},2:{atkLv:0,eq:{weapo
  fresh:{1:{atkLv:0,eq:{}},2:{atkLv:0,eq:{}},3:{atkLv:0,eq:{}},4:{atkLv:0,eq:{}},5:{atkLv:0,eq:{}}}};
 // review：评审的玩法 = 新存档 unlockAll() + start(关) + god(true)，0 级、无装备（跳关追赶系数最大）
 HERO.review=HERO.fresh;
+// lv2：评审第二次复测 = 正常通关进度（不吃跳关追赶），但英雄只有 Lv2（攻击升级 2 次）+ 寒铁剑 / 皮甲 + 屠魔戒（首领伤害 +30%）——装备落后于关卡
+HERO.lv2={};for(const s of [1,2,3,4,5])HERO.lv2[s]={atkLv:2,eq:{weapon:'w2',armor:'a2',acc:'r4'}};
 async function fight(b,stage,hero,blk=1){const pg=await b.newPage({viewport:{width:960,height:540}});const errs=[];pg.on('pageerror',e=>errs.push(e.message));
  await pg.goto(URL);await pg.waitForTimeout(700);const H=HERO[hero][stage];
- await pg.evaluate(([s,H,hero,blk])=>{__dbg.block(!!blk);__dbg.god(hero==='review');__dbg.resetSave();__dbg.unlockAll();PROFILE.cleared=hero==='normal'?[1,2,3,4,5].slice(0,s-1).map(i=>STAGES[i-1].id):[];__dbg.start(s);
+ await pg.evaluate(([s,H,hero,blk])=>{__dbg.block(!!blk);__dbg.god(hero==='review');__dbg.resetSave();__dbg.unlockAll();PROFILE.cleared=hero==='normal'||hero==='lv2'?[1,2,3,4,5].slice(0,s-1).map(i=>STAGES[i-1].id):[];__dbg.start(s);
   const G=__G(),p=G.p;p.atkLv=H.atkLv;p.eq=Object.assign({},H.eq);p.owned=Object.values(H.eq);applyGear(p,true);p.hp=p.maxhp;
   const B=G.B;G.enemies=[];G.pickups=[];G.wave=B.waves.length-1;G.lockX=null;const wx=B.waves[G.wave].x;G.camX=wx;p.x=wx+W*.4+10;p.y=(LANE_TOP+LANE_BOT)/2;__dbg.dmgLog('clear');__dbg.speed(1)},[stage,H,hero,blk]);
  await pg.waitForTimeout(400);
